@@ -946,14 +946,22 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 /* Desktop & Tablet Responsive Design */
 @media (min-width: 768px){
   body{min-height:100vh}
+  body.fullscreen-mode{max-width:none;margin:0}
 }
 
 @media (min-width: 1024px){
   body{min-height:100vh}
+  body.fullscreen-mode{max-width:none;margin:0}
 }
 
 @media (min-width: 1440px){
   body{min-height:100vh}
+  body.fullscreen-mode{max-width:none;margin:0}
+}
+
+/* Mobile only - hide fullscreen mode (desktop/tablet only feature) */
+@media (max-width: 767px){
+  #fullscreen-mode-btn{display:none!important}
 }
 
 /* Overlay */
@@ -2925,13 +2933,9 @@ const LENORMAND_IMAGES = {
   <div id="announcement-content" style="text-align:center;padding:0 24px;max-width:420px;width:100%;position:relative;z-index:1;height:100%;max-height:100vh;display:flex;flex-direction:column;box-sizing:border-box;align-items:center;">
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;padding-bottom:8px;">
       
-      <!-- 顶部留白与装饰线 -->
-      <div style="width:56px;height:2px;background:linear-gradient(90deg, transparent, #c9a96e, transparent);margin:40px auto 24px;border-radius:1px;"></div>
-      
       <!-- 主标题 -->
-      <div style="text-align:center;margin-bottom:4px;">
+      <div style="text-align:center;margin-bottom:4px;margin-top:40px;">
         <div style="font-size:38px;color:#2c2416;font-weight:300;letter-spacing:16px;font-family:serif;">星言</div>
-        <div style="font-size:10px;color:#b8a88a;letter-spacing:10px;margin-top:6px;font-weight:300;">STAR WORDS</div>
       </div>
       
       <!-- 开发者信息 -->
@@ -4213,7 +4217,6 @@ const LENORMAND_IMAGES = {
     <!-- 头部 -->
     <div style="text-align:center;margin-bottom:8px;padding-top:8px;">
       <div style="font-size:22px;font-weight:300;color:#2c2416;letter-spacing:8px;font-family:serif;">星言</div>
-      <div style="font-size:10px;color:#b8a88a;letter-spacing:6px;margin-top:4px;">STAR WORDS</div>
       <div style="font-size:12px;color:#9c8b7b;margin-top:10px;line-height:1.8;">设计与开发：小红书@云朵猫（1842523578）</div>
       <div style="font-size:12px;color:#9c8b7b;">个人开发项目</div>
     </div>
@@ -4243,7 +4246,7 @@ const LENORMAND_IMAGES = {
         <p style="margin:0 0 8px;">这些内容仅作为创作方向、功能思路和设计灵感参考。</p>
         <p style="margin:0 0 8px;">星言并非复刻、转载或二次制作其他作品。</p>
         <p style="margin:0 0 8px;">具体功能设计、页面呈现、功能组合和实现方式，均根据星言自身需求进行独立设计。</p>
-        <p style="margin:0;">感谢所有灵感来源。</p>
+        <p style="margin:0;">感谢所有灵感来源及创作者。</p>
       </div>
     </div>
     
@@ -4375,7 +4378,6 @@ const LENORMAND_IMAGES = {
     
     <!-- 底部 -->
     <div style="text-align:center;padding:20px 0 30px;">
-      <div style="width:48px;height:2px;background:linear-gradient(90deg, transparent, #c9a96e, transparent);margin:0 auto 16px;border-radius:1px;"></div>
       <div style="font-size:16px;font-weight:300;color:#2c2416;letter-spacing:4px;font-family:serif;">星言</div>
       <div style="font-size:12px;color:#9c8b7b;margin-top:6px;letter-spacing:2px;">让想说的话，被看见。</div>
     </div>
@@ -4408,6 +4410,7 @@ const LENORMAND_IMAGES = {
       <div class="my-row" id="clear-cache-btn" style="color:#ff4d4f;cursor:pointer;-webkit-tap-highlight-color:transparent;"><span class="my-ico">🗑️</span><span class="my-label">清除数据</span></div>
       <div class="my-row" id="keep-alive-btn" style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:12px;"><span class="my-ico">🔋</span><span class="my-label">后台保活</span></div><div style="display:flex;align-items:center;gap:8px;"><span id="keep-alive-status" style="font-size:12px;color:var(--txt3)">已开启</span></div></div>
       <div class="my-row" id="push-notify-btn" style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:12px;"><span class="my-ico">🔔</span><span class="my-label">后台消息弹窗</span></div><div style="display:flex;align-items:center;gap:8px;"><span id="push-notify-status" style="font-size:12px;color:var(--txt3)">已开启</span></div></div>
+      <div class="my-row" id="fullscreen-mode-btn" style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:12px;"><span class="my-ico">🖥️</span><span class="my-label">全屏模式</span></div><div style="display:flex;align-items:center;gap:8px;"><span id="fullscreen-mode-status" style="font-size:12px;color:var(--txt3)">已关闭</span></div></div>
       <input type="file" id="import-data-input" accept=".json" style="display:none;">
       <input type="file" id="tb-import-input" accept=".json" style="display:none;">
     </div>
@@ -6019,12 +6022,12 @@ const LENORMAND_IMAGES = {
     <div class="sh"><h3>导出字卡</h3><button class="btn-close" onclick="hideOv('ov-export-cards')">✕</button></div>
     <div class="sb" style="padding:16px;">
       <div style="margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px;">选择要导出的分类</div>
-        <div id="export-categories" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-      </div>
-      <div style="margin-bottom:20px;">
         <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px;">选择字卡类型</div>
         <div id="export-types" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <div id="export-groups-section" style="margin-bottom:20px;display:none;">
+        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px;">选择分组</div>
+        <div id="export-groups" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       </div>
       <div style="margin-bottom:16px;padding:12px;background:var(--c2);border-radius:10px;font-size:12px;color:var(--txt3);" id="export-preview-info">
         将导出 0 张字卡
@@ -6039,10 +6042,6 @@ const LENORMAND_IMAGES = {
   <div class="sheet" style="max-height:80vh;">
     <div class="sh"><h3>导入字卡</h3><button class="btn-close" onclick="hideOv('ov-import-cards')">✕</button></div>
     <div class="sb" style="padding:16px;">
-      <div style="margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px;">选择要导入的分类</div>
-        <div id="import-categories" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-      </div>
       <div style="margin-bottom:20px;">
         <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px;">选择字卡类型</div>
         <div id="import-types" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -7011,6 +7010,8 @@ var Storage = (function(){
   var stats = {reads:0, writes:0, hits:0, misses:0, errors:0};
   var _lfReady = false;
   var _lfFailed = false;
+  var lsWriteQueue = {};
+  var lsWriteTimer = null;
   
   function markReady(){ _lfReady = true; _lfFailed = false; setTimeout(function(){ restoreFromDB(); }, 300); }
   function markFailed(){ _lfFailed = true; _lfReady = false; console.warn('Storage: localforage unavailable, using localStorage fallback'); }
@@ -7049,6 +7050,22 @@ var Storage = (function(){
   }
   
   function cleanupStorage(){
+    flushLSWrites();
+  }
+
+  function flushLSWrites(){
+    var keys = Object.keys(lsWriteQueue);
+    if(keys.length === 0) return;
+    for(var i = 0; i < keys.length; i++){
+      try { localStorage.setItem('ml2_lf_' + keys[i], lsWriteQueue[keys[i]]); } catch(e) {}
+    }
+    lsWriteQueue = {};
+    if(lsWriteTimer){ clearTimeout(lsWriteTimer); lsWriteTimer = null; }
+  }
+
+  function scheduleLSFlush(){
+    if(lsWriteTimer) return;
+    lsWriteTimer = setTimeout(flushLSWrites, 16);
   }
   
   function flushWrites(){
@@ -7087,8 +7104,8 @@ var Storage = (function(){
     scheduleFlush();
     var isLargeDataKey=k.startsWith('ml2_card_img_')||k.startsWith('ml2_msg_img_')||k.startsWith('ml2_avh_')||k.startsWith('ml2_avatar_lib_')||k==='ml2_c'||k==='ml2_groups';
     if(!isLargeDataKey){
-      safeSetItem('ml2_lf_'+k, v);
-      try{sessionStorage.setItem('_lastWrite_'+k, Date.now())}catch(e){}
+      lsWriteQueue[k] = (typeof v === 'object') ? JSON.stringify(v) : v;
+      scheduleLSFlush();
     }
     return true;
   }
@@ -7295,6 +7312,7 @@ var Storage = (function(){
     getStats: getStats,
     cache: cache,
     flushWrites: flushWrites,
+    flushLSWrites: flushLSWrites,
     markReady: markReady,
     markFailed: markFailed,
     isLFAvailable: isLFAvailable
@@ -7305,8 +7323,19 @@ Storage.init();
 loadCardPrivateContacts();
 setTimeout(function(){seedDefaultNavCards().catch(function(e){console.warn('seedDefaultNavCards delayed failed:',e);});}, 1500);
 
+setTimeout(function(){
+  if(!window.html2canvas){
+    var script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    script.async=true;
+    script.defer=true;
+    document.head.appendChild(script);
+  }
+}, 3000);
+
 window.addEventListener('beforeunload', function(){
   if(Storage.flushWrites) Storage.flushWrites();
+  if(Storage.flushLSWrites) Storage.flushLSWrites();
 });
 
 var memoryCache = Storage.cache;
@@ -13938,7 +13967,7 @@ function performTouch(targetId,action){
     s:SELF, t:'', ts:new Date(), pc:false,
     isAuto:false, isInitiative:false,
     isTouch:true, touchAction:action,
-    touchTarget: isGroupCtx ? targetName : targetName,
+    touchTarget: targetName,
     isGroup:!!group||!!isGroupCtx,
     senderName: senderName,
     senderId: me.id,
@@ -13947,19 +13976,13 @@ function performTouch(targetId,action){
   m.push(newMsg);
   savemsgs(sendTargetId,m);
   if(cid===sendTargetId){
+    renderMsgs(m);
     showTouchAnimation(action, targetName);
   }
-  renderMsgs(m);
-  if(!isGroupCtx){
-    setTimeout(function(){
-      renderChatList();
-      scheduleTouchReply(sendTargetId);
-    },300);
-  }else{
-    setTimeout(function(){
-      scheduleTouchReply(sendTargetId);
-    },500);
-  }
+  setTimeout(function(){
+    renderChatList();
+    scheduleTouchReply(sendTargetId);
+  },200);
 }
 function scheduleTouchReply(targetId){
   if(!targetId)return;
@@ -14336,44 +14359,10 @@ var _cardTypes=[
 ];
 
 function openExportCardsDialog(){
-  var selectedCats={};
-  _cardCategories.forEach(function(c){selectedCats[c.key]=true;});
   var selectedType='all';
+  var selectedGroups={};
   
-  var container=$('export-categories');
-  container.innerHTML='';
-  _cardCategories.forEach(function(cat){
-    var cnt=globalCards.filter(function(c){return c.category===cat.key}).length;
-    var chip=document.createElement('div');
-    chip.className='export-cat-chip selected';
-    chip.style.cssText='padding:10px 16px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.25s ease;border:2px solid var(--accent);background:linear-gradient(135deg,rgba(var(--accent-rgb),0.15),rgba(var(--accent-rgb),0.08));color:var(--accent);display:flex;align-items:center;gap:6px;font-weight:500;box-shadow:0 2px 8px rgba(var(--accent-rgb),0.15);transform:scale(1.02);';
-    chip.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:bold;">✓</span>'+cat.icon+' '+cat.label+' <span style="opacity:0.7;font-size:11px;background:rgba(255,255,255,0.3);padding:1px 6px;border-radius:10px;">('+cnt+')</span>';
-    chip.dataset.cat=cat.key;
-    chip.onclick=function(){
-      var key=this.dataset.cat;
-      if(selectedCats[key]){
-        selectedCats[key]=false;
-        this.style.borderColor='var(--border)';
-        this.style.background='var(--c2)';
-        this.style.color='var(--txt3)';
-        this.style.boxShadow='none';
-        this.style.transform='scale(1)';
-        this.style.fontWeight='normal';
-        this.innerHTML=cat.icon+' '+cat.label+' <span style="opacity:0.6;font-size:11px;">('+cnt+')</span>';
-      }else{
-        selectedCats[key]=true;
-        this.style.borderColor='var(--accent)';
-        this.style.background='linear-gradient(135deg,rgba(var(--accent-rgb),0.15),rgba(var(--accent-rgb),0.08))';
-        this.style.color='var(--accent)';
-        this.style.boxShadow='0 2px 8px rgba(var(--accent-rgb),0.15)';
-        this.style.transform='scale(1.02)';
-        this.style.fontWeight='500';
-        this.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:bold;">✓</span>'+cat.icon+' '+cat.label+' <span style="opacity:0.7;font-size:11px;background:rgba(255,255,255,0.3);padding:1px 6px;border-radius:10px;">('+cnt+')</span>';
-      }
-      updateExportPreview();
-    };
-    container.appendChild(chip);
-  });
+  loadGlobalCards();
   
   var typeContainer=$('export-types');
   typeContainer.innerHTML='';
@@ -14385,6 +14374,7 @@ function openExportCardsDialog(){
     label.onclick=function(){
       selectedType=t.key;
       updateExportTypeUI();
+      rebuildGroupList();
       updateExportPreview();
     };
     typeContainer.appendChild(label);
@@ -14400,13 +14390,125 @@ function openExportCardsDialog(){
     });
   };
   
+  function rebuildGroupList(){
+    var groupsSection=$('export-groups-section');
+    var groupsContainer=$('export-groups');
+    groupsContainer.innerHTML='';
+    
+    var filteredGroups=cardGroups.filter(function(g){
+      if(selectedType==='public'&&(g.type==='private'||g.type==='personal'))return false;
+      if(selectedType==='private'&&g.type==='public')return false;
+      return true;
+    });
+    
+    if(filteredGroups.length===0){
+      groupsSection.style.display='none';
+      return;
+    }
+    
+    groupsSection.style.display='block';
+    
+    var categoriesMap={};
+    _cardCategories.forEach(function(c){
+      categoriesMap[c.key]={label:c.label,icon:c.icon,groups:[]};
+    });
+    
+    filteredGroups.forEach(function(g){
+      var cat=g.category||'custom';
+      if(!categoriesMap[cat])categoriesMap[cat]={label:cat,icon:'📝',groups:[]};
+      categoriesMap[cat].groups.push(g);
+    });
+    
+    var hasAnyGroup=false;
+    _cardCategories.forEach(function(cat){
+      var catData=categoriesMap[cat.key];
+      if(!catData||catData.groups.length===0)return;
+      hasAnyGroup=true;
+      
+      var totalCards=0;
+      catData.groups.forEach(function(g){
+        totalCards+=globalCards.filter(function(c){return c.groupId===g.id;}).length;
+      });
+      
+      var sectionDiv=document.createElement('div');
+      sectionDiv.style.cssText='margin-bottom:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden;';
+      
+      var headerDiv=document.createElement('div');
+      headerDiv.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--c2);cursor:pointer;user-select:none;';
+      headerDiv.innerHTML='<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">'+catData.icon+'</span><span style="font-size:13px;font-weight:600;color:var(--txt);">'+catData.label+'</span><span style="font-size:11px;color:var(--txt3);">('+catData.groups.length+'组 · '+totalCards+'张)</span></div><div style="display:flex;align-items:center;gap:6px;"><span class="cat-check" style="font-size:11px;color:var(--accent);cursor:pointer;padding:2px 6px;border-radius:4px;background:rgba(var(--accent-rgb),0.1);">全选</span><span class="cat-arrow" style="font-size:10px;color:var(--txt3);transition:transform 0.2s;">▶</span></div>';
+      
+      var bodyDiv=document.createElement('div');
+      bodyDiv.style.cssText='padding:8px 12px;background:var(--c1);display:none;flex-wrap:wrap;gap:6px;';
+      
+      catData.groups.forEach(function(g){
+        var cnt=globalCards.filter(function(c){return c.groupId===g.id;}).length;
+        var isSelected=selectedGroups[g.id]!==false;
+        selectedGroups[g.id]=isSelected;
+        var chip=document.createElement('div');
+        chip.style.cssText='padding:6px 12px;border-radius:14px;font-size:12px;cursor:pointer;transition:all 0.2s ease;border:1.5px solid '+(isSelected?'var(--accent)':'var(--border)')+';background:'+(isSelected?'linear-gradient(135deg,rgba(var(--accent-rgb),0.15),rgba(var(--accent-rgb),0.08))':'var(--c2)')+';color:'+(isSelected?'var(--accent)':'var(--txt3)')+';display:flex;align-items:center;gap:3px;font-weight:'+(isSelected?'500':'normal')+';';
+        chip.innerHTML=(isSelected?'✓ ':'')+g.name+' ('+cnt+')';
+        chip.dataset.gid=g.id;
+        chip.onclick=function(){
+          var gid=this.dataset.gid;
+          if(selectedGroups[gid]){
+            selectedGroups[gid]=false;
+            this.style.borderColor='var(--border)';
+            this.style.background='var(--c2)';
+            this.style.color='var(--txt3)';
+            this.style.fontWeight='normal';
+            this.innerHTML=g.name+' ('+cnt+')';
+          }else{
+            selectedGroups[gid]=true;
+            this.style.borderColor='var(--accent)';
+            this.style.background='linear-gradient(135deg,rgba(var(--accent-rgb),0.15),rgba(var(--accent-rgb),0.08))';
+            this.style.color='var(--accent)';
+            this.style.fontWeight='500';
+            this.innerHTML='✓ '+g.name+' ('+cnt+')';
+          }
+          updateExportPreview();
+        };
+        bodyDiv.appendChild(chip);
+      });
+      
+      var arrow=headerDiv.querySelector('.cat-arrow');
+      headerDiv.querySelector('.cat-check').onclick=function(e){
+        e.stopPropagation();
+        var allSelected=catData.groups.every(function(g){return selectedGroups[g.id]!==false;});
+        catData.groups.forEach(function(g){
+          selectedGroups[g.id]=!allSelected;
+        });
+        rebuildGroupList();
+        updateExportPreview();
+      };
+      headerDiv.onclick=function(){
+        if(bodyDiv.style.display==='none'){
+          bodyDiv.style.display='flex';
+          arrow.textContent='▼';
+        }else{
+          bodyDiv.style.display='none';
+          arrow.textContent='▶';
+        }
+      };
+      
+      sectionDiv.appendChild(headerDiv);
+      sectionDiv.appendChild(bodyDiv);
+      groupsContainer.appendChild(sectionDiv);
+    });
+    
+    if(!hasAnyGroup){
+      groupsSection.style.display='none';
+    }
+  }
+  
   function updateExportPreview(){
-    var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
     var typeVal=selectedType;
+    var selectedGroupIds=Object.keys(selectedGroups).filter(function(k){return selectedGroups[k];});
     var count=globalCards.filter(function(c){
-      if(!catList.includes(c.category))return false;
-      if(typeVal==='public'&&c.type==='private')return false;
-      if(typeVal==='private'&&c.type!=='private')return false;
+      if(typeVal==='public'&&(c.type==='private'||c.type==='personal'))return false;
+      if(typeVal==='private'&&c.type==='public')return false;
+      if(selectedGroupIds.length>0){
+        if(!c.groupId||!selectedGroupIds.includes(c.groupId))return false;
+      }
       return true;
     }).length;
     $('export-preview-info').textContent='将导出 '+count+' 张字卡';
@@ -14420,16 +14522,13 @@ function openExportCardsDialog(){
   }
   
   $('export-cards-confirm').onclick=async function(){
-    var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
     var typeVal=selectedType;
-    if(catList.length===0){
-      toast('请至少选择一个分类');
-      return;
-    }
+    var selectedGroupIds=Object.keys(selectedGroups).filter(function(k){return selectedGroups[k];});
     hideOv('ov-export-cards');
-    await exportCardsJSON({categories:catList,cardType:typeVal});
+    await exportCardsJSON({categories:_cardCategories.map(function(c){return c.key;}),cardType:typeVal,groupIds:selectedGroupIds});
   };
   
+  rebuildGroupList();
   updateExportPreview();
   showOv('ov-export-cards');
 }
@@ -14437,42 +14536,7 @@ function openExportCardsDialog(){
 var _importFileData=null;
 function openImportCardsDialog(){
   _importFileData=null;
-  var selectedCats={};
-  _cardCategories.forEach(function(c){selectedCats[c.key]=true;});
   var selectedType='all';
-  
-  var container=$('import-categories');
-  container.innerHTML='';
-  _cardCategories.forEach(function(cat){
-    var chip=document.createElement('div');
-    chip.className='import-cat-chip selected';
-    chip.style.cssText='padding:10px 16px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.25s ease;border:2px solid var(--accent);background:linear-gradient(135deg,rgba(var(--accent-rgb),0.15),rgba(var(--accent-rgb),0.08));color:var(--accent);display:flex;align-items:center;gap:6px;font-weight:500;box-shadow:0 2px 8px rgba(var(--accent-rgb),0.15);transform:scale(1.02);';
-    chip.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:bold;">✓</span>'+cat.icon+' '+cat.label;
-    chip.dataset.cat=cat.key;
-    chip.onclick=function(){
-      var key=this.dataset.cat;
-      if(selectedCats[key]){
-        selectedCats[key]=false;
-        this.style.borderColor='var(--border)';
-        this.style.background='var(--c2)';
-        this.style.color='var(--txt3)';
-        this.style.boxShadow='none';
-        this.style.transform='scale(1)';
-        this.style.fontWeight='normal';
-        this.innerHTML=cat.icon+' '+cat.label;
-      }else{
-        selectedCats[key]=true;
-        this.style.borderColor='var(--accent)';
-        this.style.background='linear-gradient(135deg,rgba(var(--accent-rgb),0.15),rgba(var(--accent-rgb),0.08))';
-        this.style.color='var(--accent)';
-        this.style.boxShadow='0 2px 8px rgba(var(--accent-rgb),0.15)';
-        this.style.transform='scale(1.02)';
-        this.style.fontWeight='500';
-        this.innerHTML='<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:bold;">✓</span>'+cat.icon+' '+cat.label;
-      }
-    };
-    container.appendChild(chip);
-  });
   
   var typeContainer=$('import-types');
   typeContainer.innerHTML='';
@@ -14520,7 +14584,7 @@ function openImportCardsDialog(){
             return;
           }
           
-          var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
+          var catList=_cardCategories.map(function(c){return c.key;});
           var typeVal=selectedType;
           var overwrite=$('import-overwrite').checked;
           
@@ -14540,11 +14604,6 @@ function openImportCardsDialog(){
   
   fileInput.onchange=onFileSelect;
   $('import-cards-confirm').onclick=function(){
-    var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
-    if(catList.length===0){
-      toast('请至少选择一个分类');
-      return;
-    }
     fileInput.click();
   };
   
@@ -14571,8 +14630,11 @@ async function exportCardsJSON(options){
   
   var filteredCards=globalCards.filter(function(c){
     if(!opts.categories.includes(c.category))return false;
-    if(opts.cardType==='public'&&c.type==='private')return false;
-    if(opts.cardType==='private'&&c.type!=='private')return false;
+    if(opts.cardType==='public'&&(c.type==='private'||c.type==='personal'))return false;
+    if(opts.cardType==='private'&&c.type==='public')return false;
+    if(opts.groupIds&&opts.groupIds.length>0){
+      if(!c.groupId||!opts.groupIds.includes(c.groupId))return false;
+    }
     return true;
   });
   
@@ -20830,6 +20892,7 @@ function bindMyPageEvents(){
     }],
     ['keep-alive-btn',toggleKeepAlive],
     ['push-notify-btn',togglePushNotify],
+    ['fullscreen-mode-btn',toggleFullscreenMode],
     ['custom-settings-back',function(){hideCustomSettings()}],
     ['custom-settings-add-btn',addCustomCard],
     ['custom-settings-dedup-btn',clearDuplicateCards],
@@ -24169,6 +24232,59 @@ function togglePushNotify(){
     updatePushNotifyStatusUI();
     toast('后台消息弹窗已关闭');
   }
+}
+
+function toggleFullscreenMode(){
+  if(window.innerWidth<768){
+    toast('此功能仅支持电脑和平板');
+    return;
+  }
+  var enabled=!document.body.classList.contains('fullscreen-mode');
+  if(enabled){
+    document.body.classList.add('fullscreen-mode');
+    try{
+      var el=document.documentElement;
+      if(el.requestFullscreen)el.requestFullscreen();
+      else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+      else if(el.mozRequestFullScreen)el.mozRequestFullScreen();
+    }catch(e){}
+    ls('fullscreenModeEnabled',true);
+    updateFullscreenStatusUI();
+    toast('全屏模式已开启');
+  }else{
+    document.body.classList.remove('fullscreen-mode');
+    try{
+      if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();
+      else if(document.webkitFullscreenElement&&document.webkitExitFullscreen)document.webkitExitFullscreen();
+      else if(document.mozFullScreenElement&&document.mozCancelFullScreen)document.mozCancelFullScreen();
+    }catch(e){}
+    ls('fullscreenModeEnabled',false);
+    updateFullscreenStatusUI();
+    toast('全屏模式已关闭');
+  }
+}
+
+function updateFullscreenStatusUI(){
+  var status=$('fullscreen-mode-status');
+  if(!status)return;
+  var enabled=document.body.classList.contains('fullscreen-mode');
+  status.textContent=enabled?'已开启':'已关闭';
+  status.style.color=enabled?'var(--accent)':'var(--txt3)';
+}
+
+function initFullscreenMode(){
+  var enabled=ls('fullscreenModeEnabled');
+  if(enabled&&window.innerWidth>=768){
+    document.body.classList.add('fullscreen-mode');
+  }
+  updateFullscreenStatusUI();
+  window.addEventListener('resize',function(){
+    if(window.innerWidth<768&&document.body.classList.contains('fullscreen-mode')){
+      document.body.classList.remove('fullscreen-mode');
+      ls('fullscreenModeEnabled',false);
+      updateFullscreenStatusUI();
+    }
+  });
 }
 
 function showPushNotification(contactName, message, avatarUrl, contactId){
@@ -29005,17 +29121,16 @@ function renderBeautifyPreview(settings){
   
   html+='<div style="display:flex;align-items:flex-start;gap:8px;width:100%">';
   html+='<div style="width:32px;height:32px;border-radius:4px;background:'+settings.otherBubbleBg+';display:flex;align-items:center;justify-content:center;font-size:14px;color:'+settings.otherBubbleText+'">星</div>';
-  html+='<div class="mb other" style="background:'+settings.otherBubbleBg+';color:'+settings.otherBubbleText+';padding:'+padding+'px;border-radius:20px 20px 20px 0;font-size:'+fontSize+'px;max-width:70%;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.06);text-shadow:0 1px 1px rgba(0,0,0,0.1)">正在输入文字中</div>';
+  html+='<div class="mb other" style="background:'+settings.otherBubbleBg+';color:'+settings.otherBubbleText+';padding:'+padding+'px;border-radius:20px 20px 20px 0;font-size:'+fontSize+'px;max-width:70%;line-height:1.5;box-sizing:border-box;">正在输入文字中</div>';
   html+='</div>';
   
   html+='<div style="display:flex;align-items:flex-start;gap:8px;width:100%;justify-content:flex-end">';
-  html+='<div class="mb self" style="background:'+settings.myBubbleBg+';color:'+settings.myBubbleText+';padding:'+padding+'px;border-radius:20px 20px 0 20px;font-size:'+fontSize+'px;max-width:70%;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.06);text-shadow:0 1px 1px rgba(0,0,0,0.1)">正在挑选字卡中</div>';
+  html+='<div class="mb self" style="background:'+settings.myBubbleBg+';color:'+settings.myBubbleText+';padding:'+padding+'px;border-radius:20px 20px 0 20px;font-size:'+fontSize+'px;max-width:70%;line-height:1.5;box-sizing:border-box;">正在挑选字卡中</div>';
   html+='<div style="width:32px;height:32px;border-radius:4px;background:'+settings.myBubbleBg+';display:flex;align-items:center;justify-content:center;font-size:14px;color:'+settings.myBubbleText+'">言</div>';
   html+='</div>';
   
   preview.innerHTML=html;
   
-  // Apply custom CSS to preview
   if(customCSS){
     var previewStyle=document.getElementById('beautify-preview-style');
     if(!previewStyle){
@@ -29023,13 +29138,20 @@ function renderBeautifyPreview(settings){
       previewStyle.id='beautify-preview-style';
       document.head.appendChild(previewStyle);
     }
-    var mappedPreviewCSS=customCSS
-      .replace(/\.message-sent\b/g,'.mr.self .mb')
-      .replace(/\.message-received\b/g,'.mr.other .mb');
-    previewStyle.textContent='#beautify-preview .mb.self,'+
-      '#beautify-preview .mb.other{'+
-      '}'+
-      mappedPreviewCSS;
+    var hasSelectors=/\{[\s\S]*\}/.test(customCSS);
+    if(!hasSelectors){
+      previewStyle.textContent='#beautify-preview .mb.self{'+customCSS+'}'+
+        '#beautify-preview .mb.other{'+customCSS+'}';
+    }else{
+      var mappedPreviewCSS=customCSS
+        .replace(/\.message-sent\b/g,'.mb.self')
+        .replace(/\.message-received\b/g,'.mb.other');
+      previewStyle.textContent='#beautify-preview .mb.self{'+mappedPreviewCSS+'}'+
+        '#beautify-preview .mb.other{'+mappedPreviewCSS+'}';
+    }
+  }else{
+    var previewStyle=document.getElementById('beautify-preview-style');
+    if(previewStyle)previewStyle.textContent='';
   }
 }
 
@@ -29153,8 +29275,8 @@ $('clear-css-btn').addEventListener('click',function(){
 });
 
 var _cssApplied=false;
-$('apply-css-btn').addEventListener('touchend',function(e){e.preventDefault();_cssApplied=true;doApplyCSS()});
-$('apply-css-btn').addEventListener('click',function(){if(_cssApplied){_cssApplied=false;return;}doApplyCSS()});
+$('apply-css-btn').addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();_cssApplied=true;doApplyCSS()});
+$('apply-css-btn').addEventListener('click',function(e){e.preventDefault();if(_cssApplied){_cssApplied=false;return;}doApplyCSS()});
 function doApplyCSS(){
   var entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
   if(!entity&&typeof editingContact!=='undefined'&&editingContact){
@@ -29166,7 +29288,6 @@ function doApplyCSS(){
   saveC();
   if(groups.find(function(x){return x.id===cid}))ls('ml2_groups',groups);
   applyChatSettings(entity);
-  renderMsgs();
   var defaults=getDefaultChatSettings();
   var merged=Object.assign({},defaults,entity.chatSettings);
   renderBeautifyPreview(merged);
@@ -29205,7 +29326,6 @@ function debounceApplyChatSettings(){
     saveC();
     if(groups.find(function(x){return x.id===entity.id}))ls('ml2_groups',groups);
     applyChatSettings(entity);
-    renderMsgs();
     
     var defaults=getDefaultChatSettings();
     var merged=Object.assign({},defaults,entity.chatSettings);
@@ -29513,12 +29633,11 @@ var saveBeautifySettings=async function(){
   }
   
   await applyChatSettings(entity);
-  renderMsgs();
   hideOv('ov-beautify');
   toast('聊天设置已保存');
 };
-$('save-beautify-btn').addEventListener('touchend',function(e){e.preventDefault();_beautifyTouched=true;saveBeautifySettings()});
-$('save-beautify-btn').addEventListener('click',function(){if(_beautifyTouched){_beautifyTouched=false;return;}saveBeautifySettings()});
+$('save-beautify-btn').addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();_beautifyTouched=true;saveBeautifySettings()});
+$('save-beautify-btn').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(_beautifyTouched){_beautifyTouched=false;return;}saveBeautifySettings()});
 
 $('beautify-timeline-options').addEventListener('click',function(e){
   var target=e.target.closest('.timeline-option');
@@ -29808,12 +29927,22 @@ async function applyChatSettings(contact){
     customStyle.id='custom-chat-style';
     document.head.appendChild(customStyle);
   }
-  // 自动映射CSS类名：用户写的 .message-sent 和 .message-received 映射到实际类名
   var css=(settings.customCSS||'');
-  var mappedCSS=css
-    .replace(/\.message-sent\b/g,'.mr.self .mb')
-    .replace(/\.message-received\b/g,'.mr.other .mb');
-  customStyle.textContent=mappedCSS;
+  if(css.trim()){
+    var hasSelectors=/\{[\s\S]*\}/.test(css);
+    if(!hasSelectors){
+      var wrapped='.mr.self .mb{'+css+'}';
+      wrapped+='.mr.other .mb{'+css+'}';
+      customStyle.textContent=wrapped;
+    }else{
+      var mappedCSS=css
+        .replace(/\.message-sent\b/g,'.mr.self .mb')
+        .replace(/\.message-received\b/g,'.mr.other .mb');
+      customStyle.textContent=mappedCSS;
+    }
+  }else{
+    customStyle.textContent='';
+  }
 }
 
 function createAnnouncementStars(){
@@ -30098,6 +30227,7 @@ window.addEventListener('beforeunload', function() {
 window.addEventListener('pagehide', function() {
   syncAllDataToDB();
   clearAllTimers();
+  if(Storage.flushLSWrites) Storage.flushLSWrites();
 });
 
 // 手机端切后台/锁屏时同步数据（比 beforeunload 更可靠）
@@ -30209,6 +30339,7 @@ setTimeout(async function(){
     loadSoundSettings();
     initKeepAlive();
     initPushNotify();
+    initFullscreenMode();
     if(cid){var c=contacts.find(function(x){return x.id===cid});if(c)await applyChatSettings(c)}
     setInterval(maybeGenLetter,30000);
     setTimeout(maybeGenLetter,10000);
@@ -32225,17 +32356,18 @@ async function generateLongScreenshot(){
     }
     
     // Small delay for layout to settle
-    await new Promise(function(r){setTimeout(r,200)});
+    await new Promise(function(r){setTimeout(r,100)});
     
     // 临时显示容器以便 html2canvas 正确渲染
     container.style.visibility='visible';
     
     // Capture with html2canvas
     var capturedCanvas=await window.html2canvas(container,{
-      scale:2,
+      scale:1.5,
       useCORS:true,
       backgroundColor:null,
-      logging:false
+      logging:false,
+      allowTaint:false
     });
     
     // 隐藏容器
@@ -33860,10 +33992,6 @@ if($('mood-card-help-modal'))$('mood-card-help-modal').addEventListener('click',
   function pSaveRecords(records) {
     try {
       ls(PERIOD_STORAGE_KEY, records);
-      safeSetItem(PERIOD_LF_KEY, records);
-      if(window.localforage){
-        try { window.localforage.setItem(PERIOD_STORAGE_KEY, JSON.stringify(records)); } catch(e) {}
-      }
       return true;
     }
     catch (e) { return false; }
@@ -34721,16 +34849,21 @@ var NOTICE_SEEN_KEY = 'star_usage_notice_seen';
 var NOTICE_SEEN_COOKIE = 'star_notice_seen';
 
 function saveNoticeSeen() {
-  var saved = false;
-  try { localStorage.setItem(NOTICE_SEEN_KEY, '1'); saved = true; } catch(e) {}
-  try { document.cookie = NOTICE_SEEN_COOKIE + '=1;path=/;max-age=31536000'; saved = true; } catch(e) {}
+  window._noticeSeen = true;
+  try { sessionStorage.setItem(NOTICE_SEEN_KEY, '1'); } catch(e) {}
+  try { localStorage.setItem(NOTICE_SEEN_KEY, '1'); } catch(e) {}
+  try { document.cookie = NOTICE_SEEN_COOKIE + '=1;path=/;max-age=31536000'; } catch(e) {}
   if(window.localforage){
-    try { window.localforage.setItem(NOTICE_SEEN_KEY, '1'); saved = true; } catch(e) {}
+    try { window.localforage.setItem(NOTICE_SEEN_KEY, '1'); } catch(e) {}
   }
-  return saved;
 }
 
 function getNoticeSeen() {
+  if(window._noticeSeen) return '1';
+  try {
+    var v = sessionStorage.getItem(NOTICE_SEEN_KEY);
+    if(v) return v;
+  } catch(e) {}
   try {
     var v = localStorage.getItem(NOTICE_SEEN_KEY);
     if(v) return v;
