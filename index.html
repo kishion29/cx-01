@@ -9948,6 +9948,17 @@ function renderMsgs(messages){
   if(!longScreenshotMode){
     requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});
   }
+  try{
+    var _entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
+    if(_entity&&_entity.chatSettings&&_entity.chatSettings.customCSS&&_entity.chatSettings.customCSS.trim()){
+      var _bubbles=box.querySelectorAll('.mb');
+      for(var _bi=0;_bi<_bubbles.length;_bi++){
+        _bubbles[_bi].style.setProperty('--border','transparent');
+        _bubbles[_bi].style.setProperty('border','none','important');
+        _bubbles[_bi].style.setProperty('box-shadow','none','important');
+      }
+    }
+  }catch(e){}
   }catch(e){
     console.error('renderMsgs error:',e);
   }
@@ -29131,27 +29142,42 @@ function renderBeautifyPreview(settings){
   
   preview.innerHTML=html;
   
-  if(customCSS){
-    var previewStyle=document.getElementById('beautify-preview-style');
-    if(!previewStyle){
-      previewStyle=document.createElement('style');
-      previewStyle.id='beautify-preview-style';
-      document.head.appendChild(previewStyle);
-    }
+  var previewStyle=document.getElementById('beautify-preview-style');
+  if(!previewStyle){
+    previewStyle=document.createElement('style');
+    previewStyle.id='beautify-preview-style';
+    document.head.appendChild(previewStyle);
+  }
+  
+  if(customCSS.trim()){
     var hasSelectors=/\{[\s\S]*\}/.test(customCSS);
     if(!hasSelectors){
-      previewStyle.textContent='#beautify-preview .mb.self{'+customCSS+'}'+
+      previewStyle.textContent='#beautify-preview .mb.self{border:none!important;box-shadow:none!important}#beautify-preview .mb.other{border:none!important;box-shadow:none!important}#beautify-preview .mb.self{'+customCSS+'}'+
         '#beautify-preview .mb.other{'+customCSS+'}';
     }else{
       var mappedPreviewCSS=customCSS
         .replace(/\.message-sent\b/g,'.mb.self')
-        .replace(/\.message-received\b/g,'.mb.other');
-      previewStyle.textContent='#beautify-preview .mb.self{'+mappedPreviewCSS+'}'+
-        '#beautify-preview .mb.other{'+mappedPreviewCSS+'}';
+        .replace(/\.message-received\b/g,'.mb.other')
+        .replace(/\.mr\.self\s*\.mb/g,'.mb.self')
+        .replace(/\.mr\.other\s*\.mb/g,'.mb.other')
+        .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mb.self')
+        .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mb.other');
+      mappedPreviewCSS=mappedPreviewCSS.replace(/([^{};]+?)(?=\s*\{)/g,function(m){
+        var trimmed=m.trim();
+        if(trimmed.startsWith('@')||trimmed.startsWith('#beautify-preview'))return m;
+        return m.replace(/([^{},]+)/g,function(sel){
+          var s=sel.trim();
+          if(!s||s.startsWith('@')||s.startsWith('#beautify-preview'))return sel;
+          if(s.indexOf('.mb.self')>=0||s.indexOf('.mb.other')>=0){
+            return sel.replace(/\.mb\.self/g,'#beautify-preview .mb.self').replace(/\.mb\.other/g,'#beautify-preview .mb.other');
+          }
+          return '#beautify-preview '+sel;
+        });
+      });
+      previewStyle.textContent='#beautify-preview .mb.self{border:none!important;box-shadow:none!important}#beautify-preview .mb.other{border:none!important;box-shadow:none!important}'+mappedPreviewCSS;
     }
   }else{
-    var previewStyle=document.getElementById('beautify-preview-style');
-    if(previewStyle)previewStyle.textContent='';
+    previewStyle.textContent='#beautify-preview .mb.self{border:none!important;box-shadow:none!important}#beautify-preview .mb.other{border:none!important;box-shadow:none!important}';
   }
 }
 
@@ -29929,18 +29955,46 @@ async function applyChatSettings(contact){
   }
   var css=(settings.customCSS||'');
   if(css.trim()){
+    var msgbox=$('msgbox');
+    if(msgbox){
+      var bubbles=msgbox.querySelectorAll('.mb');
+      for(var bi=0;bi<bubbles.length;bi++){
+        bubbles[bi].style.setProperty('--border','transparent');
+        bubbles[bi].style.setProperty('border','none','important');
+        bubbles[bi].style.setProperty('box-shadow','none','important');
+      }
+    }
     var hasSelectors=/\{[\s\S]*\}/.test(css);
     if(!hasSelectors){
-      var wrapped='.mr.self .mb{'+css+'}';
+      var wrapped='.mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}';
+      wrapped+='.mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}';
+      wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}';
+      wrapped+='.long-ss-container .mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}';
+      wrapped+='.mr.self .mb{'+css+'}';
       wrapped+='.mr.other .mb{'+css+'}';
+      wrapped+='.long-ss-container .mr.self .mb{'+css+'}';
+      wrapped+='.long-ss-container .mr.other .mb{'+css+'}';
       customStyle.textContent=wrapped;
     }else{
       var mappedCSS=css
         .replace(/\.message-sent\b/g,'.mr.self .mb')
-        .replace(/\.message-received\b/g,'.mr.other .mb');
-      customStyle.textContent=mappedCSS;
+        .replace(/\.message-received\b/g,'.mr.other .mb')
+        .replace(/\.mb\.self\b/g,'.mr.self .mb')
+        .replace(/\.mb\.other\b/g,'.mr.other .mb')
+        .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mr.self .mb')
+        .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb');
+      customStyle.textContent='.mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}.mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}.long-ss-container .mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}.long-ss-container .mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}'+mappedCSS;
     }
   }else{
+    var msgbox=$('msgbox');
+    if(msgbox){
+      var bubbles=msgbox.querySelectorAll('.mb');
+      for(var bi=0;bi<bubbles.length;bi++){
+        bubbles[bi].style.removeProperty('--border');
+        bubbles[bi].style.removeProperty('border');
+        bubbles[bi].style.removeProperty('box-shadow');
+      }
+    }
     customStyle.textContent='';
   }
 }
