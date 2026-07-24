@@ -4243,7 +4243,7 @@ const LENORMAND_IMAGES = {
         <p style="margin:0 0 8px;">这些内容仅作为创作方向、功能思路和设计灵感参考。</p>
         <p style="margin:0 0 8px;">星言并非复刻、转载或二次制作其他作品。</p>
         <p style="margin:0 0 8px;">具体功能设计、页面呈现、功能组合和实现方式，均根据星言自身需求进行独立设计。</p>
-        <p style="margin:0;">感谢曾提供创作灵感的创作者。</p>
+        <p style="margin:0;">感谢所有灵感来源。</p>
       </div>
     </div>
     
@@ -9488,12 +9488,7 @@ function openContactLetterDetail(letterId){
 function replyToContactLetter(){
   hideOv('ov-contact-letter-detail');
   if(currentLetter&&currentLetter.fid){
-    currentLetterContact=currentLetter.fid;
-    showPg('pg-letters');
-    switchEnvTab('partner');
-    setTimeout(function(){
-      showReplyForm();
-    },100);
+    openContactLetterWrite(currentLetter.fid);
   }
 }
 
@@ -13932,14 +13927,13 @@ function performTouch(targetId,action){
   var group=groups.find(function(g){return g.id===targetId});
   if(!contact&&!group)return;
   
-  // 检查当前是否在群聊中，如果是群聊则发送到群聊消息
   var isGroupCtx = groups.find(function(g){return g.id===cid});
   var sendTargetId = isGroupCtx ? cid : targetId;
   var targetName=contact?contact.name:(group?group.name:'');
   var senderName = '我';
   
   var m=msgs(sendTargetId);
-  m.push({
+  var newMsg={
     id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),
     s:SELF, t:'', ts:new Date(), pc:false,
     isAuto:false, isInitiative:false,
@@ -13949,14 +13943,23 @@ function performTouch(targetId,action){
     senderName: senderName,
     senderId: me.id,
     read:true
-  });
+  };
+  m.push(newMsg);
   savemsgs(sendTargetId,m);
   if(cid===sendTargetId){
-    renderMsgs(m);
     showTouchAnimation(action, targetName);
   }
-  renderChatList();
-  scheduleTouchReply(sendTargetId);
+  renderMsgs(m);
+  if(!isGroupCtx){
+    setTimeout(function(){
+      renderChatList();
+      scheduleTouchReply(sendTargetId);
+    },300);
+  }else{
+    setTimeout(function(){
+      scheduleTouchReply(sendTargetId);
+    },500);
+  }
 }
 function scheduleTouchReply(targetId){
   if(!targetId)return;
@@ -29843,7 +29846,7 @@ function showAnnouncement(){
   }
 }
 function enterApp(){
-  var seen = safeGetItem('star_usage_notice_seen');
+  var seen = getNoticeSeen();
   
   // 如果是首次使用，强制跳转到使用须知
   if (!seen) {
@@ -33834,10 +33837,17 @@ if($('mood-card-help-modal'))$('mood-card-help-modal').addEventListener('click',
   'use strict';
 
   var PERIOD_STORAGE_KEY = 'ml2_period_records';
+  var PERIOD_LF_KEY = 'ml2_period_records_lf';
 
   function pGetRecords() {
     try {
       var raw = ls(PERIOD_STORAGE_KEY);
+      if (!raw) {
+        try {
+          var lfVal = safeGetItem(PERIOD_LF_KEY);
+          if(lfVal) raw = lfVal;
+        } catch(e) {}
+      }
       if (!raw) return [];
       if (!Array.isArray(raw)) return [];
       return raw.filter(function(r) { return r && r.start; }).map(function(r) {
@@ -33848,7 +33858,14 @@ if($('mood-card-help-modal'))$('mood-card-help-modal').addEventListener('click',
   }
 
   function pSaveRecords(records) {
-    try { ls(PERIOD_STORAGE_KEY, records); return true; }
+    try {
+      ls(PERIOD_STORAGE_KEY, records);
+      safeSetItem(PERIOD_LF_KEY, records);
+      if(window.localforage){
+        try { window.localforage.setItem(PERIOD_STORAGE_KEY, JSON.stringify(records)); } catch(e) {}
+      }
+      return true;
+    }
     catch (e) { return false; }
   }
 
@@ -33870,7 +33887,9 @@ if($('mood-card-help-modal'))$('mood-card-help-modal').addEventListener('click',
   function pGetDayDetail(dateStr, records) {
     for (var i = 0; i < records.length; i++) {
       var r = records[i];
-      if (dateStr >= r.start && dateStr <= (r.end || r.start)) {
+      var start = r.start;
+      var end = r.end || r.start;
+      if (dateStr >= start && dateStr <= end) {
         return (r.details && r.details[dateStr]) ? r.details[dateStr] : { amount: '中', pain: '无' };
       }
     }
@@ -34266,7 +34285,12 @@ if($('mood-card-help-modal'))$('mood-card-help-modal').addEventListener('click',
     var records = pGetRecords();
     var detail = pGetDayDetail(dateStr, records);
     if (!detail) {
-      pShowToast('该日期不在经期记录中，请先添加记录');
+      var startInp = document.getElementById('periodStartDate');
+      var addSec = document.getElementById('periodAddSection');
+      if (startInp) startInp.value = dateStr;
+      if (addSec) addSec.style.display = 'block';
+      pShowToast('该日期不在经期记录中，请在下方添加记录');
+      if (startInp) startInp.focus();
       return;
     }
     pModalTargetDate = dateStr;
@@ -34304,12 +34328,14 @@ if($('mood-card-help-modal'))$('mood-card-help-modal').addEventListener('click',
 
   function pAddRecord(start, end) {
     if (!start) return { ok: false, msg: '请选择开始日期' };
+    end = end || '';
     if (end && end < start) return { ok: false, msg: '结束日期不能早于开始日期' };
     var records = pGetRecords();
-    if (records.some(function(r) { return r.start === start && (r.end||r.start) === (end||start); })) {
-      return { ok: false, msg: '该记录已存在' };
+    var startMatch = records.some(function(r) { return r.start === start; });
+    if (startMatch) {
+      return { ok: false, msg: '该日期已有记录' };
     }
-    records.push({ start: start, end: end||'', details: {} });
+    records.push({ start: start, end: end, details: {} });
     return pSaveRecords(records) ? { ok: true, msg: '记录保存成功' } : { ok: false, msg: '保存失败' };
   }
 
@@ -34638,7 +34664,7 @@ function showUsageNoticeFromSplash() {
     showPg('pg-usage-notice');
     renderChatList();
     // 首次强制模式：隐藏顶部返回栏和底部导航栏，显示开始按钮
-    var seen = safeGetItem('star_usage_notice_seen');
+    var seen = getNoticeSeen();
     if (!seen) {
       var nav = document.getElementById('usage-notice-nav');
       if (nav) nav.style.display = 'none';
@@ -34691,11 +34717,36 @@ if (document.readyState === 'loading') {
 
 <script>
 // ========== 首次访问强制使用须知 ==========
-function finishFirstTimeNotice() {
-  var saved = safeSetItem('star_usage_notice_seen', '1');
-  if (!saved) {
-    try { localStorage.setItem('star_usage_notice_seen', '1'); } catch(e) {}
+var NOTICE_SEEN_KEY = 'star_usage_notice_seen';
+var NOTICE_SEEN_COOKIE = 'star_notice_seen';
+
+function saveNoticeSeen() {
+  var saved = false;
+  try { localStorage.setItem(NOTICE_SEEN_KEY, '1'); saved = true; } catch(e) {}
+  try { document.cookie = NOTICE_SEEN_COOKIE + '=1;path=/;max-age=31536000'; saved = true; } catch(e) {}
+  if(window.localforage){
+    try { window.localforage.setItem(NOTICE_SEEN_KEY, '1'); saved = true; } catch(e) {}
   }
+  return saved;
+}
+
+function getNoticeSeen() {
+  try {
+    var v = localStorage.getItem(NOTICE_SEEN_KEY);
+    if(v) return v;
+  } catch(e) {}
+  try {
+    var cookies = document.cookie ? document.cookie.split(';') : [];
+    for(var i = 0; i < cookies.length; i++){
+      var c = cookies[i].trim();
+      if(c.indexOf(NOTICE_SEEN_COOKIE + '=') === 0) return '1';
+    }
+  } catch(e) {}
+  return null;
+}
+
+function finishFirstTimeNotice() {
+  saveNoticeSeen();
   hasEnteredApp=true;
   // 恢复顶部栏和底部导航栏
   var nav = document.getElementById('usage-notice-nav');
@@ -34714,7 +34765,7 @@ function finishFirstTimeNotice() {
 }
 
 (function initFirstTimeCheck() {
-  var seen = safeGetItem('star_usage_notice_seen');
+  var seen = getNoticeSeen();
   
   if (seen) {
     // 已看过使用须知：改为两个按钮（使用须知 + 进入）
