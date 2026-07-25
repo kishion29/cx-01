@@ -105,7 +105,15 @@ function cancelSafeTimer(timer) {
     }
     var s=document.createElement('script');
     s.src=cdns[idx];
+    var loadTimeout=setTimeout(function(){
+      console.warn('localforage CDN timeout:',cdns[idx]);
+      s.onload=null;s.onerror=null;
+      if(s.parentNode)s.parentNode.removeChild(s);
+      idx++;
+      tryLoad();
+    },3000);
     s.onload=function(){
+      clearTimeout(loadTimeout);
       if(window.localforage){
         console.log('localforage loaded from:',cdns[idx]);
         localforage.config({driver:[localforage.INDEXEDDB,localforage.WEBSQL,localforage.LOCALSTORAGE],name:'Star',version:2.0,storeName:'star_data',description:'Dual-storage for Star v1.0.0 - IndexedDB primary + localStorage fallback'});
@@ -165,7 +173,7 @@ function cancelSafeTimer(timer) {
         tryLoad();
       }
     };
-    s.onerror=function(){idx++;tryLoad()};
+    s.onerror=function(){clearTimeout(loadTimeout);idx++;tryLoad()};
     document.head.appendChild(s);
   }
   tryLoad();
@@ -173,7 +181,7 @@ function cancelSafeTimer(timer) {
 </script>
 <style>/* Performance Optimization */
 *{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
-html,body{margin:0;padding:0;overflow:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:none;width:100%;height:100%;-webkit-touch-callout:none}
+html,body{margin:0;padding:0;overflow:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:none;width:100%;height:100%;height:100dvh;min-height:-webkit-fill-available;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text;font-size:16px}
 .msgbox{-webkit-overflow-scrolling:touch}
 /* Deep Visual Upgrade — Morandi + Micro-interactions */
@@ -252,7 +260,7 @@ button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;out
 ::-webkit-scrollbar,*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
 ::-webkit-scrollbar-track,*::-webkit-scrollbar-track{background:transparent!important}
 ::-webkit-scrollbar-thumb,*::-webkit-scrollbar-thumb{background:transparent!important;width:0!important;height:0!important}
-html,body{height:100%;background:transparent;font-family:'PingFang SC','Microsoft YaHei',system-ui,-apple-system,sans-serif;font-size:16px;color:var(--txt);letter-spacing:.4px;overflow:hidden;outline:none;-ms-overflow-style:none;scrollbar-width:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+html,body{height:100%;height:100dvh;min-height:-webkit-fill-available;background:transparent;font-family:'PingFang SC','Microsoft YaHei',system-ui,-apple-system,sans-serif;font-size:16px;color:var(--txt);letter-spacing:.4px;overflow:hidden;outline:none;-ms-overflow-style:none;scrollbar-width:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 body{display:flex;overflow:hidden;user-select:none;outline:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overscroll-behavior:none;max-width:480px;margin:0 auto;position:relative}
 :focus{outline:none!important}
 :focus-visible{outline:none!important}
@@ -262,7 +270,8 @@ svg{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transf
 canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transform:translateZ(0);transform:translateZ(0);contain:layout style paint}
 .mr{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transform:translateZ(0);transform:translateZ(0);contain:layout style paint}
 .mo{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-transform:translateZ(0);transform:translateZ(0);contain:layout style paint}
-.phone{width:100%;height:100vh;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;opacity:0;transition:opacity 0.3s ease-out}
+.phone{width:100%;height:100vh;height:100dvh;min-height:-webkit-fill-available;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;opacity:0;transition:opacity 0.3s ease-out}
+@supports not (height:100dvh){.phone{height:100vh;min-height:100vh}}
 .phone::before{content:"";position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;background-color:var(--bg);background-image:var(--chat-bg-image);background-size:cover;background-position:center center;background-repeat:no-repeat;transition:background-color 0.5s ease}
 
 .page{position:absolute;top:0;left:0;right:0;bottom:0;display:none;flex-direction:column;overflow-x:hidden;overflow-y:auto;width:100%;height:100%;z-index:1}
@@ -2948,7 +2957,7 @@ const LENORMAND_IMAGES = {
 </script>
 </head>
 <body>
-<div id="announcement-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg, #f8f6f3 0%, #f5f0eb 30%, #faf8f5 60%, #ffffff 100%);display:flex;flex-direction:column;align-items:center;z-index:9998;opacity:1;transition:opacity 0.6s ease-in;overflow:hidden;">
+<div id="announcement-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;min-height:-webkit-fill-available;background:linear-gradient(180deg, #f8f6f3 0%, #f5f0eb 30%, #faf8f5 60%, #ffffff 100%);display:flex;flex-direction:column;align-items:center;z-index:9998;opacity:1;transition:opacity 0.6s ease-in;overflow:hidden;-webkit-transform:translateZ(0);transform:translateZ(0);will-change:opacity;">
   <div id="announcement-stars" style="position:absolute;top:0;left:0;width:100%;height:65%;pointer-events:none;z-index:0;"></div>
   
   <div id="announcement-content" style="text-align:center;padding:0 24px;max-width:420px;width:100%;position:relative;z-index:1;height:100%;max-height:100vh;display:flex;flex-direction:column;box-sizing:border-box;align-items:center;">
@@ -6879,6 +6888,41 @@ const LENORMAND_IMAGES = {
 
 <script>
 window.onerror=function(m,s,l,c,e){console.error('JS Error:',m,'at line',l);var errDiv=document.createElement('div');errDiv.style.cssText='position:fixed;bottom:60px;left:10px;right:10px;z-index:99999;background:#fff3cd;color:#856404;padding:10px;border-radius:6px;font-size:11px;word-break:break-all;max-height:120px;overflow:auto;cursor:pointer';errDiv.textContent='JS Error(Line '+l+'): '+m;errDiv.onclick=function(){this.remove()};setTimeout(function(){if(errDiv.parentNode)errDiv.remove()},5000);document.body.appendChild(errDiv);return true};
+
+// 全局未捕获 Promise 异常处理，防止静默白屏
+window.addEventListener('unhandledrejection',function(e){
+  console.error('Unhandled rejection:',e.reason);
+  // 确保 phone 容器可见
+  var phone=document.querySelector('.phone');
+  if(phone && phone.style.opacity==='0'){
+    phone.style.display='flex';
+    phone.style.opacity='1';
+  }
+  var ann=document.getElementById('announcement-screen');
+  if(ann && ann.style.display!=='none'){
+    ann.style.opacity='0';
+    setTimeout(function(){ann.style.display='none';ann.style.pointerEvents='none';},500);
+  }
+  try{showPg('pg-list');renderChatList();}catch(e2){}
+});
+
+// DOM 加载完成后确保 phone 最终可见（兜底机制）
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+    var phone=document.querySelector('.phone');
+    var ann=document.getElementById('announcement-screen');
+    // 如果 5 秒后 phone 仍然不可见，强制显示
+    setTimeout(function(){
+      if(phone && (phone.style.opacity==='0' || phone.style.display==='none')){
+        console.warn('Force showing phone after 5s timeout');
+        phone.style.display='flex';
+        phone.style.opacity='1';
+        if(ann){ann.style.display='none';ann.style.pointerEvents='none';}
+        try{showPg('pg-list');renderChatList();}catch(e2){}
+      }
+    },5000);
+  },0);
+});
 
 var $=function(id){return document.getElementById(id)};
 var bindEvt=function(id,evt,fn){var el=$(id);if(el)el.addEventListener(evt,fn);};
@@ -30359,33 +30403,66 @@ function showAnnouncement(){
   }
 }
 function enterApp(){
-  var seen = getNoticeSeen();
-  
-  // 如果是首次使用，强制跳转到使用须知
-  if (!seen) {
-    showUsageNoticeFromSplash();
-    return;
-  }
-  
-  hasEnteredApp=true;
-  
-  var ann=document.getElementById('announcement-screen');
-  if(ann){
-    ann.style.opacity='0';
-    setTimeout(function(){
-      ann.style.display='none';
-      ann.style.pointerEvents='none';
-    },500);
-  }
-  var phone=document.querySelector('.phone');
-  if(phone){
-    phone.style.display='flex';
-    phone.style.opacity='1';
-  }
-  setTimeout(function(){
+  try{
+    var seen = getNoticeSeen();
+    
+    // 如果是首次使用，强制跳转到使用须知
+    if (!seen) {
+      showUsageNoticeFromSplash();
+      return;
+    }
+    
+    hasEnteredApp=true;
+    
+    // 立即隐藏开屏、显示 phone 容器，避免白屏
+    var ann=document.getElementById('announcement-screen');
+    if(ann){
+      ann.style.opacity='0';
+      setTimeout(function(){
+        ann.style.display='none';
+        ann.style.pointerEvents='none';
+      },500);
+    }
+    var phone=document.querySelector('.phone');
+    if(phone){
+      phone.style.display='flex';
+      phone.style.opacity='1';
+    }
+    
+    // 如果初始化已完成，直接渲染
+    if(appInitDone){
+      setTimeout(function(){
+        try{showPg('pg-list');renderChatList();}catch(e){console.error('enterApp render error:',e);}
+      },100);
+      return;
+    }
+    
+    // 初始化未完成，显示加载状态并等待
     showPg('pg-list');
-    renderChatList();
-  },100);
+    var clistInner = document.getElementById('clist-inner');
+    if(clistInner) clistInner.innerHTML = '<div class="empty" style="padding:60px 0"><div style="font-size:40px;margin-bottom:16px;animation:splashPulse 1.5s ease-in-out infinite">✦</div><div style="font-size:14px;color:var(--txt3)">正在加载...</div></div>';
+    
+    var checkInterval = setInterval(function(){
+      if(appInitDone){
+        clearInterval(checkInterval);
+        try{renderChatList();}catch(e){}
+      }
+    },200);
+    
+    // 最多等 10 秒，超时强制渲染
+    setTimeout(function(){
+      clearInterval(checkInterval);
+      if(!appInitDone) try{renderChatList();}catch(e){}
+    },10000);
+  }catch(e){
+    console.error('enterApp error:',e);
+    // 紧急回退：强制显示手机界面
+    var phone=document.querySelector('.phone');
+    if(phone){phone.style.display='flex';phone.style.opacity='1';}
+    var ann=document.getElementById('announcement-screen');
+    if(ann){ann.style.display='none';ann.style.pointerEvents='none';}
+    try{showPg('pg-list');renderChatList();}catch(e2){}
+  }
 }
 async function preloadMsgsFromDB(){
   if(!window.localforage)return;
@@ -30462,7 +30539,7 @@ function waitForLocalforage(){
       },{once:true});
       setTimeout(function(){
         resolve();
-      },2000);
+      },1500);
     }
   });
 }
@@ -30483,14 +30560,15 @@ function withTimeout(promise, ms, fallback){
   });
 }
 
+var appInitDone=false;
 async function initApp(){
   try{
     // 先确保 localforage 就绪，再加载数据，防止因 CDN 加载慢导致跳过 IndexedDB
-    try{await withTimeout(waitForLocalforage(),5000,undefined);}catch(e){}
+    try{await withTimeout(waitForLocalforage(),3000,undefined);}catch(e){}
     
-    try{await withTimeout(loadC(),10000,undefined);}catch(e){console.warn('loadC failed:',e);}
-    try{await withTimeout(loadPAsync(),5000,undefined);}catch(e){console.warn('loadPAsync failed:',e);}
-    try{await withTimeout(loadGroups(),5000,undefined);}catch(e){console.warn('loadGroups failed:',e);}
+    try{await withTimeout(loadC(),5000,undefined);}catch(e){console.warn('loadC failed:',e);}
+    try{await withTimeout(loadPAsync(),3000,undefined);}catch(e){console.warn('loadPAsync failed:',e);}
+    try{await withTimeout(loadGroups(),3000,undefined);}catch(e){console.warn('loadGroups failed:',e);}
     
     try{refreshMy();}catch(e){console.warn('refreshMy failed:',e);}
     try{loadContactTimelineStyles();}catch(e){console.warn('loadContactTimelineStyles failed:',e);}
@@ -30502,6 +30580,7 @@ async function initApp(){
     
     try{await withTimeout(preloadMsgsFromDB(),10000,undefined);}catch(e){}
     
+    appInitDone=true;
     renderChatList();
     
     
@@ -30524,11 +30603,12 @@ async function initApp(){
     },4000);
   }catch(e){
     console.error('Init error:',e);
+    appInitDone=true;
     renderChatList();
   }
 }
 
-try{initApp();}catch(e){console.error('initApp err:',e);renderChatList();}
+try{initApp().catch(function(e){console.error('initApp rejected:',e);renderChatList();});}catch(e){console.error('initApp err:',e);renderChatList();}
 // 定期同步关键数据到 IndexedDB，防止手机端浏览器清理 localStorage 导致数据丢失
 setInterval(function(){
   syncAllDataToDB();
@@ -35179,37 +35259,50 @@ function initUpdateNotice() {
 
 // 从开屏点击"使用须知"按钮：关闭开屏并进入使用须知页面
 function showUsageNoticeFromSplash() {
-  var ann = document.getElementById('announcement-screen');
-  if (ann) {
-    ann.style.opacity = '0';
-    setTimeout(function() {
-      ann.style.display = 'none';
-      ann.style.pointerEvents = 'none';
-    }, 500);
-  }
-  var phone = document.querySelector('.phone');
-  if (phone) {
-    phone.style.display = 'flex';
-    phone.style.opacity = '1';
-  }
-  setTimeout(function() {
-    showPg('pg-usage-notice');
-    renderChatList();
-    // 首次强制模式：隐藏顶部返回栏和底部导航栏，显示开始按钮
-    var seen = getNoticeSeen();
-    if (!seen) {
-      var nav = document.getElementById('usage-notice-nav');
-      if (nav) nav.style.display = 'none';
-      var tabs = document.getElementById('usage-notice-tabs');
-      if (tabs) tabs.style.display = 'none';
-      var startBtn = document.getElementById('usage-notice-start-btn');
-      if (startBtn) startBtn.style.display = 'block';
-    } else {
-      // 非首次：确保导航栏和标签栏正常显示，隐藏强制按钮
-      var startBtn = document.getElementById('usage-notice-start-btn');
-      if (startBtn) startBtn.style.display = 'none';
+  try{
+    var ann = document.getElementById('announcement-screen');
+    if (ann) {
+      ann.style.opacity = '0';
+      setTimeout(function() {
+        ann.style.display = 'none';
+        ann.style.pointerEvents = 'none';
+      }, 500);
     }
-  }, 100);
+    var phone = document.querySelector('.phone');
+    if (phone) {
+      phone.style.display = 'flex';
+      phone.style.opacity = '1';
+    }
+    setTimeout(function() {
+      try{
+        showPg('pg-usage-notice');
+        renderChatList();
+        // 首次强制模式：隐藏顶部返回栏和底部导航栏，显示开始按钮
+        var seen = getNoticeSeen();
+        if (!seen) {
+          var nav = document.getElementById('usage-notice-nav');
+          if (nav) nav.style.display = 'none';
+          var tabs = document.getElementById('usage-notice-tabs');
+          if (tabs) tabs.style.display = 'none';
+          var startBtn = document.getElementById('usage-notice-start-btn');
+          if (startBtn) startBtn.style.display = 'block';
+        } else {
+          // 非首次：确保导航栏和标签栏正常显示，隐藏强制按钮
+          var startBtn = document.getElementById('usage-notice-start-btn');
+          if (startBtn) startBtn.style.display = 'none';
+        }
+      }catch(e){
+        console.error('showUsageNoticeFromSplash inner error:',e);
+      }
+    }, 100);
+  }catch(e){
+    console.error('showUsageNoticeFromSplash error:',e);
+    var phone = document.querySelector('.phone');
+    if(phone){phone.style.display='flex';phone.style.opacity='1';}
+    var ann = document.getElementById('announcement-screen');
+    if(ann){ann.style.display='none';ann.style.pointerEvents='none';}
+    try{showPg('pg-list');renderChatList();}catch(e2){}
+  }
 }
 
 window.showUpdateNoticeManual = function() {
@@ -35283,22 +35376,50 @@ function getNoticeSeen() {
 }
 
 function finishFirstTimeNotice() {
-  saveNoticeSeen();
-  hasEnteredApp=true;
-  // 恢复顶部栏和底部导航栏
-  var nav = document.getElementById('usage-notice-nav');
-  if (nav) nav.style.display = '';
-  var tabs = document.getElementById('usage-notice-tabs');
-  if (tabs) tabs.style.display = '';
-  var phone = document.querySelector('.phone');
-  if (phone) {
-    phone.style.display = 'flex';
-    phone.style.opacity = '1';
-  }
-  setTimeout(function() {
+  try{
+    saveNoticeSeen();
+    hasEnteredApp=true;
+    // 恢复顶部栏和底部导航栏
+    var nav = document.getElementById('usage-notice-nav');
+    if (nav) nav.style.display = '';
+    var tabs = document.getElementById('usage-notice-tabs');
+    if (tabs) tabs.style.display = '';
+    var phone = document.querySelector('.phone');
+    if (phone) {
+      phone.style.display = 'flex';
+      phone.style.opacity = '1';
+    }
+    
+    // 如果初始化已完成，直接渲染
+    if(appInitDone){
+      setTimeout(function(){
+        try{showPg('pg-list');renderChatList();}catch(e){console.error('finishFirstTimeNotice render error:',e);}
+      }, 100);
+      return;
+    }
+    
+    // 初始化未完成，显示加载状态并等待
     showPg('pg-list');
-    renderChatList();
-  }, 100);
+    var clistInner = document.getElementById('clist-inner');
+    if(clistInner) clistInner.innerHTML = '<div class="empty" style="padding:60px 0"><div style="font-size:40px;margin-bottom:16px;animation:splashPulse 1.5s ease-in-out infinite">✦</div><div style="font-size:14px;color:var(--txt3)">正在加载...</div></div>';
+    
+    var checkInterval = setInterval(function(){
+      if(appInitDone){
+        clearInterval(checkInterval);
+        try{renderChatList();}catch(e){}
+      }
+    },200);
+    
+    setTimeout(function(){
+      clearInterval(checkInterval);
+      if(!appInitDone) try{renderChatList();}catch(e){}
+    },10000);
+  }catch(e){
+    console.error('finishFirstTimeNotice error:',e);
+    var phone=document.querySelector('.phone');
+    if(phone){phone.style.display='flex';phone.style.opacity='1';}
+    try{showPg('pg-list');renderChatList();}catch(e2){}
+  }
 }
 
 (function initFirstTimeCheck() {
