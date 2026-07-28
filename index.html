@@ -10487,7 +10487,7 @@ function _doRenderMsgs(messages){
       if(hasMood)parts.push('💭 '+x.moodCard.content);
       if(hasHeart)parts.push('❤️ '+x.heartCard.content);
       if(hasIntent)parts.push('💬 '+x.intentCard.content);
-      moodCardHtml='<div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;width:fit-content;align-self:flex-start;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div>';
+      moodCardHtml='<div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div>';
     }
     var editBtnHtml='';
     var canRetract=false;
@@ -19152,21 +19152,28 @@ async function loadMomentsData(){
   
   momentsMembers=newMembers;
   
-  // 过滤掉已不存在联系人的朋友圈动态
-  var validIds={'self':true,'me':true};
-  contacts.forEach(function(c){if(c.id!=='fh')validIds[c.id]=true});
-  momentsPosts=momentsPosts.filter(function(post){
-    return validIds[post.authorId]===true;
-  });
-  
-  // 同时清理评论中引用已删除联系人的内容（保留评论本身，但清理无效点赞）
-  momentsPosts.forEach(function(post){
-    if(post.likes&&Array.isArray(post.likes)){
-      post.likes=post.likes.filter(function(lid){return validIds[lid]===true});
+  // 过滤掉已不存在联系人的朋友圈动态（仅在contacts已加载时过滤）
+  if(contacts&&contacts.length>0){
+    var validIds={'self':true,'me':true};
+    contacts.forEach(function(c){if(c.id!=='fh')validIds[c.id]=true});
+    var beforeFilter=momentsPosts.length;
+    momentsPosts=momentsPosts.filter(function(post){
+      return validIds[post.authorId]===true;
+    });
+    
+    // 同时清理评论中引用已删除联系人的内容（保留评论本身，但清理无效点赞）
+    momentsPosts.forEach(function(post){
+      if(post.likes&&Array.isArray(post.likes)){
+        post.likes=post.likes.filter(function(lid){return validIds[lid]===true});
+      }
+    });
+    
+    // 仅在确实过滤掉内容时才保存
+    if(momentsPosts.length!==beforeFilter){
+      saveMomentsData();
     }
-  });
+  }
   
-  saveMomentsData();
   renderMoments();
   setTimeout(scheduleFriendMoments,5000);
 }
@@ -20209,8 +20216,6 @@ function syncMomentsUI(){
   
   if(contactId&&s.contacts&&s.contacts[contactId]){
     Object.assign(settings,s.contacts[contactId]);
-  }else{
-    Object.assign(settings,s);
   }
   
   $('moments-like-prob-val').value=settings.likeProbability;
