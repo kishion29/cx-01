@@ -1056,7 +1056,7 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 .update-history-arrow{font-size:12px;color:var(--txt3);transition:transform .25s;flex-shrink:0;margin-top:6px;}
 .update-history-item.expanded .update-history-arrow{transform:rotate(180deg)}
 .update-history-content{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .35s ease, padding .35s ease;}
-.update-history-item.expanded .update-history-content{max-height:2000px;padding:0 16px 16px;border-top:1px solid var(--border-light);}
+.update-history-item.expanded .update-history-content{max-height:99999px;padding:0 16px 16px;border-top:1px solid var(--border-light);}
 .update-history-content-inner{line-height:1.8;font-size:13px;color:var(--txt);padding-top:8px;}
 .update-history-content-inner h4{font-size:14px;font-weight:600;color:var(--accent);margin:12px 0 6px;padding-left:8px;border-left:3px solid var(--accent);}
 .update-history-content-inner p{margin-bottom:6px}
@@ -10528,7 +10528,7 @@ function _doRenderMsgs(messages){
       if(hasMood)parts.push('💭 '+x.moodCard.content);
       if(hasHeart)parts.push('❤️ '+x.heartCard.content);
       if(hasIntent)parts.push('💬 '+x.intentCard.content);
-      moodCardHtml='<div style="width:0;min-width:100%;overflow:visible;"><div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div></div>';
+      moodCardHtml='<div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:inline-block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div>';
     }
     var editBtnHtml='';
     var canRetract=false;
