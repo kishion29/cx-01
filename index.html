@@ -345,6 +345,9 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 .ma{width:40px;height:40px;border-radius:var(--avatar-radius,12px);flex-shrink:0;background:var(--c3);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:16px;color:var(--txt2)}
 .ma img{width:100%;height:100%;object-fit:cover}
 .mc{display:flex;flex-direction:column;max-width:85%;position:relative;overflow:hidden}
+.message-mood-card{align-self:flex-start}
+.mr.self .message-mood-card{align-self:flex-end}
+.mr.other .message-mood-card{align-self:flex-start}
 .mb{padding:14px 16px;line-height:1.6;word-wrap:break-word;word-break:break-word;font-size:16px;white-space:pre-wrap;touch-action:manipulation}
 .mr.self .mb{background:var(--my-bubble-bg,#ffffff);color:var(--my-bubble-text,#666666);border:1px solid var(--border);border-radius:16px 4px 16px 16px;font-size:var(--bubble-font-size,16px);padding:var(--bubble-padding,14px 16px);user-select:text;-webkit-user-select:text;position:relative}
 .mr.other .mb{background:var(--other-bubble-bg,#ffffff);color:var(--other-bubble-text,#1a1a1a);border:1px solid var(--border);border-radius:4px 16px 16px 16px;font-size:var(--bubble-font-size,16px);padding:var(--bubble-padding,14px 16px);user-select:text;-webkit-user-select:text;position:relative}
@@ -10528,7 +10531,7 @@ function _doRenderMsgs(messages){
       if(hasMood)parts.push('💭 '+x.moodCard.content);
       if(hasHeart)parts.push('❤️ '+x.heartCard.content);
       if(hasIntent)parts.push('💬 '+x.intentCard.content);
-      moodCardHtml='<div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:inline-block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div>';
+      moodCardHtml='<div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;width:fit-content;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div>';
     }
     var editBtnHtml='';
     var canRetract=false;
@@ -31795,7 +31798,7 @@ function renderBeautifyPreview(settings){
   if(customCSS.trim()){
     var hasSelectors=/\{[\s\S]*\}/.test(customCSS);
     if(!hasSelectors){
-      previewStyle.textContent='#beautify-preview .mb.self{border:none!important;box-shadow:none!important}#beautify-preview .mb.other{border:none!important;box-shadow:none!important}#beautify-preview .mb.self{'+customCSS+'}'+
+      previewStyle.textContent='#beautify-preview .mb.self{border:none;box-shadow:none}#beautify-preview .mb.other{border:none;box-shadow:none}#beautify-preview .mb.self{'+customCSS+'}'+
         '#beautify-preview .mb.other{'+customCSS+'}';
     }else{
       var mappedPreviewCSS=customCSS
@@ -31817,10 +31820,10 @@ function renderBeautifyPreview(settings){
           return '#beautify-preview '+sel;
         });
       });
-      previewStyle.textContent='#beautify-preview .mb.self{border:none!important;box-shadow:none!important}#beautify-preview .mb.other{border:none!important;box-shadow:none!important}'+mappedPreviewCSS;
+      previewStyle.textContent='#beautify-preview .mb.self{border:none;box-shadow:none}#beautify-preview .mb.other{border:none;box-shadow:none}'+mappedPreviewCSS;
     }
   }else{
-    previewStyle.textContent='#beautify-preview .mb.self{border:none!important;box-shadow:none!important}#beautify-preview .mb.other{border:none!important;box-shadow:none!important}';
+    previewStyle.textContent='#beautify-preview .mb.self{border:none;box-shadow:none}#beautify-preview .mb.other{border:none;box-shadow:none}';
   }
 }
 
@@ -32662,16 +32665,14 @@ async function applyChatSettings(contact){
       var bubbles=msgbox.querySelectorAll('.mb');
       for(var bi=0;bi<bubbles.length;bi++){
         bubbles[bi].style.setProperty('--border','transparent');
-        bubbles[bi].style.setProperty('border','none','important');
-        bubbles[bi].style.setProperty('box-shadow','none','important');
       }
     }
     var hasSelectors=/\{[\s\S]*\}/.test(css);
     if(!hasSelectors){
-      var wrapped='.mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}';
-      wrapped+='.mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}';
-      wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}';
-      wrapped+='.long-ss-container .mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}';
+      var wrapped='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
+      wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
+      wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}';
+      wrapped+='.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.self .mb{'+css+'}';
       wrapped+='.mr.other .mb{'+css+'}';
       wrapped+='.long-ss-container .mr.self .mb{'+css+'}';
@@ -32685,7 +32686,7 @@ async function applyChatSettings(contact){
         .replace(/\.mb\.other\b/g,'.mr.other .mb')
         .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mr.self .mb')
         .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb');
-      customStyle.textContent='.mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}.mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}.long-ss-container .mr.self .mb{--border:transparent;border:none!important;box-shadow:none!important}.long-ss-container .mr.other .mb{--border:transparent;border:none!important;box-shadow:none!important}'+mappedCSS;
+      customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS;
     }
   }else{
     var msgbox=$('msgbox');
@@ -32693,8 +32694,6 @@ async function applyChatSettings(contact){
       var bubbles=msgbox.querySelectorAll('.mb');
       for(var bi=0;bi<bubbles.length;bi++){
         bubbles[bi].style.removeProperty('--border');
-        bubbles[bi].style.removeProperty('border');
-        bubbles[bi].style.removeProperty('box-shadow');
       }
     }
     customStyle.textContent='';
