@@ -183,7 +183,7 @@ function cancelSafeTimer(timer) {
 *{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html,body{margin:0;padding:0;overflow:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:none;width:100%;height:100%;height:100dvh;min-height:-webkit-fill-available;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text;font-size:16px}
-.msgbox{-webkit-overflow-scrolling:touch}
+.msgbox{-webkit-overflow-scrolling:touch;will-change:scroll-position;transform:translateZ(0);-webkit-transform:translateZ(0)}
 /* Deep Visual Upgrade — Morandi + Micro-interactions */
 
 :root {
@@ -6427,6 +6427,12 @@ const LENORMAND_IMAGES = {
         <div class="set-row"><span>最短回信时间</span><div class="stepper" data-k="ld-reply-min"><button>−</button><input type="number" class="sv" id="ld-reply-min-val" value="1"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">分钟</span></div>
         <div class="set-row"><span>最长回信时间</span><div class="stepper" data-k="ld-reply-max"><button>−</button><input type="number" class="sv" id="ld-reply-max-val" value="480"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">分钟(8小时)</span></div>
       </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;font-weight:600">写信内容类型</div>
+        <div class="set-row"><span>使用颜文字</span><label class="tsw"><input type="checkbox" id="ld-kaomoji-en" checked><span class="sl"></span></label></div>
+        <div class="set-row"><span>使用Emoji</span><label class="tsw"><input type="checkbox" id="ld-emoji-en" checked><span class="sl"></span></label></div>
+        <div class="set-row"><span>使用图片表情</span><label class="tsw"><input type="checkbox" id="ld-sticker-en" checked><span class="sl"></span></label></div>
+      </div>
       <div style="padding-top:8px;">
         <button id="letter-settings-save-btn" style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:white;font-size:14px;font-weight:500;cursor:pointer;" onclick="saveSpeedSettings();toast('设置已保存')">保存设置</button>
         <button style="width:100%;padding:12px;border:1px solid var(--accent);border-radius:10px;background:transparent;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;" onclick="applySpeedToAllContacts()">应用所有联系人</button>
@@ -7388,10 +7394,6 @@ var Storage = (function(){
       catch(e){ cache[k] = directVal; return directVal; }
     }
     
-    // 诊断：关键数据缺失时打日志
-    if(k==='ml2_c'||k==='ml2_nav_cards_public'||k==='ml2_global_cards'){
-      console.warn('[Storage] MISS key:',k,'localStorage ml2_lf_ had:',!!lsVal,'direct had:',!!directVal);
-    }
     return null;
   }
   
@@ -8863,10 +8865,11 @@ function openConv(id,type){
   showPg('pg-conv');
   updateBottomNavVisibility();
   applyChatSettings(c||g).then(async function(){
-    await loadContactMsgImages(id);
     await loadMsgsToCache(id);
     renderMsgs();
     markMessagesRead(id);
+    // 后台异步加载图片，不阻塞渲染
+    loadContactMsgImages(id).catch(function(){});
   });
   var savedInput=sessionStorage.getItem('msg-inp-'+id);
   if(savedInput)$('msg-inp').value=savedInput;
@@ -10110,7 +10113,7 @@ function _doRenderMsgs(messages){
       if(!box)return;
       
       var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      var MAX_RENDER=isMobile?200:500;
+      var MAX_RENDER=isMobile?150:500;
       var msgsToRender=m;
       if(m.length>MAX_RENDER){
         msgsToRender=m.slice(m.length-MAX_RENDER);
@@ -13253,8 +13256,8 @@ if($('noninstant-contact-selector')){
 }
 if($('msg-inp-noninstant')){$('msg-inp-noninstant').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&getSpeed('enter-send')===1){e.preventDefault();sendNonInstantMsg()}});$('msg-inp-noninstant').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'});}
 if($('btn-send-noninstant')){
-  $('btn-send-noninstant').addEventListener('click',sendNonInstantMsg);
-  $('btn-send-noninstant').addEventListener('touchend',function(e){e.preventDefault();sendNonInstantMsg()});
+  $('btn-send-noninstant').addEventListener('click',function(e){e.stopPropagation();if($('msg-inp-noninstant'))$('msg-inp-noninstant').blur();if($('ov-chat-more').classList.contains('show'))hideOv('ov-chat-more');if($('ov-emoji').classList.contains('show'))hideOv('ov-emoji');sendNonInstantMsg()});
+  $('btn-send-noninstant').addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();if($('msg-inp-noninstant'))$('msg-inp-noninstant').blur();if($('ov-chat-more').classList.contains('show'))hideOv('ov-chat-more');if($('ov-emoji').classList.contains('show'))hideOv('ov-emoji');sendNonInstantMsg()});
 }
 if($('btn-back-noninstant')){
   $('btn-back-noninstant').addEventListener('click',function(){nonInstantMode=false;showPg('pg-more');var ncl=$('noninstant-contact-list');if(ncl)ncl.style.display='none'});
@@ -17860,6 +17863,9 @@ var speedSettings={
   'ld-reply-prob':{key:'ld_reply_prob',default:80,min:0,max:100,step:5,val:'ld-reply-prob-val'},
   'ld-reply-min':{key:'ld_reply_min',default:1,min:1,max:1440,step:1,val:'ld-reply-min-val'},
   'ld-reply-max':{key:'ld_reply_max',default:480,min:1,max:1440,step:60,val:'ld-reply-max-val'},
+  'ld-kaomoji-en':{key:'ld_kaomoji_en',default:1,min:0,max:1,step:1,val:'ld-kaomoji-en'},
+  'ld-emoji-en':{key:'ld_emoji_en',default:1,min:0,max:1,step:1,val:'ld-emoji-en'},
+  'ld-sticker-en':{key:'ld_sticker_en',default:1,min:0,max:1,step:1,val:'ld-sticker-en'},
   'ni-min':{key:'ni_min',default:1,min:1,max:86400,step:1,val:'ni-min-val'},
   'ni-max':{key:'ni_max',default:86400,min:1,max:86400,step:60,val:'ni-max-val'}
 };
@@ -17906,7 +17912,8 @@ function saveSpeedSettings(){
     Object.keys(speedSettings).forEach(function(k){
       var m=speedSettings[k];
       var el;
-      if(k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'){
+      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+      if(IS_CHECKBOX){
         el=$(m.val);
         if(el)s.contacts[contactId][m.key]=el.checked?1:0;
       }else{
@@ -17919,7 +17926,8 @@ function saveSpeedSettings(){
     Object.keys(speedSettings).forEach(function(k){
       var m=speedSettings[k];
       var el;
-      if(k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'){
+      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+      if(IS_CHECKBOX){
         el=$(m.val);
         if(el)s[m.key]=el.checked?1:0;
       }else{
@@ -17932,7 +17940,7 @@ function saveSpeedSettings(){
   ls('ml2_speed',s);
   toast('设置已保存');
 }
-function syncSpeedUI(){var contactSelect=$('speed-contact-select')||$('letter-contact-select');var contactId=contactSelect?contactSelect.value:null;Object.keys(speedSettings).forEach(function(k){var m=speedSettings[k];if(k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'){var el=$(m.val);if(el)el.checked=getSpeed(k,contactId)===1}else{var el=document.getElementById(m.val);if(el)el.value=getSpeed(k,contactId)}})}
+function syncSpeedUI(){var contactSelect=$('speed-contact-select')||$('letter-contact-select');var contactId=contactSelect?contactSelect.value:null;Object.keys(speedSettings).forEach(function(k){var m=speedSettings[k];var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';if(IS_CHECKBOX){var el=$(m.val);if(el)el.checked=getSpeed(k,contactId)===1}else{var el=document.getElementById(m.val);if(el)el.value=getSpeed(k,contactId)}})}
 function applySpeedToAllContacts(){
   var contactSelect=$('speed-contact-select')||$('letter-contact-select');
   var contactId=contactSelect?contactSelect.value:null;
@@ -17945,7 +17953,8 @@ function applySpeedToAllContacts(){
   Object.keys(speedSettings).forEach(function(k){
     var m=speedSettings[k];
     var el;
-    if(k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'){
+    var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+    if(IS_CHECKBOX){
       el=$(m.val);
       if(el)currentSettings[m.key]=el.checked?1:0;
     }else{
@@ -19355,7 +19364,8 @@ function showMomentsReplyInput(postId,commentId,nickname){
         saveMomentsData();
         
         if(comment.authorId!=='self'){
-          var replyProb=momentsSettings.replyProbability||15;
+          var isReminded=(post.remindIds&&post.remindIds.indexOf(comment.authorId)>=0);
+          var replyProb=isReminded?100:(momentsSettings.replyProbability||15);
           if(Math.random()*100<replyProb){
             var replyDelay=getRandomDelay(momentsSettings.replySpeedMin||5,momentsSettings.replySpeedMax||30);
             setTimeout(function(){
@@ -19388,6 +19398,12 @@ function showMomentsReplyInput(postId,commentId,nickname){
   };
   
   sendBtn.addEventListener('click',function(){
+    var val=input.value.trim();
+    if(!val)return;
+    handleReply(val);
+  });
+  sendBtn.addEventListener('touchend',function(e){
+    e.preventDefault();
     var val=input.value.trim();
     if(!val)return;
     handleReply(val);
@@ -21823,9 +21839,15 @@ function openLetter(lid){
 }
 function generateLetterContent(cid){
   var maxCards=getSpeed('ld-max-cards');
+  var kaomojiEn=getSpeed('ld-kaomoji-en',cid);
+  var emojiEn=getSpeed('ld-emoji-en',cid);
+  var stickerEn=getSpeed('ld-sticker-en',cid);
   var cards=globalCards.filter(function(x){
     if(!x.content||!x.content.trim())return false;
     if(x.category==='voices')return false;
+    if(!kaomojiEn&&x.category==='kaomoji')return false;
+    if(!emojiEn&&x.category==='emojis')return false;
+    if(!stickerEn&&x.category==='stickers')return false;
     if(x.type==='public')return true;
     if(x.type==='private'&&x.contactId===cid)return true;
     return false;
@@ -26392,7 +26414,7 @@ function showTAFavorites(){
   var latestTime='';
   if(favorites.length>0 && favorites[0].msgTime){
     var ld=new Date(favorites[0].msgTime);
-    latestTime=(ld.getMonth()+1)+'/'+ld.getDate()+' '+('0'+ld.getHours()).slice(-2)+':'+('0'+ld.getMinutes()).slice(-2);
+    latestTime=(ld.getMonth()+1)+'/'+ld.getDate()+' '+('0'+ld.getHours()).slice(-2)+':'+('0'+ld.getMinutes()).slice(-2)+':'+('0'+ld.getSeconds()).slice(-2);
   }
   
   var avatarHtml=contact.avatar?'<img src="'+contact.avatar.replace(/"/g,'&quot;')+'" style="display:block;width:100%;height:100%;object-fit:cover;">':'✦';
@@ -29984,7 +30006,13 @@ if($('contact-clear-chat-btn')){
     customConfirm('确定要清空与「'+editingContact.name+'」的所有聊天记录吗？此操作不可撤销。').then(function(ok){
       if(!ok)return;
       var did=editingContact.id;
-      savemsgs(did,[]);
+      var key=LM+did;
+      // 立即清除缓存和定时器
+      if(_saveMsgTimers[did]){clearTimeout(_saveMsgTimers[did]);delete _saveMsgTimers[did];}
+      memoryCache[key]=[];
+      // 立即保存空数组
+      ls(key,[]);
+      if(window.localforage){window.localforage.setItem(key,[]).catch(function(){})}
       if(cid===did){
         msgCache={};
         renderMsgs();
@@ -34120,7 +34148,7 @@ sendMsg=function(){
             </div>
 
             <div class="d2-draw-actions" id="d2-drawActions">
-                <button class="d2-btn d2-btn-outline" id="d2-btnBack" onclick="showPg('pg-conv')" style="position:absolute;left:8px;bottom:8px;font-size:12px;padding:6px 12px;">← 返回聊天</button>
+                <button class="d2-btn d2-btn-outline" id="d2-btnBackChat" onclick="d2CloseDivination();showPg('pg-conv')" style="position:absolute;left:8px;bottom:8px;font-size:12px;padding:6px 12px;">← 返回聊天</button>
                 <button class="d2-btn d2-btn-outline" id="d2-btnRedraw">↺ 重新抽</button>
                 <button class="d2-btn d2-btn-primary" id="d2-btnNext" style="display:none;">继续 →</button>
                 <button class="d2-btn d2-btn-outline" id="d2-btnCopyResult" style="display:none;">📋 复制结果</button>
@@ -35253,6 +35281,7 @@ function d2HidePage(pageId) {
         btnRedraw.addEventListener('click', d2RedrawCurrent);
         $('d2-btnCopyResult').addEventListener('click', d2CopyResult);
         $('d2-btnHistory').addEventListener('click', d2ShowHistory);
+        var btnBackChat=$('d2-btnBackChat');if(btnBackChat){btnBackChat.addEventListener('touchend',function(e){e.preventDefault();d2CloseDivination();showPg('pg-conv')})};
 
         // d2GoHome() called from d2ShowDivination
         // 首页历史记录按钮
