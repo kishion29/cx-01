@@ -25846,9 +25846,9 @@ function maybeAutoSend(){
   if(currentCall)return;
   
   // 确保 globalCards 已加载，避免因字卡为空导致无法触发主动发消息
+  // 不阻塞 return，允许在字卡为空时仍可发送带情绪/心意/交流意图字卡的消息
   if(!globalCards||globalCards.length===0){
     try{loadGlobalCards().then(function(){maybeAutoSend();}).catch(function(){});}catch(e){}
-    return;
   }
   
   // TA Highlight probability check - random trigger time each day
@@ -25941,49 +25941,50 @@ function maybeAutoSend(){
         return false;
       });
 
-      if(!availableCards.length)return;
-      
-      var textCards=availableCards.filter(function(c){return c.category!=='stickers'&&c.category!=='voices'&&c.category!=='emojis'&&c.category!=='kaomoji'});
-      var stickerCards=availableCards.filter(function(c){return c.category==='stickers'});
-      var voiceCards=availableCards.filter(function(c){return c.category==='voices'});
-      var emojiCards=availableCards.filter(function(c){return c.category==='emojis'});
-      var kaomojiCards=availableCards.filter(function(c){return c.category==='kaomoji'});
-      
-      var stickerProb=getSpeed('sticker-prob',targetId);
-      var isStickerReply=stickerCards.length>0&&Math.random()*100<stickerProb;
-      
-      var voiceProb=getSpeed('voice-prob',targetId)||10;
-      var isVoiceReply=!isStickerReply&&voiceCards.length>0&&Math.random()*100<voiceProb;
-      
-      var emojiProb=getSpeed('emoji-prob',targetId);
-      var isEmojiReply=!isStickerReply&&!isVoiceReply&&emojiCards.length>0&&Math.random()*100<emojiProb;
-      
       var reply='',imgSrc='',voiceSrc='',voiceText='';
-      if(isStickerReply){
-        var rc=stickerCards[Math.floor(Math.random()*stickerCards.length)];
-        imgSrc=rc.content;
-      }else if(isVoiceReply){
-        var vrc=voiceCards[Math.floor(Math.random()*voiceCards.length)];
-        voiceSrc=vrc.content;
-        voiceText=vrc.voiceText||'';
-      }else if(isEmojiReply){
-        var erc=emojiCards[Math.floor(Math.random()*emojiCards.length)];
-        trackCardUsageStats(targetId,erc.id);trackCardUsageLog(targetId,erc.id);
-        reply=erc.content;
-      }else{
-        var rc=textCards.length>0?textCards[Math.floor(Math.random()*textCards.length)]:availableCards[Math.floor(Math.random()*availableCards.length)];
-        reply=rc.content;
-      }
       
-      // 颜文字概率：独立于主字卡，可附加到文字回复中
-      var kaomojiProb=getSpeed('kaomoji-prob',targetId);
-      if(kaomojiProb>0&&kaomojiCards.length>0&&Math.random()*100<kaomojiProb){
-        var kc=kaomojiCards[Math.floor(Math.random()*kaomojiCards.length)];
-        trackCardUsageStats(targetId,kc.id);trackCardUsageLog(targetId,kc.id);
-        if(reply){
-          reply=reply+' '+kc.content;
+      if(availableCards.length>0){
+        var textCards=availableCards.filter(function(c){return c.category!=='stickers'&&c.category!=='voices'&&c.category!=='emojis'&&c.category!=='kaomoji'});
+        var stickerCards=availableCards.filter(function(c){return c.category==='stickers'});
+        var voiceCards=availableCards.filter(function(c){return c.category==='voices'});
+        var emojiCards=availableCards.filter(function(c){return c.category==='emojis'});
+        var kaomojiCards=availableCards.filter(function(c){return c.category==='kaomoji'});
+        
+        var stickerProb=getSpeed('sticker-prob',targetId);
+        var isStickerReply=stickerCards.length>0&&Math.random()*100<stickerProb;
+        
+        var voiceProb=getSpeed('voice-prob',targetId)||10;
+        var isVoiceReply=!isStickerReply&&voiceCards.length>0&&Math.random()*100<voiceProb;
+        
+        var emojiProb=getSpeed('emoji-prob',targetId);
+        var isEmojiReply=!isStickerReply&&!isVoiceReply&&emojiCards.length>0&&Math.random()*100<emojiProb;
+        
+        if(isStickerReply){
+          var rc=stickerCards[Math.floor(Math.random()*stickerCards.length)];
+          imgSrc=rc.content;
+        }else if(isVoiceReply){
+          var vrc=voiceCards[Math.floor(Math.random()*voiceCards.length)];
+          voiceSrc=vrc.content;
+          voiceText=vrc.voiceText||'';
+        }else if(isEmojiReply){
+          var erc=emojiCards[Math.floor(Math.random()*emojiCards.length)];
+          trackCardUsageStats(targetId,erc.id);trackCardUsageLog(targetId,erc.id);
+          reply=erc.content;
         }else{
-          reply=kc.content;
+          var rc=textCards.length>0?textCards[Math.floor(Math.random()*textCards.length)]:availableCards[Math.floor(Math.random()*availableCards.length)];
+          reply=rc.content;
+        }
+        
+        // 颜文字概率：独立于主字卡，可附加到文字回复中
+        var kaomojiProb=getSpeed('kaomoji-prob',targetId);
+        if(kaomojiProb>0&&kaomojiCards.length>0&&Math.random()*100<kaomojiProb){
+          var kc=kaomojiCards[Math.floor(Math.random()*kaomojiCards.length)];
+          trackCardUsageStats(targetId,kc.id);trackCardUsageLog(targetId,kc.id);
+          if(reply){
+            reply=reply+' '+kc.content;
+          }else{
+            reply=kc.content;
+          }
         }
       }
       
