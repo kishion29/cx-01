@@ -3049,6 +3049,47 @@ const LENORMAND_IMAGES = {
   </div>
 </div>
 
+<!-- 提前定义 showUsageNoticeFromSplash，防止移动端点击按钮时函数未加载 -->
+<script>
+function showUsageNoticeFromSplash() {
+  console.log('[DEBUG] showUsageNoticeFromSplash called (early)');
+  try{
+    var ann = document.getElementById('announcement-screen');
+    if (ann) {
+      ann.style.opacity = '0';
+      setTimeout(function(){
+        ann.style.display = 'none';
+      }, 500);
+    }
+    var phone = document.querySelector('.phone');
+    if (phone) {
+      phone.style.display = 'flex';
+      phone.style.opacity = '1';
+    }
+    if (typeof showPg === 'function') showPg('pg-usage-notice');
+    if (typeof renderChatList === 'function') renderChatList();
+    try {
+      var seen = (typeof getNoticeSeen === 'function') ? getNoticeSeen() : null;
+      if (!seen) {
+        var nav = document.getElementById('usage-notice-nav');
+        if (nav) nav.style.display = 'none';
+        var tabs = document.getElementById('usage-notice-tabs');
+        if (tabs) tabs.style.display = 'none';
+        var startBtn = document.getElementById('usage-notice-start-btn');
+        if (startBtn) startBtn.style.display = 'block';
+      } else {
+        var startBtn = document.getElementById('usage-notice-start-btn');
+        if (startBtn) startBtn.style.display = 'none';
+      }
+    } catch(e) {
+      console.warn('showUsageNoticeFromSplash first-time check failed:', e);
+    }
+  } catch(e) {
+    console.error('showUsageNoticeFromSplash early error:', e);
+  }
+}
+</script>
+
 <!-- Update Notice Overlay -->
 <div id="update-notice-overlay">
   <div id="update-notice-modal">
@@ -9306,7 +9347,7 @@ function renderContactAvatarHistory(contactId){
           var avKey=h.avatar||'';
           var isRef=h.isRef===true;
           if(!avKey)return;
-          var el=list.querySelector('.avh-img[data-avh-idx="'+(idx+1)+'"]');
+          var el=list.querySelector('.avh-img[data-avh-idx="'+idx+'"]');
           if(!el)return;
           if(isRef){
             batch.push(new Promise(function(resolve){
@@ -10487,7 +10528,7 @@ function _doRenderMsgs(messages){
       if(hasMood)parts.push('💭 '+x.moodCard.content);
       if(hasHeart)parts.push('❤️ '+x.heartCard.content);
       if(hasIntent)parts.push('💬 '+x.intentCard.content);
-      moodCardHtml='<div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div>';
+      moodCardHtml='<div style="width:0;min-width:100%;overflow:visible;"><div class="message-mood-card" style="font-size:11px;color:'+moodColor+';background:rgba(255,255,255,0.85);padding:3px 10px;border-radius:12px;display:block;margin-top:4px;border:1px solid rgba(0,0,0,0.06);backdrop-filter:blur(4px);max-width:100%;word-break:break-all;white-space:normal;">'+parts.join(' ')+'</div></div>';
     }
     var editBtnHtml='';
     var canRetract=false;
@@ -18058,8 +18099,8 @@ var speedSettings={
   'py-max':{key:'py_max',default:5,min:1,max:15,step:1,val:'max-val'},
   'dnd-en':{key:'dnd_en',default:0,min:0,max:1,step:1,val:'dnd-en'},
   'as-en':{key:'as_en',default:1,min:0,max:1,step:1,val:'as-en'},
-  'as-prob':{key:'as_prob',default:50,min:0,max:100,step:5,val:'as-prob-val'},
-  'as-min':{key:'as_min',default:1,min:1,max:600,step:1,val:'as-min-val'},
+  'as-prob':{key:'as_prob',default:10,min:0,max:100,step:5,val:'as-prob-val'},
+  'as-min':{key:'as_min',default:5,min:1,max:600,step:1,val:'as-min-val'},
   'as-max':{key:'as_max',default:10,min:1,max:60,step:1,val:'as-max-val'},
   'as-count':{key:'as_count',default:1,min:1,max:5,step:1,val:'as-count-val'},
   'reply-min':{key:'reply_min',default:1,min:1,max:10,step:1,val:'reply-min-val'},
@@ -18383,8 +18424,8 @@ function syncGroupSpeedUI(){
     {key:'py_min',id:'gs-min-val',default:2},
     {key:'py_max',id:'gs-max-val',default:5},
     {key:'as_en',id:'gs-as-en',isCheckbox:true,default:1},
-    {key:'as_prob',id:'gs-as-prob-val',default:50},
-    {key:'as_min',id:'gs-as-min-val',default:1},
+    {key:'as_prob',id:'gs-as-prob-val',default:10},
+    {key:'as_min',id:'gs-as-min-val',default:5},
     {key:'as_max',id:'gs-as-max-val',default:10},
     {key:'rn_prob',id:'gs-rn-prob-val',default:20},
     {key:'rc_prob',id:'gs-rc-prob-val',default:5},
@@ -20213,6 +20254,15 @@ function syncMomentsUI(){
   var contactSelect=$('moments-contact-select');
   var contactId=contactSelect?contactSelect.value:null;
   var settings=Object.assign({},momentsSettings);
+  
+  // 合并全局保存的设置（未选中联系人时）
+  if(!contactId){
+    Object.keys(momentsSettings).forEach(function(key){
+      if(key!=='contacts'&&s[key]!==undefined){
+        settings[key]=s[key];
+      }
+    });
+  }
   
   if(contactId&&s.contacts&&s.contacts[contactId]){
     Object.assign(settings,s.contacts[contactId]);
@@ -22135,45 +22185,7 @@ function renderLetters(){
 }
 var currentLetter=null;
 function openLetter(lid){
-  var ll=ls(LL)||[],l=ll.find(function(x){return x.id===lid});if(!l)return;
-  currentLetter=l;
-  l.r=true;ls(LL,ll);if(window.localforage){try{window.localforage.setItem(LL,ll)}catch(e){}}var c=contacts.find(function(x){return x.id===l.fid});
-  l.type=l.type||'received';
-  var _sn=l.senderName||(c?c.name:null)||'神秘人';
-  var fromText=l.type==='sent'?'寄给 '+_sn:'来自 '+_sn;
-  var html='<div class="lf-head"><div class="lf-title">✉ '+l.tt+'</div><div class="lf-from">'+fromText+' · '+flt(l.tm)+'</div></div>';
-  
-  if(l.type==='received'){
-    html+='<div style="margin-bottom:20px"><div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center">对方的来信</div><div class="lf-content">'+renderLetterContent(l.ct)+'</div></div>';
-  }
-  
-  if(l.replyTo){
-    var origLetter=ll.find(function(x){return x.id===l.replyTo});
-    var replyContext=origLetter?'📎 回复：'+origLetter.tt+'（'+flt(origLetter.tm)+'）':'📎 回复了一封来自'+(c?c.name:'神秘人')+'的信';
-    html+='<div style="background:var(--c2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--txt3);">'+replyContext+'</div>';
-  }
-  
-  if(l.myReply){
-    var myReplyTitle=l.type==='sent'?'我的信 · '+flt(l.myReply.tm):'我的回信 · '+flt(l.myReply.tm);
-    html+='<div style="margin-bottom:20px"><div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center">'+myReplyTitle+'</div><div class="lf-content" style="background:var(--accent);color:#fff;border-color:var(--accent)">'+renderLetterContent(l.myReply.content)+'</div></div>';
-  }
-  
-  if(l.partnerReply){
-    html+='<div style="margin-bottom:20px"><div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center">对方的回信 · '+flt(l.partnerReply.tm)+'</div><div class="lf-content">'+renderLetterContent(l.partnerReply.content)+'</div></div>';
-  }
-  
-  if(l.type==='sent'&&!l.myReply){
-    html+='<div style="margin-bottom:20px"><div style="font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center">我的信</div><div class="lf-content" style="background:var(--accent);color:#fff;border-color:var(--accent)">'+renderLetterContent(l.ct)+'</div></div>';
-  }
-  
-  
-  
-  $('letter-content').innerHTML=html;
-  $('reply-letter-btn').style.display=(l.fid&&!l.replied&&l.type==='received')?'block':'none';
-  $('reply-section').style.display='none';
-  $('reply-btn-section').style.display=(l.fid&&!l.replied&&l.type==='received')?'block':'none';
-  $('reply-content-input').value='';
-  showPg('pg-letter-detail');updateBadges();
+  openContactLetterDetail(lid);
 }
 function generateLetterContent(cid){
   var maxCards=getSpeed('ld-max-cards');
@@ -25888,7 +25900,7 @@ function maybeAutoSend(){
     var asMin=getSpeed('as-min',targetId),asMax=getSpeed('as-max',targetId)*60;
     
     if(dndEn===1){
-      asProb=30;
+      asProb=10;
       asMin=1;
       asMax=10800;
     }
@@ -25992,6 +26004,11 @@ function maybeAutoSend(){
       if(moodCard){emotionStreak+=1;}else{emotionStreak=0;}
       var heartCard=await getRandomHeartCard(targetId, moodCard);
       var intentCard=await getRandomIntentCard(targetId, heartCard);
+      
+      // 情绪/心意/交流意图字卡是发送消息时附属的，必须有文字内容才发送
+      if(!reply&&!imgSrc&&!voiceSrc){
+        return;
+      }
       
       var quoteMsgId=null;
       var quoteProb=getSpeed('quote-prob',targetId)/100;
@@ -32747,6 +32764,8 @@ function enterApp(){
       setTimeout(function(){
         ann.style.display='none';
         ann.style.pointerEvents='none';
+        // 开屏关闭后检查更新公告
+        try{checkUpdateNotice();}catch(e){}
       },500);
     }
     var phone=document.querySelector('.phone');
@@ -32898,6 +32917,68 @@ function withTimeout(promise, ms, fallback){
   });
 }
 
+// 强制迁移旧版默认设置到新版默认值（仅当用户未手动修改过时）
+var CURRENT_VERSION = '1.5';
+function migrateSettings(){
+  var migratedVersion = null;
+  try { migratedVersion = localStorage.getItem('star_settings_migrated_version'); } catch(e) {}
+  if (migratedVersion === CURRENT_VERSION) return;
+  
+  // 迁移主动发消息默认概率 50→10
+  var speedData = ls('ml2_speed');
+  if (!speedData) speedData = {};
+  var updated = false;
+  if (speedData.as_prob === undefined || speedData.as_prob === 50) {
+    speedData.as_prob = 10;
+    updated = true;
+  }
+  if (speedData.as_min === undefined || speedData.as_min === 1) {
+    speedData.as_min = 5;
+    updated = true;
+  }
+  if (updated) {
+    ls('ml2_speed', speedData);
+    if (window.localforage) {
+      try { window.localforage.setItem('ml2_speed', speedData); } catch(e) {}
+    }
+  }
+  
+  // 迁移朋友圈设置默认值
+  var momentsData = ls('ml2_moments_settings');
+  if (!momentsData || typeof momentsData !== 'object') momentsData = {};
+  var momentsUpdated = false;
+  var momentsDefaults = {
+    likeProbability: 60, likeSpeedMin: 5, likeSpeedMax: 60,
+    commentProbability: 80, commentSpeedMin: 10, commentSpeedMax: 60,
+    replyProbability: 60, replySpeedMin: 5, replySpeedMax: 30,
+    friendPostProbability: 50, friendPostIntervalMin: 1, friendPostIntervalMax: 480,
+    maxCardsPerComment: 3, imageProbability: 10, maxImagesPerComment: 3,
+    friendLikeFriendProbability: 40, friendCommentFriendProbability: 25,
+    friendCommentFriendSpeedMin: 10, friendCommentFriendSpeedMax: 60,
+    friendCommentFriendCardProbability: 50, friendCommentFriendMaxCards: 3,
+    friendCommentFriendImageProbability: 10, friendReplyFriendProbability: 15,
+    friendReplyFriendSpeedMin: 5, friendReplyFriendSpeedMax: 30,
+    friendCommentKaomojiProb: 5, friendCommentEmojiProb: 5, friendCommentStickerProb: 5,
+    friendReplyKaomojiProb: 5, friendReplyEmojiProb: 5, friendReplyStickerProb: 5,
+    friendPostKaomojiProb: 5, friendPostEmojiProb: 5, friendPostStickerProb: 5,
+    minCardsPerPost: 1, maxCardsPerPost: 10
+  };
+  Object.keys(momentsDefaults).forEach(function(key) {
+    if (momentsData[key] === undefined) {
+      momentsData[key] = momentsDefaults[key];
+      momentsUpdated = true;
+    }
+  });
+  if (momentsUpdated) {
+    ls('ml2_moments_settings', momentsData);
+    if (window.localforage) {
+      try { window.localforage.setItem('ml2_moments_settings', momentsData); } catch(e) {}
+    }
+  }
+  
+  try { localStorage.setItem('star_settings_migrated_version', CURRENT_VERSION); } catch(e) {}
+}
+
 var appInitDone=false;
 async function initApp(){
   try{
@@ -32917,6 +32998,9 @@ async function initApp(){
     try{await withTimeout(loadNavDisplayStates(),3000,undefined);}catch(e){}
     
     try{await withTimeout(preloadMsgsFromDB(),10000,undefined);}catch(e){}
+    
+    // 强制更新默认设置：将旧的主动发消息默认值迁移到新默认值
+    try{migrateSettings();}catch(e){console.warn('migrateSettings failed:',e);}
     
     appInitDone=true;
     renderChatList();
@@ -37784,6 +37868,9 @@ function finishFirstTimeNotice() {
       phone.style.display = 'flex';
       phone.style.opacity = '1';
     }
+    
+    // 首次使用须知完成后，检查更新公告
+    try{checkUpdateNotice();}catch(e){}
     
     // 如果初始化已完成，直接渲染
     if(appInitDone){
