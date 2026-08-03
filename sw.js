@@ -1,21 +1,39 @@
-// 星言 PWA Service Worker - v1.2.37
-// 策略：不缓存 HTML/导航请求，始终从网络获取最新页面（避免旧版缓存导致更新后看不到更新/数据异常）
-// 仅用于接收主页面消息并弹出通知（Android Chrome 独立模式更可靠）
-var CACHE_NAME = 'xingyan-v1_2_40';
+// 星言 Service Worker - 离线缓存支持
+var CACHE_NAME = 'xingyan-v2';
+var CORE_ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
+];
 
+// 安装: 预缓存核心资源
 self.addEventListener('install', function(event) {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(function(cache) {
+      // 核心资源缓存失败不阻塞安装
+      return Promise.allSettled(
+        CORE_ASSETS.map(function(url) {
+          return cache.add(url);
+        })
+      );
+    }).then(function() {
+      return self.skipWaiting();
+    })
+  );
 });
 
+// 激活: 清理旧缓存
 self.addEventListener('activate', function(event) {
-  // 清理旧缓存，避免残留
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
+    caches.keys().then(function(keys) {
       return Promise.all(
-        cacheNames.map(function(name) {
-          if (name !== CACHE_NAME) {
-            return caches.delete(name);
-          }
+        keys.filter(function(key) {
+          return key !== CACHE_NAME;
+        }).map(function(key) {
+          return caches.delete(key);
         })
       );
     }).then(function() {
@@ -24,38 +42,57 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-// 不拦截 fetch：浏览器按默认（网络）方式加载，始终获取服务器最新文件
-// 这样部署新版本后，用户（含已安装 PWA）刷新即可看到新代码，不会卡在旧缓存
+// 请求拦截: 缓存优先,网络回退
 self.addEventListener('fetch', function(event) {
-  // 不做 event.respondWith，保持默认网络行为
-  return;
+  var request = event.request;
+  // 仅处理 GET 请求
+  if (request.method !== 'GET') return;
+
+  var url = new URL(request.url);
+  // 同源请求: 缓存优先
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(request).then(function(cached) {
+        if (cached) {
+          // 后台更新缓存
+          fetch(request).then(function(resp) {
+            if (resp && resp.status === 200) {
+              caches.open(CACHE_NAME).then(function(cache) {
+                cache.put(request, resp.clone());
+              });
+            }
+          }).catch(function() {});
+          return cached;
+        }
+        // 无缓存: 从网络获取
+        return fetch(request).then(function(resp) {
+          if (resp && resp.status === 200 && resp.type === 'basic') {
+            var clone = resp.clone();
+            caches.open(CACHE_NAME).then(function(cache) {
+              cache.put(request, clone);
+            });
+          }
+          return resp;
+        }).catch(function() {
+          // 离线且无缓存: 返回主页
+          if (request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
+    );
+  }
+  // 跨域请求: 直接走网络
 });
 
-// 接收主页面消息，通过 SW 发送通知
+// 消息: 接收前端刷新指令
 self.addEventListener('message', function(event) {
-  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-    var data = event.data;
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: data.icon,
-      badge: data.icon,
-      tag: data.tag || ('xingyan-msg-'+Date.now()),
-      renotify: true,
-      requireInteraction: false
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
+  if (event.data === 'clearCache') {
+    caches.delete(CACHE_NAME).then(function() {
+      event.source && event.source.postMessage && event.source.postMessage('cacheCleared');
     });
   }
-});
-
-// 点击通知回到主页面
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window' }).then(function(clients) {
-      if (clients.length > 0) {
-        clients[0].focus();
-      } else {
-        self.clients.openWindow('./');
-      }
-    })
-  );
 });
