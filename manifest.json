@@ -1,12 +1,13 @@
 {
+  "id": "./",
   "name": "星言",
   "short_name": "星言",
   "description": "星言 - 你的专属梦境角落",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f8f6f3",
-  "theme_color": "#c9a96e",
+  "background_color": "#17171d",
+  "theme_color": "#17171d",
   "scope": "./",
   "icons": [
     {

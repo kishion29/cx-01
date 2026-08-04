@@ -1,5 +1,7 @@
 // 星言 Service Worker - 离线缓存支持
-var CACHE_NAME = 'xingyan-v2';
+// ★ 版本号随应用更新：每次部署改这里（与 27_pwa.js 的 APP_VERSION 对应），
+// 强制浏览器重新安装 SW 并清理旧缓存，避免一直用旧缓存导致 PWA 异常
+var CACHE_NAME = 'xingyan-v1.7';
 var CORE_ASSETS = [
   './',
   './index.html',
