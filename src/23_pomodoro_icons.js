@@ -1537,16 +1537,16 @@ var chatbarItems=[
   {id:'star_music',name:'星音陪伴',icon:'🎵',fixed:false,category:'互动'},
   {id:'giftbox',name:'礼物盒',icon:'🎁',fixed:false,category:'互动'},
   {id:'letters',name:'信箱',icon:'✉️',fixed:false,category:'互动'},
-  {id:'board',name:'我的留言板',icon:'📋',fixed:false,category:'更多功能'},
-  {id:'period',name:'经期记录',icon:'🌸',category:'更多功能',fixed:false},
-  {id:'pomodoro',name:'番茄钟',icon:'🍅',category:'更多功能',fixed:false},
+  {id:'board',name:'我的留言板',icon:'📋',fixed:false,category:'更多'},
+  {id:'period',name:'经期记录',icon:'🌸',category:'更多',fixed:false},
+  {id:'pomodoro',name:'番茄钟',icon:'🍅',category:'更多',fixed:false},
   {id:'mood_cards_library',name:'聊天情绪系统',icon:'💭',category:'字卡库',fixed:false},
   {id:'contact-profile',name:'梦角主页',icon:'🏠',category:'梦角',fixed:false},
   {id:'favorites',name:'TA的收藏夹',icon:'⭐',fixed:false,category:'梦角'},
   {id:'ta_highlights',name:'TA想说的重点',icon:'💬',fixed:false,category:'梦角'},
   {id:'chat_stats',name:'聊天统计',icon:'📊',fixed:false,category:'梦角'},
   {id:'star_cal',name:'星言日历',icon:'✨',fixed:false,category:'梦角'},
-  {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多功能'},
+  {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
   
   {id:'add',name:'添加好友',icon:'+',fixed:false,category:'其他'},
   {id:'search',name:'搜索',icon:'🔍',fixed:false,category:'其他'},
@@ -1555,7 +1555,7 @@ var chatbarItems=[
   {id:'send',name:'发送',icon:'📤',fixed:false,category:'其他'},
   {id:'more_action',name:'更多操作',icon:'⋯',fixed:false,category:'其他'}
 ];
-var chatbarCategoryOrder=['互动','消息工具','梦角','更多功能','字卡库','底部导航','其他'];
+var chatbarCategoryOrder=['互动','消息工具','梦角','更多','字卡库','底部导航','其他'];
 var customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','moments','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','giftbox'];
 
 // 聊天输入栏收纳功能：根据全局设置显示/隐藏输入栏按钮

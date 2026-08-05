@@ -82,33 +82,33 @@ input,textarea{-webkit-user-select:text;user-select:text;font-size:16px}
 
 /* ===== 夜间模式（不伤眼的暗色主题） ===== */
 body.night{
-  --bg:#17171d;
-  --surface:#1f1f27;
-  --surface-hover:#25252e;
-  --surface-active:#2c2c36;
-  --glass-bg:rgba(23,23,29,0.92);
+  --bg:#1e1e26;
+  --surface:#272732;
+  --surface-hover:#2e2e3a;
+  --surface-active:#353542;
+  --glass-bg:rgba(30,30,38,0.92);
   --glass-border:rgba(255,255,255,0.08);
-  --c1:#1f1f27;
-  --c2:#262630;
-  --c3:#2e2e39;
-  --c4:#373743;
+  --c1:#262631;
+  --c2:#2e2e3a;
+  --c3:#363644;
+  --c4:#3f3f4e;
   --txt:#e8e8ee;
   --txt2:#bcbcc6;
   --txt3:#90909c;
   --txt4:#60606c;
   --txt5:#3e3e4a;
-  --accent:#cdcdd8;
-  --accent2:#adaab8;
-  --accent-light:#373743;
-  --accent-bg:rgba(255,255,255,0.06);
+  --accent:#6e7b96;
+  --accent2:#8a94ad;
+  --accent-light:#3a3a48;
+  --accent-bg:rgba(110,123,150,0.18);
   --bubble-self:#3d3d4a;
   --bubble-self-text:#e8e8ee;
   --bubble-other:#22222c;
   --bubble-other-text:#d8d8e0;
-  --my-bubble-bg:#2e2e3a;
-  --my-bubble-text:#e8e8ee;
-  --other-bubble-bg:#21212b;
-  --other-bubble-text:#d8d8e0;
+  --my-bubble-bg:#3a3a4a;
+  --my-bubble-text:#eef0f5;
+  --other-bubble-bg:#2c2c3a;
+  --other-bubble-text:#e2e4ec;
   --online:#a3cca3;
   --busy:#cdab7d;
   --away:#b3a393;
@@ -129,14 +129,56 @@ body.night{
   --scrollbar-thumb-hover:rgba(255,255,255,0.26);
 }
 /* ---- 夜间：核心组件覆盖（原硬编码白/浅底） ---- */
-body.night .ts{background:rgba(58,58,70,0.6)}
+body.night .ts{color:var(--txt3);background:transparent!important;opacity:0.8}
 /* ★ 夜间：聊天页背景（含用户设置背景图）压暗，避免亮色图刺眼 */
-body.night .phone::before{background-color:rgba(18,18,24,0.55)}
+body.night .phone::before{background-color:rgba(30,30,40,0.4)}
 body.night .phone::after{background:var(--bg)}
+/* ★ 夜间：聊天消息细节——时间/系统消息/引用/气泡文字对比度 */
+body.night .mr.self .mt,body.night .mr.other .mt{color:var(--txt3)!important;opacity:0.9}
+body.night .message-system{color:var(--txt2)}
+body.night .message-system-clickable{background:rgba(255,255,255,0.1)!important;color:var(--txt2)!important}
 body.night .message-quote{background:rgba(255,255,255,0.07)}
 body.night .message-call{background:rgba(255,255,255,0.07)}
-body.night .message-touch{color:var(--txt2)}
-body.night .ibar{background:rgba(255,255,255,0.3)!important}
+/* ★ 夜间：开屏保持浅色不跟随夜间（开屏是品牌色，不参与夜间） */
+body.night #early-loading{background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%)!important;filter:none!important}
+body.night #early-loading *{color:#5a4a3a!important}
+body.night #early-loading button,body.night #early-loading .btn{color:#fff!important}
+body.night .message-retracted{color:var(--txt3)}
+body.night .message-mood-card{background:rgba(40,40,50,0.85)!important;border-color:rgba(255,255,255,0.08)!important}
+body.night .mr.self .mb{background:var(--my-bubble-bg,#3a3a4a)!important;color:var(--my-bubble-text,#e6e6ea)!important;border-color:rgba(255,255,255,0.06)!important}
+body.night .mr.other .mb{background:var(--other-bubble-bg,#2c2c3a)!important;color:var(--other-bubble-text,#d6d6de)!important;border-color:rgba(255,255,255,0.05)!important}
+body.night .long-ss-container .mr.self .mb{background:var(--my-bubble-bg,#3a3a4a)!important;color:var(--my-bubble-text,#e6e6ea)!important}
+body.night .long-ss-container .mr.other .mb{background:var(--other-bubble-bg,#2c2c3a)!important;color:var(--other-bubble-text,#d6d6de)!important}
+body.night .mr .mb{box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+body.night .av{background:var(--c3)}
+/* ★ 夜间：聊天输入栏——按钮/输入框/发送钮暗色 */
+body.night .ibar-btn{background:rgba(255,255,255,0.12)!important;color:var(--txt2)!important}
+body.night .ibar textarea{background:rgba(255,255,255,0.08)!important;color:var(--txt)!important}
+body.night .ibar textarea::placeholder{color:var(--txt3)!important}
+body.night .ibar .send-btn{background:rgba(255,255,255,0.14)!important;color:var(--txt2)!important}
+body.night .ibar .send-btn:active{background:rgba(255,255,255,0.2)!important}
+/* ★ 夜间：红包消息——已领取的浅色底改暗，文字提亮 */
+body.night .message-redpacket-collected{background:rgba(138,109,59,0.25)!important;border-color:rgba(205,171,125,0.3)!important}
+body.night .message-redpacket-collected div{color:#e0c9a3!important}
+/* ★ 夜间：系统消息字色（含内联 #333/#666 兜底） */
+body.night .message-system{color:var(--txt2)!important}
+body.night [style*="color:#333"]{color:var(--txt2)!important}
+body.night [style*="color:#666"]{color:var(--txt2)!important}
+/* ★ 夜间：星言日历卡片（JS 动态内联浅底深字） */
+body.night #daily-mood-card-wrap{filter:brightness(0.68) saturate(0.8)}
+body.night #daily-mood-scroll [style*="color:#5a4a3a"]{color:var(--txt)!important}
+body.night #daily-mood-scroll [style*="color:#4a3a2a"]{color:var(--txt)!important}
+body.night #daily-mood-scroll [style*="color:#8a7a6a"]{color:var(--txt3)!important}
+body.night #daily-mood-scroll [style*="color:#fffcf9"]{color:var(--txt)!important}
+body.night #daily-mood-scroll [style*="color:#f"]{color:var(--txt2)!important}
+body.night #daily-mood-scroll [style*="color:#fff"]{color:var(--txt)!important}
+body.night #daily-mood-scroll [style*="background:rgba(255,255,255,0.85"]{background:rgba(45,45,55,0.9)!important}
+body.night #daily-mood-close{background:rgba(60,60,70,0.92)!important;color:var(--txt2)!important}
+body.night #daily-mood-submit{filter:brightness(0.9)}
+body.night [id="calling-bg"]{background-color:var(--c1)!important;background-image:none!important}
+body.night [id="call-mini-bar"]{background-color:var(--c2)!important;border-color:var(--border)!important}
+body.night .ibar{background:rgba(255,255,255,0.12)!important}
+body.night [id="call-mini-bar"] div{color:var(--txt2)!important}
 body.night .overlay{background:rgba(0,0,0,0.6)}
 body.night .card-front.rev,body.night .card-front.mood,body.night .card-front.reply,body.night .card-front.secret,
 body.night .rc-head.rev,body.night .rc-head.mood,body.night .rc-head.reply,body.night .rc-head.secret,body.night .rc-head.tarot{background:var(--c2)}
@@ -149,11 +191,17 @@ body.night .timeline-option:hover{background:var(--c3)}
 body.night .citem{background:var(--c1)}
 body.night .citem:active{background:var(--c3)}
 body.night .emoji-panel,body.night .emoji-group-tab,body.night .chat-more-panel{background:var(--c2)}
-body.night .chat-more-item{background:var(--c3)}
-body.night .chat-more-item:active{background:var(--c4)}
+body.night .chat-more-item{background:var(--c3);box-shadow:none!important}
+body.night .chat-more-item:active{background:var(--c4);box-shadow:none!important}
+body.night .chat-more-tab{background:var(--c3);box-shadow:none!important}
+body.night .chat-more-settings-tab{background:var(--c3)!important;box-shadow:none!important}
 body.night .emoji-item:active{background:var(--c4)}
 body.night .my-row{background:var(--c1)}
 body.night .my-row:hover{background:var(--c2)}
+body.night .my-row:active{background:var(--c3)}
+body.night .btn-primary{background:var(--accent)!important;color:#fff!important}
+body.night .btn-outline{background:var(--c2)!important;color:var(--txt)!important;border-color:var(--border)!important}
+body.night .btn-secondary{background:var(--c3)!important;color:var(--txt)!important}
 body.night .msg-actions{background:var(--c1)}
 body.night .message-quote img{background:var(--c2)}
 body.night .gift-item-card,body.night .gift-record-card{background:var(--c1)}

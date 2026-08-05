@@ -1220,16 +1220,16 @@ async function applyChatSettings(contact){
   var _hasOtherBg=contact.chatSettings&&contact.chatSettings.otherBubbleBg;
   var _hasMyText=contact.chatSettings&&contact.chatSettings.myBubbleText;
   var _hasOtherText=contact.chatSettings&&contact.chatSettings.otherBubbleText;
-  document.documentElement.style.setProperty('--my-bubble-text',_isNight&&!_hasMyText?'#e6e6ea':(settings.myBubbleText||'#666666'));
-  document.documentElement.style.setProperty('--my-bubble-bg',_isNight&&!_hasMyBg?'#2b2b36':(settings.myBubbleBg||'#ffffff'));
-  document.documentElement.style.setProperty('--other-bubble-text',_isNight&&!_hasOtherText?'#d6d6de':(settings.otherBubbleText||'#666666'));
-  document.documentElement.style.setProperty('--other-bubble-bg',_isNight&&!_hasOtherBg?'#1f1f29':(settings.otherBubbleBg||'#ffffff'));
-  document.documentElement.style.setProperty('--my-quote-color',settings.myQuoteColor||'#000000');
-  document.documentElement.style.setProperty('--other-quote-color',settings.otherQuoteColor||'#000000');
-  document.documentElement.style.setProperty('--my-timeline-color',settings.myTimelineColor||'#000000');
-  document.documentElement.style.setProperty('--other-timeline-color',settings.otherTimelineColor||'#000000');
-  document.documentElement.style.setProperty('--my-touch-color',settings.myTouchColor||'#000000');
-  document.documentElement.style.setProperty('--other-touch-color',settings.otherTouchColor||'#000000');
+  document.documentElement.style.setProperty('--my-bubble-text',_isNight&&!_hasMyText?'#eef0f5':(settings.myBubbleText||'#666666'));
+  document.documentElement.style.setProperty('--my-bubble-bg',_isNight&&!_hasMyBg?'#3a3a4a':(settings.myBubbleBg||'#ffffff'));
+  document.documentElement.style.setProperty('--other-bubble-text',_isNight&&!_hasOtherText?'#e2e4ec':(settings.otherBubbleText||'#666666'));
+  document.documentElement.style.setProperty('--other-bubble-bg',_isNight&&!_hasOtherBg?'#2c2c3a':(settings.otherBubbleBg||'#ffffff'));
+  document.documentElement.style.setProperty('--my-quote-color',_isNight&&!_hasMyText?'#c8c8d2':(settings.myQuoteColor||'#000000'));
+  document.documentElement.style.setProperty('--other-quote-color',_isNight&&!_hasOtherText?'#c8c8d2':(settings.otherQuoteColor||'#000000'));
+  document.documentElement.style.setProperty('--my-timeline-color',_isNight&&!_hasMyText?'#b0b0bc':(settings.myTimelineColor||'#000000'));
+  document.documentElement.style.setProperty('--other-timeline-color',_isNight&&!_hasOtherText?'#b0b0bc':(settings.otherTimelineColor||'#000000'));
+  document.documentElement.style.setProperty('--my-touch-color',_isNight&&!_hasMyText?'#c8c8d2':(settings.myTouchColor||'#000000'));
+  document.documentElement.style.setProperty('--other-touch-color',_isNight&&!_hasOtherText?'#c8c8d2':(settings.otherTouchColor||'#000000'));
   
   msgbox.style.setProperty('--bubble-opacity',settings.bubbleOpacity!=null?settings.bubbleOpacity:1);
   // 将opacity应用到现有气泡（处理inline style的气泡）
