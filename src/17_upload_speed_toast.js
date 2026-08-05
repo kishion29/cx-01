@@ -1509,8 +1509,8 @@ function saveDndSettings(){
   toast(dndEn===1?'已开启免打扰模式':'已关闭免打扰模式');
 }
 function populateContactSelect(selectId){var sel=$(selectId);if(!sel)return;sel.innerHTML='';var allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='所有联系人';sel.appendChild(allOpt);contacts.forEach(function(c){var opt=document.createElement('option');opt.value=c.id;opt.textContent=c.name;sel.appendChild(opt)});}
-function openSpeedSettings(){populateContactSelect('speed-contact-select');if(contacts.length>0){$('speed-contact-select').value=contacts[0].id}syncSpeedUI();showOv('ov-speed')}
-function showLetterSettings(){populateContactSelect('letter-contact-select');if(contacts.length>0){$('letter-contact-select').value=contacts[0].id}syncSpeedUI();showOv('ov-letter-settings')}
+function openSpeedSettings(){populateContactSelect('speed-contact-select');$('speed-contact-select').value='__all__';syncSpeedUI();showOv('ov-speed')}
+function showLetterSettings(){populateContactSelect('letter-contact-select');$('letter-contact-select').value='__all__';syncSpeedUI();showOv('ov-letter-settings')}
 function openNonInstantSettings(){renderNonInstantSettings();showPg('pg-noninstant-settings')}
 if($('noninstant-settings-back'))$('noninstant-settings-back').addEventListener('click',function(){saveNonInstantSettings();showPg('pg-my');toast('设置已保存')});
 $('noninstant-contact-select')&&$('noninstant-contact-select').addEventListener('change',selectNonInstantSettingsContact);
@@ -1745,7 +1745,7 @@ if($('py-en'))$('py-en').addEventListener('change',function(){saveSpeedSettings(
 if($('as-en'))$('as-en').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'主动发送消息已开启':'主动发送消息已关闭')});
 if($('star-en'))$('star-en').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'星星标识已开启':'星星标识已关闭')});
 if($('enter-send'))$('enter-send').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'回车键发送已开启':'回车键发送已关闭')});
-document.querySelectorAll('.stepper').forEach(function(st){var k=st.dataset.k,m=speedSettings[k];if(!m||!m.val)return;var el=document.getElementById(m.val);if(!el)return;st.children[0].addEventListener('click',function(){var cur=parseInt(el.value)||m.min,nxt=Math.max(m.min,cur-m.step);el.value=nxt});st.children[2].addEventListener('click',function(){var cur=parseInt(el.value)||m.min,nxt=Math.min(m.max,cur+m.step);el.value=nxt});el.addEventListener('input',function(){var val=parseInt(this.value);if(isNaN(val))val=m.min;val=Math.max(m.min,Math.min(m.max,val));this.value=val})});
+document.querySelectorAll('.stepper').forEach(function(st){var k=st.dataset.k,m=speedSettings[k];if(!m||!m.val)return;var el=document.getElementById(m.val);if(!el)return;st.children[0].addEventListener('click',function(){var cur=parseInt(el.value)||m.min,nxt=Math.max(m.min,cur-m.step);el.value=nxt;saveSpeedSettings()});st.children[2].addEventListener('click',function(){var cur=parseInt(el.value)||m.min,nxt=Math.min(m.max,cur+m.step);el.value=nxt;saveSpeedSettings()});el.addEventListener('input',function(){var val=parseInt(this.value);if(isNaN(val))val=m.min;val=Math.max(m.min,Math.min(m.max,val));this.value=val;saveSpeedSettings()})});
 // 朋友圈设置stepper通用处理
 document.querySelectorAll('#ov-moments-settings .stepper').forEach(function(st){
   var input=st.querySelector('input.sv');

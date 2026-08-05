@@ -3076,6 +3076,19 @@ function showUsageNoticeFromSplash() {
             <input type="number" id="survey-early-submit-input" onchange="SurveyApp.setEarlySubmitProbDirect()" style="width:70px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--c1);color:var(--txt);font-size:14px;text-align:center;" min="0" max="100" placeholder="输入概率">
           </div>
         </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--c2);border-radius:var(--radius-sm);">
+          <div style="display:flex;flex-direction:column;">
+            <span style="font-size:13px;color:var(--txt);">未作答概率</span>
+            <span style="font-size:11px;color:var(--txt3);">本次问卷可能出现某题未作答的概率（0% 必全答）</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button onclick="SurveyApp.adjustSkipProb(-5)" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--c1);color:var(--txt);font-size:16px;font-weight:600;cursor:pointer;">-</button>
+            <span id="survey-skip-value" style="font-size:16px;font-weight:600;color:var(--accent);min-width:40px;text-align:center;">0</span>
+            <span style="font-size:13px;color:var(--txt2);">%</span>
+            <button onclick="SurveyApp.adjustSkipProb(5)" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--c1);color:var(--txt);font-size:16px;font-weight:600;cursor:pointer;">+</button>
+            <input type="number" id="survey-skip-input" onchange="SurveyApp.setSkipProbDirect()" style="width:70px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--c1);color:var(--txt);font-size:14px;text-align:center;" min="0" max="100" placeholder="输入概率">
+          </div>
+        </div>
       </div>
       <button class="btn-primary" onclick="hideOv('ov-survey-settings')" style="width:100%;">确定</button>
     </div>

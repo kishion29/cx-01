@@ -2292,7 +2292,7 @@ setTimeout(async function(){
 
     }, 2000);}catch(e){}
     try{setTimeout(function(){try{maybeAutoSend();}catch(e){console.warn('maybeAutoSend init error:',e);}},5000);}catch(e){}
-    try{setInterval(function(){try{maybeAutoSend();}catch(e){console.warn('maybeAutoSend error:',e);}},60000);}catch(e){}
+    try{setInterval(function(){try{maybeAutoSend();}catch(e){console.warn('maybeAutoSend error:',e);}},15000);}catch(e){}
     // 朋友圈动态：即使前面的初始化失败，也要确保定时任务启动
     try{setTimeout(scheduleFriendMoments,60000);}catch(e){console.warn('scheduleFriendMoments init failed:',e)}
     // 兜底：5秒后再启动一次，防止第一次因数据未就绪而失败
@@ -2739,6 +2739,7 @@ function openSurveyModal(mode){
 var SurveyApp = (function() {
   var surveyDuration = 120;
   var surveyEarlySubmitProb = 10;
+  var surveySkipProb = 0; // ★ 未作答概率：本次问卷可能出现某题未作答的概率（0-100）
   var currentSurvey = null;
   var currentQuestionIndex = 0;
   var remainingSeconds = 0;
@@ -2779,6 +2780,18 @@ var SurveyApp = (function() {
   
   function saveEarlySubmitProb(){
     lsSetWithDB('ml2_surveyEarlySubmitProb',surveyEarlySubmitProb.toString());
+  }
+
+  function loadSkipProb(){
+    lsGetWithDB('ml2_surveySkipProb').then(function(saved){
+      if(saved){
+        surveySkipProb=parseFloat(saved);
+      }
+    });
+  }
+
+  function saveSkipProb(){
+    lsSetWithDB('ml2_surveySkipProb',surveySkipProb.toString());
   }
   
   async function loadSurveyRecords(){
@@ -2948,6 +2961,7 @@ var SurveyApp = (function() {
   function init(){
     loadSurveyDuration();
     loadEarlySubmitProb();
+    loadSkipProb();
     loadCardPrivateContacts();
   }
   
@@ -3247,17 +3261,19 @@ var SurveyApp = (function() {
             var expectedAnswerTime=(currentQuestionIndex+1)*avgTimePerQ;
             if(elapsedSeconds<expectedAnswerTime)break;
             var answered=false;
-            if(q.type==='options'){
-              if(q.options&&q.options.length>0){
-                var randomOpt=q.options[Math.floor(Math.random()*q.options.length)];
+            // ★ 未作答概率：命中则本题留空（不答），仍推进到下一题
+            if(surveySkipProb>0&&Math.random()*100<surveySkipProb){
+              surveyAnswers[currentQuestionIndex]={value:'(未作答)'};
+              sessAuto.answers[currentQuestionIndex]={value:'(未作答)'};
+              answered=true;
+            }else if(q.type==='options'){
+              // ★ 修复：过滤空选项，确保设置了选项的题一定有有效答案
+              var validOpts=(q.options||[]).filter(function(o){return o&&String(o).trim()!==''});
+              if(validOpts.length>0){
+                var randomOpt=validOpts[Math.floor(Math.random()*validOpts.length)];
                 surveyAnswers[currentQuestionIndex]={value:randomOpt};
                 sessAuto.answers[currentQuestionIndex]={value:randomOpt};
-                // ★ 修复：答完一题自动推进到下一题
-                if(currentQuestionIndex<currentSurvey.questions.length-1){
-                  currentQuestionIndex++;
-                  sessAuto.questionIndex=currentQuestionIndex;
-                }
-                renderCurrentQuestion();
+                answered=true;
               }
             }else{
               var currentContactId=currentSurvey.currentContactId||null;
@@ -3605,7 +3621,28 @@ var SurveyApp = (function() {
     $('survey-duration-unit').textContent='秒';
     $('survey-early-submit-value').textContent=surveyEarlySubmitProb;
     $('survey-early-submit-input')&&($('survey-early-submit-input').value='');
+    $('survey-skip-value')&&($('survey-skip-value').textContent=surveySkipProb);
+    $('survey-skip-input')&&($('survey-skip-input').value='');
     showOv('ov-survey-settings');
+  }
+
+  function adjustSkipProb(delta){
+    surveySkipProb=Math.max(0,Math.min(100,surveySkipProb+delta));
+    var display=surveySkipProb<1?surveySkipProb.toFixed(1):Math.round(surveySkipProb);
+    $('survey-skip-value')&&($('survey-skip-value').textContent=display);
+    saveSkipProb();
+  }
+
+  function setSkipProbDirect(){
+    var input=$('survey-skip-input');
+    if(!input)return;
+    var val=parseFloat(input.value);
+    if(isNaN(val)){input.value='';return;}
+    surveySkipProb=Math.max(0,Math.min(100,val));
+    var display=surveySkipProb<1?surveySkipProb.toFixed(1):Math.round(surveySkipProb);
+    $('survey-skip-value')&&($('survey-skip-value').textContent=display);
+    input.value='';
+    saveSkipProb();
   }
   
   function adjustSurveyDuration(delta){
@@ -3707,6 +3744,8 @@ var SurveyApp = (function() {
     adjustSurveyDuration:adjustSurveyDuration,
     setSurveyDuration:setSurveyDuration,
     adjustEarlySubmitProb:adjustEarlySubmitProb,
+    adjustSkipProb:adjustSkipProb,
+    setSkipProbDirect:setSkipProbDirect,
     showSurveyDetail:showSurveyDetail,
     _loadRecords:loadSurveyRecords
   };

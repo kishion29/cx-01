@@ -19,12 +19,12 @@ function maybeAutoSend(){
     var targetId=contact.id;
     // Check if this contact should call us
     checkIncomingCallForContact(targetId);
-    var asEn=getSpeed('as-en',targetId);
+    var asEn=getSpeed('as-en');
     if(asEn!==1)return;
     
-    var dndEn=getSpeed('dnd-en',targetId);
-    var asProb=getSpeed('as-prob',targetId);
-    var asMin=getSpeed('as-min',targetId),asMax=getSpeed('as-max',targetId)*60;
+    var dndEn=getSpeed('dnd-en');
+    var asProb=getSpeed('as-prob');
+    var asMin=getSpeed('as-min'),asMax=getSpeed('as-max')*60;
     
     if(dndEn===1){
       asProb=10;
