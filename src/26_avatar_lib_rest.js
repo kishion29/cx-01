@@ -3240,10 +3240,13 @@ var SurveyApp = (function() {
           var elapsedSeconds=(Date.now()-surveyStartTime)/1000;
           // ★ 用 while(true)+break：一次 tick 内答完所有已到期的题（短时长如1秒多题也能全部答完）
           // q 和 expectedAnswerTime 在循环内获取/计算（推进 currentQuestionIndex 后更新）
+          var _safetyGuard=0;
           while(currentQuestionIndex<currentSurvey.questions.length){
+            if(++_safetyGuard>100){break;}
             var q=currentSurvey.questions[currentQuestionIndex];
             var expectedAnswerTime=(currentQuestionIndex+1)*avgTimePerQ;
             if(elapsedSeconds<expectedAnswerTime)break;
+            var answered=false;
             if(q.type==='options'){
               if(q.options&&q.options.length>0){
                 var randomOpt=q.options[Math.floor(Math.random()*q.options.length)];
@@ -3281,14 +3284,16 @@ var SurveyApp = (function() {
                 }
                 surveyAnswers[currentQuestionIndex]={value:selectedCards.join(' ')};
                 sessAuto.answers[currentQuestionIndex]={value:selectedCards.join(' ')};
-                // ★ 修复：答完一题自动推进到下一题
-                if(currentQuestionIndex<currentSurvey.questions.length-1){
-                  currentQuestionIndex++;
-                  sessAuto.questionIndex=currentQuestionIndex;
-                }
-                renderCurrentQuestion();
+                answered=true;
               }
             }
+            // 无论是否答上都必须推进，防止死循环
+            if(currentQuestionIndex<currentSurvey.questions.length-1){
+              currentQuestionIndex++;
+              sessAuto.questionIndex=currentQuestionIndex;
+            }
+            renderCurrentQuestion();
+            if(!answered){break;}
           }
           }
         }
@@ -3378,7 +3383,20 @@ var SurveyApp = (function() {
           if(surveyAnswers[ai])answeredCount++;
         }
       }
-      answerStatus.textContent='已回答 '+answeredCount+'/'+currentSurvey.questions.length;
+      // ★ 实时显示梦角已提交的答案（每题一个标签，可直接看到内容）
+      var answerSummaryHtml='<div style="font-size:12px;color:var(--txt2);margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">';
+      if(currentSurvey){
+        for(var bi=0;bi<currentSurvey.questions.length;bi++){
+          var an=surveyAnswers[bi];
+          if(an&&an.value&&an.value!=='(未回答)'){
+            var anText=String(an.value);
+            if(anText.length>12)anText=anText.substring(0,12)+'…';
+            answerSummaryHtml+='<span style="padding:2px 8px;background:rgba(110,123,150,0.18);border-radius:10px;color:var(--txt);">Q'+(bi+1)+': '+escapeHTML(anText)+'</span>';
+          }
+        }
+      }
+      answerSummaryHtml+='</div>';
+      answerStatus.innerHTML='<span style="font-size:13px;color:var(--txt2);">已回答 '+answeredCount+'/'+currentSurvey.questions.length+'</span>'+answerSummaryHtml;
     }
     if(!answerArea)return;
     var q=currentSurvey.questions[currentQuestionIndex];
@@ -3514,6 +3532,25 @@ var SurveyApp = (function() {
     clearInterval(timerInterval);
     renderSurveyContactSelector();
     toast('「'+(contact?contact.name:'未知')+'」问卷已提交');
+    // ★ 插入聊天系统消息：联系人提交了调查问卷（昵称可被"隐藏双方昵称"功能隐藏）
+    try{
+      if(contactId){
+        var _sName=contact?contact.name:(contactId);
+        var _sMsgs=msgs(contactId)||[];
+        _sMsgs.push({
+          id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),
+          s:OTHER,
+          t:_sName+'提交了调查问卷',
+          ts:new Date(),
+          read:(contactId===window.currentCid),
+          isSystem:true,
+          isSurvey:true
+        });
+        savemsgs(contactId,_sMsgs);
+        if(contactId===window.currentCid){renderMsgs();}
+        renderChatList();
+      }
+    }catch(e){console.warn('survey sys msg failed:',e);}
     // 检查是否所有联系人都已完成
     var allDone=currentSurvey.contactIds.every(function(cid){return currentSurvey.sessions[cid].completed});
     if(allDone){

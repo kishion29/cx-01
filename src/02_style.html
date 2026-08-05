@@ -603,7 +603,7 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 
 /* Chat More Panel */
 #ov-chat-more{background:none;backdrop-filter:none;pointer-events:none;display:none;position:absolute;bottom:0;left:0;right:0;height:100%;z-index:100}
-#ov-chat-more.show{display:block;pointer-events:auto}
+#ov-chat-more.show{display:block;pointer-events:auto!important}
 /* ★ 面板浮在输入栏上方升起（不覆盖底部聊天输入栏、无遮罩，聊天页保持可见），参照 emoji 面板 */
 .chat-more-panel{position:absolute;left:0;right:0;width:100%;max-width:500px;margin:0 auto;background:var(--c1);border-top:1px solid var(--border-light);border-radius:14px 14px 0 0;max-height:55vh;min-height:120px;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);bottom:calc(52px + env(safe-area-inset-bottom))}
 /* QQ 风格：顶部分类 tab + 下方内容区（内容区独立滚动） */

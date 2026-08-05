@@ -3712,10 +3712,16 @@ function showUsageNoticeFromSplash() {
         <div id="import-types" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt);cursor:pointer;">
-          <input type="checkbox" id="import-overwrite" style="width:18px;height:18px;accent-color:var(--accent);">
-          覆盖现有字卡（不勾选则合并添加）
+        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:8px;">导入方式</div>
+        <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt);cursor:pointer;margin-bottom:8px;">
+          <input type="radio" name="import-mode" id="import-mode-append" style="width:18px;height:18px;accent-color:var(--accent);" checked>
+          追加数据（保留现有字卡，重复内容自动去重）
         </label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt);cursor:pointer;">
+          <input type="radio" name="import-mode" id="import-mode-replace" style="width:18px;height:18px;accent-color:var(--accent);">
+          替换数据（清空现有字卡后导入）
+        </label>
+        <input type="checkbox" id="import-overwrite" style="display:none;">
       </div>
       <input type="file" id="import-cards-file" accept=".json" style="display:none;">
       <button id="import-cards-confirm" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:14px;font-weight:600;cursor:pointer;">选择JSON文件</button>

@@ -3171,6 +3171,27 @@ async function doImportData(data, importProgress){
       if(imgPromises.length>0){
         await Promise.allSettled(imgPromises);
       }
+      // ★ 追加模式：与现有聊天记录合并（按时间排序、按 id 去重），保留几天前的历史记录
+      try{
+        var existingMsgs=ls(msgKey);
+        if(existingMsgs&&Array.isArray(existingMsgs)&&existingMsgs.length>0){
+          var seenIds={};
+          existingMsgs.forEach(function(em){if(em&&em.id)seenIds[em.id]=true;});
+          msgsData.forEach(function(nm){
+            if(nm&&nm.id&&!seenIds[nm.id]){
+              seenIds[nm.id]=true;
+              existingMsgs.push(nm);
+            }
+          });
+          // 按时间排序（无 ts 的排最后）
+          existingMsgs.sort(function(a,b){
+            var at=a&&a.ts?(a.ts instanceof Date?a.ts.getTime():new Date(a.ts).getTime()):0;
+            var bt=b&&b.ts?(b.ts instanceof Date?b.ts.getTime():new Date(b.ts).getTime()):0;
+            return at-bt;
+          });
+          msgsData=existingMsgs;
+        }
+      }catch(e){console.warn('doImportData: msgs merge failed',e);}
       ls(msgKey,msgsData);
       if(window.localforage){
         await localforage.setItem(msgKey,msgsData).catch(function(e){console.warn('doImportData: msgs save failed',msgKey,e);});

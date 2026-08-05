@@ -1122,7 +1122,7 @@ function openImportCardsDialog(){
           
           var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k]});
           var typeVal=selectedType;
-          var overwrite=$('import-overwrite').checked;
+          var overwrite=$('import-mode-replace')&&$('import-mode-replace').checked;
           
           hideOv('ov-import-cards');
           await importCardsJSON(rawData,{categories:catList,cardType:typeVal,overwrite:overwrite});

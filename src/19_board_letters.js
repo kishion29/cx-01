@@ -768,10 +768,18 @@ function bindMyPageEvents(){
     ['dnd-settings-btn',openDndSettings],
     ['sound-btn',openSoundSettings],
     ['export-data-btn',async function(){
-      // ★ 导出确认弹窗：确保手机端可靠点击
-      var confirmed=await customConfirm('确定导出数据？将生成一个包含全部数据（聊天记录、联系人、字卡、设置等）的文件，请妥善保存。');
+      // ★ 导出确认：Via 等浏览器 customConfirm 动态弹窗可能不渲染，用原生 confirm 保证可靠
+      var confirmed=false;
+      try{
+        if(typeof confirm==='function'&&/via|ucbrowser|baiduboxapp/i.test(navigator.userAgent)){
+          confirmed=confirm('确定导出数据？将生成一个包含全部数据（聊天记录、联系人、字卡、设置等）的文件，请妥善保存。');
+        }else{
+          confirmed=await customConfirm('确定导出数据？将生成一个包含全部数据（聊天记录、联系人、字卡、设置等）的文件，请妥善保存。');
+        }
+      }catch(e){confirmed=confirm('确定导出数据？将生成一个包含全部数据的备份文件，请妥善保存。');}
       if(confirmed){
         try{
+          toast('正在导出，请稍候...');
           // ★ 必须 await：exportData 是异步的，不等待会导致 iOS 失去用户手势上下文，下载/分享被拒绝
           await exportData();
         }catch(e){console.error('export failed:',e);toast('导出失败，请重试');}
@@ -842,7 +850,10 @@ function bindMyPageEvents(){
   els.forEach(function(item){
     var el=$(item[0]);
     if(el){
+      var _lastTouchFire=0;
       el.addEventListener('click',function(e){
+        // ★ 修复：touchend 已触发过则跳过 click，防止 Via 等浏览器双触发导致弹窗/页面卡顿
+        if(Date.now()-_lastTouchFire<500){return;}
         if(isSwipe()){_tsM=false;return;}
         item[1]();
       });
@@ -853,6 +864,7 @@ function bindMyPageEvents(){
         }
         e.preventDefault();
         e.stopPropagation();
+        _lastTouchFire=Date.now();
         item[1]();
       });
     }
