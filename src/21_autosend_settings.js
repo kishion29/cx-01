@@ -168,10 +168,11 @@ function maybeAutoSend(){
       }
       
       var m=msgs(targetId);
-      // 修复：如果消息数据未加载（空数组），跳过推送，避免覆盖原有聊天记录
+      // 修复：消息为空时不再跳过——新联系人/无历史记录也允许主动发消息
       if(!m||m.length===0){
-        console.warn('maybeAutoSend: msgs empty for',targetId,', skip to avoid overwriting');
-        return;
+        m=[];
+        memoryCache[LM+targetId]=m;
+        savemsgs(targetId,m);
       }
       m.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:reply,img:imgSrc,voice:voiceSrc,voiceText:voiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:moodCard,heartCard:heartCard,intentCard:intentCard,quote:quoteMsgId,isSticker:imgSrc?true:false,isVoice:voiceSrc?true:false});savemsgs(targetId,m);
       // 更新上次发送时间，防止下次循环立即再次触发
