@@ -23,4 +23,4 @@ for f in ['AGENTS.md', 'README.md', '.gitignore', 'LICENSE']:
     if os.path.exists(f):
         shutil.copy2(f, os.path.join(dst, f))
 
-print('最新 star-root 已生成，index.html 大小 MB:', round(os.path.getsize(os.path.join(dst, 'index.html'))/1048576, 2))
+print('最新 star-root 已生成')
