@@ -495,16 +495,55 @@ function renderLetterContent(text){
 }
 function maybeGenLetter(){
   var cs=contacts.filter(function(x){return x.id!=='fh'});if(!cs.length)return;
+  // ★★ 修复：真正按"最短~最长写信时间"间隔触发，而不是每30秒抽签
+  // 记录全局下一次可写信时间戳，未到时间不抽签
+  var _nextKey='ml2_letter_next_write_time';
+  var _next=ls(_nextKey)||0;
+  var _nowTs=Date.now();
+  if(_next>0&&_nowTs<_next)return; // 还没到下次写信时间
+  // 已有排期中（未发出）的计划信时跳过
+  try{
+    var _pending=ls(LL)||[];
+    for(var _pi=0;_pi<_pending.length;_pi++){
+      if(_pending[_pi]&&_pending[_pi]._pendingWrite){
+        // 若排期超过 24 小时仍未发出（应用关闭等异常），视为过期可重新排期
+        if(_pending[_pi]._pendingWriteAt&&_nowTs-_pending[_pi]._pendingWriteAt>24*60*60*1000){
+          continue;
+        }
+        return;
+      }
+    }
+  }catch(e){}
   var sender=cs[Math.floor(Math.random()*cs.length)],tts=['好久不见','最近还好吗','想你了','给你写了封信','深夜随想','一些想说的话'];
   var writeProb=getSpeed('ld-write-prob',sender.id);if(Math.random()*100>writeProb)return;
   var ct=generateLetterContent(sender.id);
   var minDelay=getSpeed('ld-write-min',sender.id)*60000;
   var maxDelay=getSpeed('ld-write-max',sender.id)*60000;
+  if(!minDelay||!maxDelay||maxDelay<minDelay){maxDelay=minDelay+60000;}
   var delay=minDelay+Math.random()*(maxDelay-minDelay);
+  // 无论是否最终命中，先设置下次可写信时间 = 当前 + 随机间隔，保证间隔真正生效
+  var _nextDelay=minDelay+Math.random()*(maxDelay-minDelay);
+  ls(_nextKey,_nowTs+_nextDelay);
+  if(window.localforage){try{window.localforage.setItem(_nextKey,_nowTs+_nextDelay)}catch(e){}}
+  // 预登记：标记这封信处于"排期中"，避免重复触发
+  var _letterId='l_'+Date.now();
+  try{
+    var _ll=ls(LL)||[];
+    _ll.unshift({id:_letterId,fid:sender.id,_pendingWrite:true,_pendingWriteAt:Date.now()});
+    ls(LL,_ll);
+    if(window.localforage){try{window.localforage.setItem(LL,_ll)}catch(e){}}
+  }catch(e){}
   setTimeout(function(){
     // 修复：延迟回调用 try/catch 包裹，避免抛错时无法被外层定时器捕获
     try{
-    var ll=ls(LL)||[];var l={id:'l_'+Date.now(),fid:sender.id,senderName:sender.name,tt:tts[Math.floor(Math.random()*tts.length)],ct:ct,tm:Date.now(),r:false,replied:false,type:'received',myReply:null,partnerReply:null};ll.unshift(l);ls(LL,ll);if(window.localforage){try{window.localforage.setItem(LL,ll)}catch(e){}}updateBadges();renderLetters();
+    var ll=ls(LL)||[];var l={id:_letterId,fid:sender.id,senderName:sender.name,tt:tts[Math.floor(Math.random()*tts.length)],ct:ct,tm:Date.now(),r:false,replied:false,type:'received',myReply:null,partnerReply:null};ll.unshift(l);ls(LL,ll);if(window.localforage){try{window.localforage.setItem(LL,ll)}catch(e){}}updateBadges();renderLetters();
+    // 清除同 id 的排期假条目（_pendingWrite）
+    try{
+      var _ll2=ls(LL)||[];
+      _ll2=_ll2.filter(function(x){return !(x&&x._pendingWrite&&x.id===_letterId)});
+      ls(LL,_ll2);
+      if(window.localforage){try{window.localforage.setItem(LL,_ll2)}catch(e){}}
+    }catch(e){}
 
     // 在聊天中插入系统消息
     var contactMsgs=msgs(sender.id);
