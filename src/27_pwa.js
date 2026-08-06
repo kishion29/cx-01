@@ -34,6 +34,33 @@
     });
   }
 
+  // ★ PWA 安装：捕获 beforeinstallprompt（Chrome/Edge 触发），供应用内"安装应用"按钮调用
+  var deferredInstallPrompt=null;
+  window.__deferredInstallPrompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();
+    deferredInstallPrompt=e;
+    window.__deferredInstallPrompt=e;
+    // 通知应用可安装
+    try{ window.dispatchEvent(new CustomEvent('pwa-installable',{detail:{deferredPrompt:e}})); }catch(err){}
+  });
+  // 手动触发安装（设置页/开屏"安装应用"按钮调用）
+  window.__promptInstall=function(){
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function(){deferredInstallPrompt=null;window.__deferredInstallPrompt=null;});
+    }else{
+      return false;
+    }
+    return true;
+  };
+  window.addEventListener('appinstalled',function(){
+    deferredInstallPrompt=null;
+    window.__deferredInstallPrompt=null;
+    try{ window.dispatchEvent(new CustomEvent('pwa-installed')); }catch(err){}
+    try{ if(typeof toast==='function') toast('✅ 已安装到桌面'); }catch(err){}
+  });
+
   // 页面加载后若由旧SW控制，先让其失效并刷新以加载新SW
   if(navigator.serviceWorker.controller){
     navigator.serviceWorker.addEventListener('controllerchange',function(){

@@ -211,18 +211,25 @@ function maybeAutoSend(onlyTargetId){
       var _asCount=_asMin+Math.floor(Math.random()*(_asMax-_asMin+1));
       if(_asCount<1)_asCount=1;
       var _asBaseId='m_'+Date.now();
-      for(var _ai=0;_ai<_asCount;_ai++){
+      // ★ 修复：主动发送多条也逐条延迟（间隔 1.2~2.8 秒）
+      function _sendAsBatch(ai){
+        if(ai>=_asCount){
+          savemsgs(targetId,m);
+          lastAutoSendTime[targetId]=Date.now();
+          if(cid===targetId){renderMsgs(m);playSound('recv',targetId)}renderChatList();
+          return;
+        }
         var _curReply=reply,_curImg=imgSrc,_curVoice=voiceSrc,_curVoiceText=voiceText;
-        if(_ai>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
+        if(ai>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
           _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
         }
-        m.push({id:_asBaseId+'_'+_ai+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:(_ai===0?moodCard:null),heartCard:(_ai===0?heartCard:null),intentCard:(_ai===0?intentCard:null),quote:(_ai===0?quoteMsgId:null),isSticker:(_isStickerType===true),isVoice:_curVoice?true:false});
+        m.push({id:_asBaseId+'_'+ai+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:(ai===0?moodCard:null),heartCard:(ai===0?heartCard:null),intentCard:(ai===0?intentCard:null),quote:(ai===0?quoteMsgId:null),isSticker:(_isStickerType===true),isVoice:_curVoice?true:false});
+        savemsgs(targetId,m);
+        if(cid===targetId){renderMsgs(m)}renderChatList();
+        if(ai===0)playSound('recv',targetId);
+        setTimeout(function(){_sendAsBatch(ai+1);},1200+Math.random()*1600);
       }
-      savemsgs(targetId,m);
-      // 更新上次发送时间，防止下次循环立即再次触发
-      lastAutoSendTime[targetId]=Date.now();
-
-      if(cid===targetId){renderMsgs(m);playSound('recv',targetId)}renderChatList();
+      _sendAsBatch(0);
 
       if(document.visibilityState!=='visible'){
         var msgText='';

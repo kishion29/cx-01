@@ -127,15 +127,21 @@ function jumpToDateInChat(dateKey,msgsOfDay){
         _jumpFocusMsgId=firstMsg.id;
         _jumpFocusJustJumped=true;
         setTimeout(function(){_jumpFocusJustJumped=false;},2500);
-        var allMsgs=msgs(cid);
-        if(allMsgs&&allMsgs.length>0){
-          renderMsgs(allMsgs);
+        // ★ 修复：先查目标是否已在渲染窗口中——在则直接滚动，不重建 DOM（重建会打断平滑滚动）
+        var msgEl0=document.querySelector('[data-mid="'+firstMsg.id+'"]');
+        if(!msgEl0){
+          var allMsgs=msgs(cid);
+          if(allMsgs&&allMsgs.length>0){
+            _loadMoreLock=true; // 防触顶加载打断
+            renderMsgs(allMsgs);
+            setTimeout(function(){_loadMoreLock=false;},1500);
+          }
         }
       }catch(e){console.warn('jumpToDate render fail:',e);}
       // 渲染后滚动到焦点元素（渲染是异步/节流的，延迟查找）
       var msgEl=document.querySelector('[data-mid="'+firstMsg.id+'"]');
       if(msgEl){
-        msgEl.scrollIntoView({behavior:'smooth',block:'start'});
+        msgEl.scrollIntoView({behavior:'auto',block:'start'});
         msgEl.style.background='rgba(201,169,110,0.15)';
         setTimeout(function(){msgEl.style.background='';},2500);
       }else{
@@ -144,7 +150,7 @@ function jumpToDateInChat(dateKey,msgsOfDay){
           attempts++;
           var el=document.querySelector('[data-mid="'+firstMsg.id+'"]');
           if(el){
-            el.scrollIntoView({behavior:'smooth',block:'start'});
+            el.scrollIntoView({behavior:'auto',block:'start'});
             el.style.background='rgba(201,169,110,0.15)';
             setTimeout(function(){el.style.background='';},2500);
           }else if(attempts<15){

@@ -1327,14 +1327,16 @@ async function applyChatSettings(contact){
     }
     var hasSelectors=/\{[\s\S]*\}/.test(css);
     if(!hasSelectors){
+      // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则覆盖导致失效
+      var cssImp=css.replace(/([a-z-]+)\s*:\s*([^;{}]+);/gi,'$1:$2!important;');
       var wrapped='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}';
-      wrapped+='.mr.self .mb{'+css+'}';
-      wrapped+='.mr.other .mb{'+css+'}';
-      wrapped+='.long-ss-container .mr.self .mb{'+css+'}';
-      wrapped+='.long-ss-container .mr.other .mb{'+css+'}';
+      wrapped+='.mr.self .mb{'+cssImp+'}';
+      wrapped+='.mr.other .mb{'+cssImp+'}';
+      wrapped+='.long-ss-container .mr.self .mb{'+cssImp+'}';
+      wrapped+='.long-ss-container .mr.other .mb{'+cssImp+'}';
       customStyle.textContent=wrapped;
     }else{
       var mappedCSS=css
@@ -1344,6 +1346,8 @@ async function applyChatSettings(contact){
         .replace(/\.mb\.other\b/g,'.mr.other .mb')
         .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mr.self .mb')
         .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb');
+      // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则等覆盖导致失效
+      mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+);/gi,'$1:$2!important;');
       customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS;
     }
   }else{
@@ -1689,7 +1693,7 @@ function withTimeout(promise, ms, fallback){
 }
 
 // 强制迁移旧版默认设置到新版默认值（仅当用户未手动修改过时）
-var CURRENT_VERSION = '1.6';
+var CURRENT_VERSION = '1.7.1';
 function migrateSettings(){
   var migratedVersion = null;
   try { migratedVersion = localStorage.getItem('star_settings_migrated_version'); } catch(e) {}

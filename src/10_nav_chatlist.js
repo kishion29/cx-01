@@ -54,6 +54,13 @@ function _invalidateTabsCache(){
 
 function showPg(id){
   if(currentPage===id)return;
+  // ★ 修复：切换页面时强制收起输入法（blur 输入框），避免输入框残留 focus 导致键盘重弹
+  try{
+    var _inp=document.activeElement;
+    if(_inp&&(_inp.id==='msg-inp'||_inp.tagName==='TEXTAREA'||_inp.tagName==='INPUT')){
+      _inp.blur();
+    }
+  }catch(e){}
   if(currentPage==='pg-conv'&&cid&&$('msg-inp')){
     sessionStorage.setItem('msg-inp-'+cid,$('msg-inp').value);
   }

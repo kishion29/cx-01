@@ -575,8 +575,11 @@ function scheduleTouchReply(targetId){
   typingStates[targetId]=true;
   if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}
   var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;
-  if(rtimers[targetId])clearTimeout(rtimers[targetId]);
-  rtimers[targetId]=setTimeout(async function(){
+  // ★ 修复：拍一拍/红包用独立 timer（rpTimers），不再复用 rtimers（回复计时器），避免互相 clear 打断对方
+  if(window._rpTimers===undefined)window._rpTimers={};
+  if(window._rpTimers[targetId])clearTimeout(window._rpTimers[targetId]);
+  window._rpTimers[targetId]=setTimeout(async function(){
+    window._rpTimers[targetId]=null;
     var group=groups.find(function(g){return g.id===targetId});
     var isGroup=!!group;
     if(!isGroup){

@@ -17,12 +17,8 @@ for f in ['AGENTS.md', 'README.md', '.gitignore', 'LICENSE']:
         shutil.copy2(f, os.path.join(dst, f))
 def md5(p):
     return hashlib.md5(open(p, 'rb').read()).hexdigest()
-m1 = md5('app/index.html')
-m2 = md5(os.path.join(dst, 'index.html'))
-print('index md5 一致:', m1 == m2)
-print('md5:', m1[:12])
-# 关键修复验证
+print('md5 一致:', md5('app/index.html') == md5(os.path.join(dst, 'index.html')))
 bt = open(os.path.join(dst, 'index.html'), encoding='utf-8', errors='replace').read()
-print('收纳按钮在消息工具最前:', "categories['消息工具']=_drawerItems.concat" in bt)
-print('聊天互动分类:', "category:'聊天互动'" in bt)
-print('导出进度标题:', "showImportProgress('导出数据中...')" in bt)
+print('1.7.1 公告:', "version: '1.7.1'" in bt)
+print('公告区无红字:', 'e74c3c' not in bt.split('UPDATE_NOTICES')[1][:6000])
+print('开私人群描述:', '星言也可能开私人群' in bt)

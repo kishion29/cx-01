@@ -814,6 +814,18 @@ function bindMyPageEvents(){
     ['push-notify-btn',togglePushNotify],
     ['fullscreen-mode-btn',toggleFullscreenMode],
     ['night-mode-btn',toggleNightMode],
+    ['pwa-install-btn',function(){
+      // ★ PWA 安装：Chrome/Edge 走 beforeinstallprompt；iOS 提示用 Safari"添加到主屏幕"
+      var ok=false;
+      try{ if(window.__promptInstall) ok=window.__promptInstall(); }catch(e){}
+      if(!ok){
+        if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+          toast('iOS 请用 Safari 打开后：分享 → 添加到主屏幕');
+        }else{
+          toast('当前浏览器暂不支持安装，请用 Chrome 打开后点右上角菜单 → 安装应用');
+        }
+      }
+    }],
     ['custom-settings-back',function(){hideCustomSettings()}],
     ['custom-settings-add-btn',addCustomCard],
     ['custom-settings-dedup-btn',clearDuplicateCards],
@@ -869,6 +881,18 @@ function bindMyPageEvents(){
       });
     }
   });
+  
+  // ★ PWA 可安装时显示"安装到桌面"按钮
+  try{
+    if(window.__deferredInstallPrompt){
+      var _installBtn=$('pwa-install-btn');
+      if(_installBtn)_installBtn.style.display='flex';
+    }
+    window.addEventListener('pwa-installable',function(){
+      var _installBtn=$('pwa-install-btn');
+      if(_installBtn)_installBtn.style.display='flex';
+    });
+  }catch(e){}
   
   var importBtn=$('import-data-btn');
   if(importBtn){

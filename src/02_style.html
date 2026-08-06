@@ -155,7 +155,7 @@ body.night .av{background:var(--c3)}
 body.night .ibar-btn{background:rgba(255,255,255,0.12)!important;color:var(--txt2)!important}
 body.night .ibar textarea{background:rgba(255,255,255,0.08)!important;color:var(--txt)!important}
 body.night .ibar textarea::placeholder{color:var(--txt3)!important}
-body.night .ibar .send-btn{background:rgba(255,255,255,0.14)!important;color:var(--txt2)!important}
+body.night .ibar .send-btn{background:transparent!important;color:var(--txt2)!important}
 body.night .ibar .send-btn:active{background:rgba(255,255,255,0.2)!important}
 /* ★ 夜间：红包消息——已领取的浅色底改暗，文字提亮 */
 body.night .message-redpacket-collected{background:rgba(138,109,59,0.25)!important;border-color:rgba(205,171,125,0.3)!important}
@@ -494,7 +494,7 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
   .tab:hover{transform:none!important}
   .btn-nav:hover{background:none!important}
   .timeline-option:hover{background:transparent!important}
-  .emoji-group-tab:hover{background:#ffffff!important}
+  .emoji-group-tab:hover:not(.sel){background:#ffffff!important}
   .emoji-item:hover{transform:none!important}
   .chip:hover{transform:none!important}
   .mode-chip:hover{transform:none!important}
@@ -597,7 +597,7 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 .ibar textarea{flex:1;border:none;outline:none;background:rgba(0,0,0,0.02);border-radius:18px;padding:8px 12px;font-size:14px;resize:none;line-height:1.5;max-height:120px;min-height:32px;font-family:inherit;color:var(--txt);overflow:hidden}
 .ibar textarea:focus{background:rgba(0,0,0,0.04)}
 .ibar textarea::placeholder{color:var(--txt4)}
-.ibar .send-btn{background:rgba(0,0,0,0.06);color:var(--txt2);border:none;border-radius:50%;width:32px;height:32px;font-size:14px;cursor:pointer;flex-shrink:0;font-weight:500;display:flex;align-items:center;justify-content:center;transition:var(--transition-fast);touch-action:manipulation;padding:0}
+.ibar .send-btn{background:transparent;color:var(--txt2);border:none;border-radius:50%;width:32px;height:32px;font-size:14px;cursor:pointer;flex-shrink:0;font-weight:500;display:flex;align-items:center;justify-content:center;transition:var(--transition-fast);touch-action:manipulation;padding:0;line-height:1}
 .ibar .send-btn.disabled{opacity:.3;cursor:not-allowed}
 .ibar .send-btn:active{background:rgba(0,0,0,0.12);transform:scale(.95)}
 
@@ -630,7 +630,7 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 .emoji-tab{flex:1;padding:10px;text-align:center;font-size:12px;border:none;background:none;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:background-color .2s,color .2s}
 .emoji-tab.sel{color:#334155;border-bottom-color:#334155}
 .emoji-group-tab{padding:8px 12px;border-radius:16px;font-size:12px;cursor:pointer;white-space:nowrap;border:1px solid var(--border);color:var(--txt2);background:#ffffff;transition:all .2s;flex-shrink:0}
-.emoji-group-tab.sel{background:#334155;color:#ffffff;border-color:#334155}
+.emoji-group-tab.sel{background:#334155!important;color:#ffffff!important;border-color:#334155!important}
 .emoji-item{width:48px;height:48px;border-radius:6px;background:transparent;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:transform .1s,background .1s;border:none;touch-action:manipulation}
 .emoji-item:active{background:#f1f5f9;transform:scale(.95)}
 

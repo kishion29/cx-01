@@ -193,7 +193,7 @@ function markMessageReadIgnored(targetId,silent){
 
 
 
-async function genReply(targetId){
+async function genReply(targetId,forceSingle){
   if(!targetId)targetId=cid;
   if(!targetId)return;
 
@@ -588,18 +588,28 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   }
   // ★ 修复：按"回复消息条数"设置（reply-min ~ reply-max）随机发送多条
   // 传 senderId：getSpeed 优先 per-contact，无则回退全局，两者都能读到
-  var _rMin=parseInt(getSpeed('reply-min',senderId))||1;
-  var _rMax=parseInt(getSpeed('reply-max',senderId))||5;
-  if(_rMax<_rMin)_rMax=_rMin;
-  if(_rMin<1)_rMin=1;
-  if(_rMax>10)_rMax=10;
-  var _replyCount=_rMin+Math.floor(Math.random()*(_rMax-_rMin+1));
+  // ★ 继续说（forceSingle）只发 1 条
+  var _replyCount=1;
+  if(!forceSingle){
+    var _rMin=parseInt(getSpeed('reply-min',senderId))||1;
+    var _rMax=parseInt(getSpeed('reply-max',senderId))||5;
+    if(_rMax<_rMin)_rMax=_rMin;
+    if(_rMin<1)_rMin=1;
+    if(_rMax>10)_rMax=10;
+    _replyCount=_rMin+Math.floor(Math.random()*(_rMax-_rMin+1));
+  }
   var _replyBaseId='m_'+Date.now();
   var _sentCount=0;
-  for(var _ri=0;_ri<_replyCount;_ri++){
+  // ★ 修复：多条消息逐条延迟发送（间隔 1.2~2.8 秒），不是一次性全蹦出来
+  function _sendReplyBatch(idx){
+    if(idx>=_replyCount){
+      savemsgs(targetId,m);
+      if(targetId===window.currentCid)renderMsgs(m);renderChatList();playSound('recv',targetId);
+      return;
+    }
     // 多字卡随机：每条从 textCards 重新抽（若前面没生成 reply 池）
     var _curReply=reply, _curImg=imgSrc, _curVoice=voiceSrc, _curVoiceText=voiceText;
-    if(_ri>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
+    if(idx>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
       _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
       // 多字卡设置：概率附加更多字卡
       var _pyEn=getSpeed('py-en',targetId), _pyProb=getSpeed('py-prob',targetId)/100;
@@ -612,12 +622,19 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
         }
       }
     }
-    var replyMsg={id:_replyBaseId+'_'+_ri+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:pc,isAuto:true,isInitiative:false,quote:(_ri===0?quoteMsgId:null),isSticker:isStickerImg,isVoice:_curVoice?true:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid),moodCard:(_ri===0?moodCard:null),heartCard:(_ri===0?heartCard:null),intentCard:(_ri===0?intentCard:null)};
+    var replyMsg={id:_replyBaseId+'_'+idx+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:pc,isAuto:true,isInitiative:false,quote:(idx===0?quoteMsgId:null),isSticker:isStickerImg,isVoice:_curVoice?true:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid),moodCard:(idx===0?moodCard:null),heartCard:(idx===0?heartCard:null),intentCard:(idx===0?intentCard:null)};
     m.push(replyMsg);
     _sentCount++;
+    savemsgs(targetId,m);
+    if(targetId===window.currentCid)renderMsgs(m);renderChatList();
+    if(idx===0)playSound('recv',targetId);
+    if(idx<_replyCount-1){
+      setTimeout(function(){_sendReplyBatch(idx+1);},1200+Math.random()*1600);
+    }else{
+      setTimeout(function(){_sendReplyBatch(idx+1);},0);
+    }
   }
-  savemsgs(targetId,m);
-  if(targetId===window.currentCid)renderMsgs(m);renderChatList();playSound('recv',targetId);
+  _sendReplyBatch(0);
   
   setTimeout(function(){maybeTriggerStarMusicRequest(targetId)},2000);
   
@@ -784,7 +801,8 @@ async function simulateReply(){
     if(beforeMsgs&&Array.isArray(beforeMsgs))beforeCount=beforeMsgs.length;
   }catch(e){}
   try{
-    await genReply(cid);
+    // ★ 修复：继续说 = 立即发 1 条（forceSingle），不走 reply-min/max 区间多发
+    await genReply(cid,true);
   }catch(e){
     console.warn('simulateReply error:',e);
   }

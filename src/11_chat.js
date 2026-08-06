@@ -1552,7 +1552,10 @@ function _doRenderMsgs(messages){
         }
       }catch(e){}
       var bubbleOpacity='';
-      if(_bubbleOp!==1){
+      if(hideAvatars){
+        // ★ 修复：简约模式（隐藏双方头像）时用默认 0.85；取消后按美化设置透明度
+        bubbleOpacity='opacity:0.85;';
+      }else if(_bubbleOp!==1&&_bubbleOp>0){
         bubbleOpacity='opacity:'+_bubbleOp+';';
       }
       
@@ -2066,6 +2069,20 @@ function _doRenderMsgs(messages){
       requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});
     }
   }
+  // ★ 修复：输入框 blur 后 300ms 内阻止误重聚焦（点其他按钮/切页后键盘重弹问题）——只绑一次
+  try{
+    var _msgInpFix=$('msg-inp');
+    if(_msgInpFix&&!_msgInpFix._keyboardGuardBound){
+      _msgInpFix._keyboardGuardBound=true;
+      var _lastBlurFix=0;
+      _msgInpFix.addEventListener('blur',function(){_lastBlurFix=Date.now();});
+      _msgInpFix.addEventListener('focus',function(){
+        if(Date.now()-_lastBlurFix<300){
+          this.blur();
+        }
+      });
+    }
+  }catch(e){}
 
   var _entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
   if(_entity&&_entity.chatSettings&&_entity.chatSettings.customCSS&&_entity.chatSettings.customCSS.trim()){

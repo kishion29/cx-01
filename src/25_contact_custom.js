@@ -885,6 +885,8 @@ function saveContactEdit(){
     convTitle.textContent=editingContact.hideName?'':editingContact.name;
   }
   renderChatList();
+  // ★ 修复：联系人设置（含简约模式/透明度）保存后重新应用聊天设置，取消简约模式时透明度恢复正常
+  try{ if(typeof applyChatSettings==='function') applyChatSettings(editingContact); }catch(e){console.warn('applyChatSettings after save failed:',e)}
   renderMsgs();
   updateBottomNavVisibility();
   hideOv('ov-contact-edit');

@@ -431,7 +431,7 @@ function renderUsageGuideTabs(){
   container.innerHTML='';
   _usageGuideData.forEach(function(section,idx){
     var tab=document.createElement('div');
-    tab.style.cssText='flex-shrink:0;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;color:'+(idx===_usageGuideActiveIdx?'var(--c2)':'var(--txt3)')+';font-weight:'+(idx===_usageGuideActiveIdx?'600':'400')+';border-bottom-color:'+(idx===_usageGuideActiveIdx?'var(--c2)':'transparent')+';';
+    tab.style.cssText='flex-shrink:0;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;color:'+(idx===_usageGuideActiveIdx?'var(--accent)':'var(--txt3)')+';font-weight:'+(idx===_usageGuideActiveIdx?'600':'400')+';border-bottom-color:'+(idx===_usageGuideActiveIdx?'var(--accent)':'transparent')+';';
     tab.textContent=section.icon+' '+section.title;
     tab.addEventListener('click',function(){
       _usageGuideActiveIdx=idx;
