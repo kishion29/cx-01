@@ -1328,7 +1328,8 @@ async function applyChatSettings(contact){
     var hasSelectors=/\{[\s\S]*\}/.test(css);
     if(!hasSelectors){
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则覆盖导致失效
-      var cssImp=css.replace(/([a-z-]+)\s*:\s*([^;{}]+);/gi,'$1:$2!important;');
+      // 同时处理分号结尾和无分号的最后一条声明（否则最后一条在夜间被覆盖，预览却正常）
+      var cssImp=css.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,'$1:$2!important$3');
       // ★ 修复：同时输出 body.night 前缀版本（同特异性后插入胜），保证夜间模式用户 CSS 不被夜间气泡规则覆盖
       var wrapped='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
@@ -1352,7 +1353,8 @@ async function applyChatSettings(contact){
         .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mr.self .mb')
         .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb');
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则等覆盖导致失效
-      mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+);/gi,'$1:$2!important;');
+      // 同时处理分号结尾和无分号的最后一条声明
+      mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,'$1:$2!important$3');
       // ★ 修复：复制一份 body.night 前缀版本（同特异性后插入胜），夜间模式用户 CSS 同样生效
       customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other');
     }

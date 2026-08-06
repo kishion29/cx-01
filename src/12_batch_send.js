@@ -579,16 +579,19 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   
   var moodCard=null,heartCard=null,intentCard=null;
   // ★ 修复：情绪/心意/交流意图字卡获取异常绝不能阻断主回复（之前异常会导致整个回复静默失败）
-  try{
-    moodCard=await getRandomMoodCard(targetId);
-  }catch(e){console.warn('moodCard failed:',e);}
-  if(moodCard){emotionStreak+=1;}else{emotionStreak=0;}
-  try{
-    heartCard=await getRandomHeartCard(targetId, moodCard);
-  }catch(e){console.warn('heartCard failed:',e);}
-  try{
-    intentCard=await getRandomIntentCard(targetId, heartCard);
-  }catch(e){console.warn('intentCard failed:',e);}
+  // ★ 修复：异步获取，不阻塞第一条消息发送（localforage 慢时第一条不再额外延迟）
+  (async function(){
+    try{
+      moodCard=await getRandomMoodCard(targetId);
+    }catch(e){console.warn('moodCard failed:',e);}
+    if(moodCard){emotionStreak+=1;}else{emotionStreak=0;}
+    try{
+      heartCard=await getRandomHeartCard(targetId, moodCard);
+    }catch(e){console.warn('heartCard failed:',e);}
+    try{
+      intentCard=await getRandomIntentCard(targetId, heartCard);
+    }catch(e){console.warn('intentCard failed:',e);}
+  })();
   
   var m=msgs(targetId);
   if(!m||m.length===0){

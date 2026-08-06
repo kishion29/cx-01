@@ -2063,8 +2063,9 @@ function _doRenderMsgs(messages){
 
   initMsgActions();
   if(!longScreenshotMode){
-    // ★ 修复：只在窗口包含最新消息时滚到底；触顶加载/日期跳转时不强制滚底
-    var _isAtEnd=!(_renderStartIdx>0);
+    // ★ 修复：只在"触顶加载/日期跳转"状态不滚底；普通渲染（含消息超80条）必须滚底
+    // 之前用 _renderStartIdx>0 判断导致消息超80条后永远不滚底，新消息要手动滑动才能看到
+    var _isAtEnd=!(_loadMoreLock||_jumpFocusJustJumped);
     if(_isAtEnd){
       requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});
     }
