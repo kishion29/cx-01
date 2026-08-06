@@ -1431,12 +1431,26 @@ async function applyChatSettings(contact){
         .replace(/\.message\b(?![-.])/g,'.mr .mb');
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则等覆盖导致失效
       // 同时处理分号结尾和无分号的最后一条声明；若用户已写 !important 则不重复追加
+      // ★ .message 同时映射 .mr .mb 与 .mr .mc（.mc 有 overflow:hidden 会裁气泡，需同步覆盖）
       mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,function(_m,_p,_v,_end){
         var _v2=_v.replace(/\s*!important\s*$/i,'').trim();
         return _p+':'+_v2+'!important'+_end;
       });
+      // ★ 若用户 CSS 里设置了 overflow，则同步生成 .mr .mc 覆盖规则（.mc 有 overflow:hidden 会裁气泡）
+      // 注意：必须并入最终 textContent（在赋值前 += 会被后面的赋值覆盖）
+      var _mcOverflowCSS='';
+      if(/overflow\s*:/.test(mappedCSS)){
+        var _overflowRule=mappedCSS.match(/[^{}]*\{[^}]*overflow:[^}]*\}/g)||[];
+        _overflowRule.forEach(function(r){
+          var _ov=r.match(/overflow\s*:\s*[^;}]+/);
+          if(_ov){
+            _mcOverflowCSS+='.mr .mc{'+_ov[0]+'!important}';
+            _mcOverflowCSS+='body.night .mr .mc{'+_ov[0]+'!important}';
+          }
+        });
+      }
       // ★ 修复：复制一份 body.night 前缀版本（同特异性后插入胜），夜间模式用户 CSS 同样生效
-      customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other');
+      customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other')+_mcOverflowCSS;
     }
   }else{
     var msgbox=$('msgbox');
