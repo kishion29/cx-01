@@ -1515,7 +1515,7 @@ function loadPomodoroMessages() {
 // ---------- Custom Chatbar Settings ----------
 var chatbarItems=[
   {id:'chat',name:'聊天',icon:'💬',fixed:true,category:'底部导航',isNav:true},
-  {id:'moments',name:'朋友圈',icon:'📸',fixed:false,category:'互动'},
+  {id:'moments',name:'朋友圈',icon:'📸',fixed:false,category:'更多'},
   {id:'more',name:'更多',icon:'✨',fixed:true,category:'底部导航',isNav:true},
   {id:'settings',name:'设置',icon:'⚙️',fixed:true,category:'底部导航',isNav:true},
   {id:'image',name:'发送图片',icon:'🖼️',fixed:true,category:'消息工具'},
@@ -1527,16 +1527,16 @@ var chatbarItems=[
   {id:'topbar_cards',name:'顶部栏字卡库',icon:'📌',fixed:false,category:'字卡库'},
   {id:'search_chat',name:'搜索聊天记录',icon:'🔍',fixed:false,category:'消息工具'},
   {id:'date_search',name:'切换聊天日期',icon:'📅',fixed:false,category:'消息工具'},
-  {id:'touch',name:'拍一拍',icon:'👋',fixed:false,category:'互动'},
-  {id:'redpacket',name:'红包',icon:'🧧',fixed:false,category:'互动'},
-  {id:'decision',name:'帮我决定',icon:'🎲',fixed:false,category:'互动'},
-  {id:'group_decision',name:'多人决定',icon:'👥',fixed:false,category:'互动'},
-  {id:'divine',name:'占卜',icon:'🔮',fixed:false,category:'互动'},
-  {id:'call',name:'通话',icon:'📞',fixed:false,category:'互动'},
-  {id:'survey',name:'调查问卷',icon:'📝',fixed:false,category:'互动'},
-  {id:'star_music',name:'星音陪伴',icon:'🎵',fixed:false,category:'互动'},
-  {id:'giftbox',name:'礼物盒',icon:'🎁',fixed:false,category:'互动'},
-  {id:'letters',name:'信箱',icon:'✉️',fixed:false,category:'互动'},
+  {id:'touch',name:'拍一拍',icon:'👋',fixed:false,category:'聊天互动'},
+  {id:'redpacket',name:'红包',icon:'🧧',fixed:false,category:'聊天互动'},
+  {id:'decision',name:'帮我决定',icon:'🎲',fixed:false,category:'聊天互动'},
+  {id:'group_decision',name:'多人决定',icon:'👥',fixed:false,category:'聊天互动'},
+  {id:'divine',name:'占卜',icon:'🔮',fixed:false,category:'聊天互动'},
+  {id:'call',name:'通话',icon:'📞',fixed:false,category:'聊天互动'},
+  {id:'survey',name:'调查问卷',icon:'📝',fixed:false,category:'更多'},
+  {id:'star_music',name:'星音陪伴',icon:'🎵',fixed:false,category:'聊天互动'},
+  {id:'giftbox',name:'礼物盒',icon:'🎁',fixed:false,category:'聊天互动'},
+  {id:'letters',name:'信箱',icon:'✉️',fixed:false,category:'更多'},
   {id:'board',name:'我的留言板',icon:'📋',fixed:false,category:'更多'},
   {id:'period',name:'经期记录',icon:'🌸',category:'更多',fixed:false},
   {id:'pomodoro',name:'番茄钟',icon:'🍅',category:'更多',fixed:false},
@@ -1544,7 +1544,7 @@ var chatbarItems=[
   {id:'contact-profile',name:'梦角主页',icon:'🏠',category:'梦角',fixed:false},
   {id:'favorites',name:'TA的收藏夹',icon:'⭐',fixed:false,category:'梦角'},
   {id:'ta_highlights',name:'TA想说的重点',icon:'💬',fixed:false,category:'梦角'},
-  {id:'chat_stats',name:'聊天统计',icon:'📊',fixed:false,category:'梦角'},
+  {id:'chat_stats',name:'聊天统计',icon:'📊',fixed:false,category:'消息工具'},
   {id:'star_cal',name:'星言日历',icon:'✨',fixed:false,category:'梦角'},
   {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
   
@@ -1555,7 +1555,7 @@ var chatbarItems=[
   {id:'send',name:'发送',icon:'📤',fixed:false,category:'其他'},
   {id:'more_action',name:'更多操作',icon:'⋯',fixed:false,category:'其他'}
 ];
-var chatbarCategoryOrder=['互动','消息工具','梦角','更多','字卡库','底部导航','其他'];
+var chatbarCategoryOrder=['消息工具','聊天互动','更多','梦角','字卡库','底部导航','其他'];
 var customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','moments','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','giftbox'];
 
 // 聊天输入栏收纳功能：根据全局设置显示/隐藏输入栏按钮
@@ -1617,12 +1617,14 @@ function renderChatMorePanel(){
   if(ibh.image)hiddenBtns.push({id:'image',name:'发送图片',icon:'🖼️'});
   if(ibh.batch)hiddenBtns.push({id:'batch',name:'批量发送',icon:'☰'});
   if(ibh.continue)hiddenBtns.push({id:'continue',name:'让对方继续说',icon:'…'});
-  if(hiddenBtns.length>0&&!categories['更多'])categories['更多']=[];
+  // ★ 收纳按钮归入"消息工具"分类（放最前面，用户要求）
+  if(hiddenBtns.length>0&&!categories['消息工具'])categories['消息工具']=[];
   if(hiddenBtns.length>0){
-    hiddenBtns.forEach(function(item){
-      categories['更多'].push({id:'drawer-'+item.id,name:item.name,icon:item.icon});
+    var _drawerItems=hiddenBtns.map(function(item){
+      return {id:'drawer-'+item.id,name:item.name,icon:item.icon};
     });
-    if(catNames.indexOf('更多')===-1)catNames.push('更多');
+    // 插入到消息工具分类最前面
+    categories['消息工具']=_drawerItems.concat(categories['消息工具']||[]);
   }
 
   // 记忆当前选中分类（默认第一个）

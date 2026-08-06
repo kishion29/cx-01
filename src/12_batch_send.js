@@ -587,9 +587,12 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     m=[];
   }
   // ★ 修复：按"回复消息条数"设置（reply-min ~ reply-max）随机发送多条
-  var _rMin=parseInt(getSpeed('reply-min',targetId))||1;
-  var _rMax=parseInt(getSpeed('reply-max',targetId))||5;
+  // 传 senderId：getSpeed 优先 per-contact，无则回退全局，两者都能读到
+  var _rMin=parseInt(getSpeed('reply-min',senderId))||1;
+  var _rMax=parseInt(getSpeed('reply-max',senderId))||5;
   if(_rMax<_rMin)_rMax=_rMin;
+  if(_rMin<1)_rMin=1;
+  if(_rMax>10)_rMax=10;
   var _replyCount=_rMin+Math.floor(Math.random()*(_rMax-_rMin+1));
   var _replyBaseId='m_'+Date.now();
   var _sentCount=0;

@@ -2105,8 +2105,8 @@ showPgCallbacks['pg-contact-topbar-settings']=async function(){
 };
 
 async function exportData(){
-  // ★ 导出进度条
-  var progress=showImportProgress();
+  // ★ 导出进度条（★ 修复：标题用"导出数据中..."，不再误显示"导入数据中"）
+  var progress=showImportProgress('导出数据中...');
   progress('正在准备导出...',5);
   try{
   // 确保 globalCards 已加载，避免导出数据缺失字卡库内容
@@ -2894,14 +2894,14 @@ function handleImportFile(file){
   reader.readAsText(file,'UTF-8');
 }
 
-// 导入进度遮罩
-function showImportProgress(){
+// 导入/导出进度遮罩（★ 修复：支持自定义标题，导出时不再显示"导入数据中"）
+function showImportProgress(customTitle){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:12px;padding:24px 32px;width:80%;max-width:300px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
   var title=document.createElement('div');
-  title.textContent='导入数据中...';
+  title.textContent=customTitle||'导入数据中...';
   title.style.cssText='font-size:16px;font-weight:bold;color:#333;margin-bottom:16px;';
   var barBg=document.createElement('div');
   barBg.style.cssText='width:100%;height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:8px;';

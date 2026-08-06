@@ -1717,6 +1717,15 @@ function migrateSettings(){
     speedData.as_count = 1;
     updated = true;
   }
+  // ★ 修复：as-count-min/max 默认值迁移（旧版无此字段，用 as_count 或 1 兜底）
+  if (speedData.as_count_min === undefined) {
+    speedData.as_count_min = speedData.as_count || 1;
+    updated = true;
+  }
+  if (speedData.as_count_max === undefined) {
+    speedData.as_count_max = speedData.as_count || 1;
+    updated = true;
+  }
   if (speedData.reply_min === undefined) {
     speedData.reply_min = 1;
     updated = true;
