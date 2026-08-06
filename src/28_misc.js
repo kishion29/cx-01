@@ -731,6 +731,7 @@ var UPDATE_NOTICES = [
 ];
 
 var CURRENT_VERSION = '1.7.1';
+var DEPLOY_TIME = '2026-08-06 17:09';
 
 function compareVersions(v1, v2) {
   var parts1 = v1.split('.').map(Number);
@@ -765,7 +766,7 @@ function showUpdateNotice(notice) {
   
   document.getElementById('update-notice-title').innerHTML = '✨ ' + notice.title;
   document.getElementById('update-notice-version').textContent = '版本 ' + notice.version;
-  document.getElementById('update-notice-date').textContent = notice.date;
+  document.getElementById('update-notice-date').textContent = notice.date + ' · 部署 ' + (typeof DEPLOY_TIME!=='undefined'?DEPLOY_TIME:'-');
   document.getElementById('update-notice-body').innerHTML = notice.content;
   
   overlay.classList.add('show');

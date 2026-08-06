@@ -645,23 +645,40 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     // 多字卡随机：每条从 textCards 重新抽（若前面没生成 reply 池）
     var _curReply=reply, _curImg=imgSrc, _curVoice=voiceSrc, _curVoiceText=voiceText;
     if(idx>0){
-      // ★ 模拟真人：多条表情包时，小概率连发同一条（真人常见），大概率换一条
-      // 15% 复用第一条（连发相同表情包），85% 重新随机抽
-      if(Math.random()<0.15){
-        // 保持 _curImg/_curVoice 不变（连发同一条）
+      // ★ 模拟真人：仅表情包可小概率连发同一条（真人常见）；语音/图片/文字同批内绝不重复
+      var _usedSticker=[],_usedImage=[],_usedVoice=[],_usedText=[];
+      for(var _ui=0;_ui<m.length;_ui++){
+        var _um=m[_ui];
+        if(!_um)continue;
+        if(_um.isSticker&&_um.img)_usedSticker.push(_um.img);
+        else if(_um.img)_usedImage.push(_um.img);
+        if(_um.voice)_usedVoice.push(_um.voice);
+        if(_um.t&&!_um.isSticker&&!_um.img&&!_um.voice)_usedText.push(_um.t);
+      }
+      function _pickNoDup(_arr,_used,_maxTry){
+        _maxTry=_maxTry||12;
+        for(var _t=0;_t<_maxTry;_t++){
+          var _c=_arr[Math.floor(Math.random()*_arr.length)];
+          if(_used.indexOf(_c.content)<0)return _c;
+        }
+        return _arr[Math.floor(Math.random()*_arr.length)];
+      }
+      if(Math.random()<0.15&&imgSrc&&isStickerImg&&stickerCards&&stickerCards.length>0){
+        // 保持 _curImg 不变（连发相同表情包，真人常见）
       }else if(imgSrc&&stickerCards&&stickerCards.length>0){
-        var _rc2=stickerCards[Math.floor(Math.random()*stickerCards.length)];
+        var _rc2=_pickNoDup(stickerCards,_usedSticker);
         _curImg=_rc2.content;
       }else if(imgSrc&&imageCards&&imageCards.length>0){
-        var _rc3=imageCards[Math.floor(Math.random()*imageCards.length)];
+        var _rc3=_pickNoDup(imageCards,_usedImage);
         _curImg=_rc3.content;
       }else if(voiceSrc&&voiceCards&&voiceCards.length>0){
-        var _rc4=voiceCards[Math.floor(Math.random()*voiceCards.length)];
+        var _rc4=_pickNoDup(voiceCards,_usedVoice);
         _curVoice=_rc4.content;
         _curVoiceText=_rc4.voiceText||'';
       }
       if(textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
-      _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
+      var _rc5=_pickNoDup(textCards,_usedText);
+      _curReply=_rc5.content;
       // 多字卡设置：概率附加更多字卡
       var _pyEn=getSpeed('py-en',targetId), _pyProb=getSpeed('py-prob',targetId)/100;
       if(_pyEn&&Math.random()<_pyProb){
