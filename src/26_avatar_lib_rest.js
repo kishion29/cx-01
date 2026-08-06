@@ -1391,7 +1391,10 @@ async function applyChatSettings(contact){
         return _p+':'+_v2+'!important'+_end;
       });
       // ★ 修复：同时输出 body.night 前缀版本（同特异性后插入胜），保证夜间模式用户 CSS 不被夜间气泡规则覆盖
-      var wrapped='.mr{contain:none!important;padding-top:6px!important;margin-top:0!important}';
+      var wrapped='.mr{contain:none!important;padding-top:8px!important;margin-top:0!important}';
+      wrapped+='.mr .mc{overflow:visible!important}';
+      wrapped+='body.night .mr .mc{overflow:visible!important}';
+      wrapped+='.mr .mb{overflow:visible!important;position:relative!important}';
       wrapped+='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}';
@@ -1442,7 +1445,11 @@ async function applyChatSettings(contact){
       // ★ 修复：复制一份 body.night 前缀版本（同特异性后插入胜），夜间模式用户 CSS 同样生效
       // ★ .mr{contain:content} 的 paint 会强制裁剪溢出（伪元素/阴影），应用用户 CSS 时无条件清除
       // ★ 移动浏览器 contain:paint 裁剪 bug 兜底：给 .mr 加顶部内边距，让 ::before 装饰在容器内显示不被裁
-      customStyle.textContent='.mr{contain:none!important;padding-top:6px!important;margin-top:0!important}.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other')+_mcOverflowCSS;
+      customStyle.textContent='.mr{contain:none!important;padding-top:8px!important;margin-top:0!important}'
+        +'.mr .mc{overflow:visible!important}'
+        +'body.night .mr .mc{overflow:visible!important}'
+        +'.mr .mb{overflow:visible!important;position:relative!important}'
+        +'.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other')+_mcOverflowCSS;
     }
   }else{
     var msgbox=$('msgbox');
