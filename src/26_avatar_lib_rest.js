@@ -353,9 +353,7 @@ async function openBeautify(){
   $('bubble-opacity-slider').value=op;
   $('bubble-opacity-value').textContent=Math.round(op*100)+'%';
   $('custom-font-input').value=settings.customFont||'';
-  var _cssVal=settings.customCSS||'';
-  if(!_cssVal){try{_cssVal=ls('ml2_custom_css_global')||'';}catch(e){}}
-  $('custom-css-input').value=_cssVal;
+  $('custom-css-input').value=settings.customCSS||'';
   $('nav-status-color').value=settings.navStatusColor||'#666666';
   $('timeline-font-size-slider').value=settings.timelineFontSize;
   $('timeline-font-size-value').textContent=settings.timelineFontSize+'px';
@@ -589,8 +587,6 @@ function doApplyCSS(){
   if(!entity){toast('请先选择联系人');return;}
   if(!entity.chatSettings)entity.chatSettings=getDefaultChatSettings();
   entity.chatSettings.customCSS=$('custom-css-input').value.trim();
-  // ★ 全局兜底：同步写全局 custom CSS
-  try{ls('ml2_custom_css_global',$('custom-css-input').value.trim());}catch(e){}
   saveC();
   if(groups.find(function(x){return x.id===cid}))ls('ml2_groups',groups);
   applyChatSettings(entity);
@@ -630,8 +626,6 @@ function debounceApplyChatSettings(){
     ls('global_custom_font',fontVal);
     entity.chatSettings.customFont=fontVal;
     entity.chatSettings.customCSS=$('custom-css-input').value.trim();
-    // ★ 全局兜底：同步写全局 custom CSS，任何实体/联系人都会应用
-    try{ls('ml2_custom_css_global',$('custom-css-input').value.trim());}catch(e){}
     entity.chatSettings.navStatusColor=$('nav-status-color').value;
     entity.chatSettings.timelineFontSize=parseInt($('timeline-font-size-slider').value);
     
@@ -1330,11 +1324,6 @@ async function applyChatSettings(contact){
     document.head.appendChild(customStyle);
   }
   var css=(settings.customCSS||'');
-  // ★ 全局兜底：若 per-contact customCSS 为空，则用全局 custom CSS（输入时同步写入），
-  // 彻底绕过"entity 查找失败/未保存"导致 CSS 不生效的问题
-  if(!css||!css.trim()){
-    try{css=ls('ml2_custom_css_global')||'';}catch(e){css='';}
-  }
   console.log('[customCSS check] len='+(css||'').length+' content='+String(css||'').slice(0,120));
   if(css.trim()){
     var msgbox=$('msgbox');
@@ -1402,7 +1391,8 @@ async function applyChatSettings(contact){
         return _p+':'+_v2+'!important'+_end;
       });
       // ★ 修复：同时输出 body.night 前缀版本（同特异性后插入胜），保证夜间模式用户 CSS 不被夜间气泡规则覆盖
-      var wrapped='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
+      var wrapped='.mr{contain:none!important}';
+      wrapped+='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}';
@@ -1437,20 +1427,21 @@ async function applyChatSettings(contact){
         return _p+':'+_v2+'!important'+_end;
       });
       // ★ 若用户 CSS 里设置了 overflow，则同步生成 .mr .mc 覆盖规则（.mc 有 overflow:hidden 会裁气泡）
-      // 注意：必须并入最终 textContent（在赋值前 += 会被后面的赋值覆盖）
+      // 注意：_ov[0] 已含 !important，不能重复追加，否则 !important!important 非法不生效
       var _mcOverflowCSS='';
       if(/overflow\s*:/.test(mappedCSS)){
         var _overflowRule=mappedCSS.match(/[^{}]*\{[^}]*overflow:[^}]*\}/g)||[];
         _overflowRule.forEach(function(r){
           var _ov=r.match(/overflow\s*:\s*[^;}]+/);
           if(_ov){
-            _mcOverflowCSS+='.mr .mc{'+_ov[0]+'!important}';
-            _mcOverflowCSS+='body.night .mr .mc{'+_ov[0]+'!important}';
+            _mcOverflowCSS+='.mr .mc{'+_ov[0]+'}';
+            _mcOverflowCSS+='body.night .mr .mc{'+_ov[0]+'}';
           }
         });
       }
       // ★ 修复：复制一份 body.night 前缀版本（同特异性后插入胜），夜间模式用户 CSS 同样生效
-      customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other')+_mcOverflowCSS;
+      // ★ .mr{contain:content} 的 paint 会强制裁剪溢出（伪元素/阴影），应用用户 CSS 时无条件清除
+      customStyle.textContent='.mr{contain:none!important}.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other')+_mcOverflowCSS;
     }
   }else{
     var msgbox=$('msgbox');
