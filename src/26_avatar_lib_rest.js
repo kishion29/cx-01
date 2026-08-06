@@ -353,7 +353,9 @@ async function openBeautify(){
   $('bubble-opacity-slider').value=op;
   $('bubble-opacity-value').textContent=Math.round(op*100)+'%';
   $('custom-font-input').value=settings.customFont||'';
-  $('custom-css-input').value=settings.customCSS||'';
+  var _cssVal=settings.customCSS||'';
+  if(!_cssVal){try{_cssVal=ls('ml2_custom_css_global')||'';}catch(e){}}
+  $('custom-css-input').value=_cssVal;
   $('nav-status-color').value=settings.navStatusColor||'#666666';
   $('timeline-font-size-slider').value=settings.timelineFontSize;
   $('timeline-font-size-value').textContent=settings.timelineFontSize+'px';
@@ -428,7 +430,11 @@ function renderBeautifyPreview(settings){
         .replace(/\.mr\.self\s*\.mb/g,'.mb.self')
         .replace(/\.mr\.other\s*\.mb/g,'.mb.other')
         .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mb.self')
-        .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mb.other');
+        .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mb.other')
+        // ★ 修复：预览也支持 .message 系列选择器
+        .replace(/\.message\.self\b/g,'.mb.self')
+        .replace(/\.message\.other\b/g,'.mb.other')
+        .replace(/\.message\b(?![-.])/g,'.mb');
       mappedPreviewCSS=mappedPreviewCSS.replace(/([^{};]+?)(?=\s*\{)/g,function(m){
         var trimmed=m.trim();
         if(trimmed.startsWith('@')||trimmed.startsWith('#beautify-preview'))return m;
@@ -583,6 +589,8 @@ function doApplyCSS(){
   if(!entity){toast('请先选择联系人');return;}
   if(!entity.chatSettings)entity.chatSettings=getDefaultChatSettings();
   entity.chatSettings.customCSS=$('custom-css-input').value.trim();
+  // ★ 全局兜底：同步写全局 custom CSS
+  try{ls('ml2_custom_css_global',$('custom-css-input').value.trim());}catch(e){}
   saveC();
   if(groups.find(function(x){return x.id===cid}))ls('ml2_groups',groups);
   applyChatSettings(entity);
@@ -596,7 +604,10 @@ var beautifyDebounceTimer=null;
 function debounceApplyChatSettings(){
   clearTimeout(beautifyDebounceTimer);
   beautifyDebounceTimer=setTimeout(function(){
+    // ★ 修复：美化弹窗可能从设置页打开（cid 为 undefined），此时用 editingContact；
+    // 之前只用 cid 找导致从设置页打开时 CSS/美化设置不保存、聊天不生效
     var entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
+    if(!entity&&typeof editingContact!=='undefined'&&editingContact)entity=editingContact;
     if(!entity)return;
     if(!entity.chatSettings)entity.chatSettings=getDefaultChatSettings();
     
@@ -619,6 +630,8 @@ function debounceApplyChatSettings(){
     ls('global_custom_font',fontVal);
     entity.chatSettings.customFont=fontVal;
     entity.chatSettings.customCSS=$('custom-css-input').value.trim();
+    // ★ 全局兜底：同步写全局 custom CSS，任何实体/联系人都会应用
+    try{ls('ml2_custom_css_global',$('custom-css-input').value.trim());}catch(e){}
     entity.chatSettings.navStatusColor=$('nav-status-color').value;
     entity.chatSettings.timelineFontSize=parseInt($('timeline-font-size-slider').value);
     
@@ -1317,6 +1330,12 @@ async function applyChatSettings(contact){
     document.head.appendChild(customStyle);
   }
   var css=(settings.customCSS||'');
+  // ★ 全局兜底：若 per-contact customCSS 为空，则用全局 custom CSS（输入时同步写入），
+  // 彻底绕过"entity 查找失败/未保存"导致 CSS 不生效的问题
+  if(!css||!css.trim()){
+    try{css=ls('ml2_custom_css_global')||'';}catch(e){css='';}
+  }
+  console.log('[customCSS check] len='+(css||'').length+' content='+String(css||'').slice(0,120));
   if(css.trim()){
     var msgbox=$('msgbox');
     if(msgbox){
@@ -1324,12 +1343,64 @@ async function applyChatSettings(contact){
       for(var bi=0;bi<bubbles.length;bi++){
         bubbles[bi].style.setProperty('--border','transparent');
       }
+      // ★ 内联双保险：解析用户 CSS（支持 .mb.self/.mr.self 与 .mb.other/.mr.other 分组），
+      // 直接写到气泡内联 style——内联优先级最高，任何 CSS 规则覆盖都无效，100% 生效
+      try{
+        function _parseInlineCss(_cssStr){
+          var _selfDecls=[],_otherDecls=[],_allDecls=[];
+          // 按选择器块切分
+          var _blocks=_cssStr.match(/[^{}]+{[^}]*}/g)||[];
+          if(_blocks.length>0){
+            _blocks.forEach(function(blk){
+              var _sel=(blk.split('{')[0]||'').trim();
+              var _body=(blk.split('{')[1]||'').replace(/}/g,'');
+              var _decls=_body.split(';').map(function(d){return d.trim();}).filter(function(d){return d&&d.indexOf(':')>0;});
+              var _isSelf=/\.self\b/.test(_sel);
+              var _isOther=/\.other\b/.test(_sel);
+              _decls.forEach(function(d){
+                var _kv=d.split(/:(.+)/);
+                if(_kv.length<2)return;
+                var _prop=_kv[0].trim(),_val=_kv[1].trim().replace(/!important\s*$/i,'').trim();
+                if(/^(background|background-color|color|border|border-color|border-radius|box-shadow|padding|margin|font-size|font-weight|text-shadow)$/i.test(_prop)){
+                  if(_isSelf&&!_isOther)_selfDecls.push({p:_prop,v:_val});
+                  else if(_isOther&&!_isSelf)_otherDecls.push({p:_prop,v:_val});
+                  else _allDecls.push({p:_prop,v:_val});
+                }
+              });
+            });
+          }else{
+            // 无选择器：全部应用到所有气泡
+            _cssStr.split(';').forEach(function(d){
+              d=d.trim();if(!d||d.indexOf(':')<0)return;
+              var _kv=d.split(/:(.+)/);if(_kv.length<2)return;
+              var _prop=_kv[0].trim(),_val=_kv[1].trim().replace(/!important\s*$/i,'').trim();
+              if(/^(background|background-color|color|border|border-color|border-radius|box-shadow|padding|margin|font-size|font-weight|text-shadow)$/i.test(_prop)){
+                _allDecls.push({p:_prop,v:_val});
+              }
+            });
+          }
+          return {self:_selfDecls,other:_otherDecls,all:_allDecls};
+        }
+        var _parsed=_parseInlineCss(css);
+        for(var bi2=0;bi2<bubbles.length;bi2++){
+          var _b=bubbles[bi2];
+          var _isSelf=!!(_b.closest('.mr.self')||_b.classList.contains('self'));
+          var _isOther=!!(_b.closest('.mr.other')||_b.classList.contains('other'));
+          var _applyTo=_isSelf?_parsed.self.concat(_parsed.all):(_isOther?_parsed.other.concat(_parsed.all):_parsed.all);
+          _applyTo.forEach(function(dec){
+            try{_b.style.setProperty(dec.p,dec.v,'important');}catch(e3){}
+          });
+        }
+      }catch(e1){console.warn('inline css apply failed:',e1);}
     }
     var hasSelectors=/\{[\s\S]*\}/.test(css);
     if(!hasSelectors){
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则覆盖导致失效
-      // 同时处理分号结尾和无分号的最后一条声明（否则最后一条在夜间被覆盖，预览却正常）
-      var cssImp=css.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,'$1:$2!important$3');
+      // 同时处理分号结尾和无分号的最后一条声明；若用户已写 !important 则不重复追加
+      var cssImp=css.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,function(_m,_p,_v,_end){
+        var _v2=_v.replace(/\s*!important\s*$/i,'').trim();
+        return _p+':'+_v2+'!important'+_end;
+      });
       // ★ 修复：同时输出 body.night 前缀版本（同特异性后插入胜），保证夜间模式用户 CSS 不被夜间气泡规则覆盖
       var wrapped='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
@@ -1344,6 +1415,8 @@ async function applyChatSettings(contact){
       wrapped+='body.night .long-ss-container .mr.self .mb{'+cssImp+'}';
       wrapped+='body.night .long-ss-container .mr.other .mb{'+cssImp+'}';
       customStyle.textContent=wrapped;
+      // 诊断日志（vConsole 可查）：确认注入的 CSS
+      console.log('[customCSS applied]', wrapped.slice(0,200));
     }else{
       var mappedCSS=css
         .replace(/\.message-sent\b/g,'.mr.self .mb')
@@ -1351,10 +1424,17 @@ async function applyChatSettings(contact){
         .replace(/\.mb\.self\b/g,'.mr.self .mb')
         .replace(/\.mb\.other\b/g,'.mr.other .mb')
         .replace(/\.long-ss-container\s+\.mr\.self\s*\.mb/g,'.mr.self .mb')
-        .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb');
+        .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb')
+        // ★ 修复：支持 .message / .message.self / .message.other 选择器（用户常用写法）
+        .replace(/\.message\.self\b/g,'.mr.self .mb')
+        .replace(/\.message\.other\b/g,'.mr.other .mb')
+        .replace(/\.message\b(?![-.])/g,'.mr .mb');
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则等覆盖导致失效
-      // 同时处理分号结尾和无分号的最后一条声明
-      mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,'$1:$2!important$3');
+      // 同时处理分号结尾和无分号的最后一条声明；若用户已写 !important 则不重复追加
+      mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+?)\s*([;}])/gi,function(_m,_p,_v,_end){
+        var _v2=_v.replace(/\s*!important\s*$/i,'').trim();
+        return _p+':'+_v2+'!important'+_end;
+      });
       // ★ 修复：复制一份 body.night 前缀版本（同特异性后插入胜），夜间模式用户 CSS 同样生效
       customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other');
     }

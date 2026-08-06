@@ -17,4 +17,6 @@ for f in ['AGENTS.md', 'README.md', '.gitignore', 'LICENSE']:
         shutil.copy2(f, os.path.join(dst, f))
 def md5(p):
     return hashlib.md5(open(p, 'rb').read()).hexdigest()
-print('md5 一致:', md5('app/index.html') == md5(os.path.join(dst, 'index.html')))
+m1 = md5('app/index.html')
+m2 = md5(os.path.join(dst, 'index.html'))
+print('md5 一致:', m1 == m2, m1[:10], m2[:10])

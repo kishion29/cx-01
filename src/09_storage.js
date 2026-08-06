@@ -1039,6 +1039,18 @@ async function loadC(){
     }else{
       contacts=[];
     }
+    // ★ 修复：合并单独存储的头像（saveC 时剥离的大 base64），刷新后头像不丢失
+    try{
+      contacts.forEach(function(c){
+        if(c&&c.id){
+          var _av=null;
+          try{_av=localStorage.getItem('ml2_contact_avatar_'+c.id);}catch(e){}
+          if(_av&&(!c.avatar||c.avatar.length<500)){
+            c.avatar=_av;
+          }
+        }
+      });
+    }catch(e){console.warn('loadC avatar merge failed:',e);}
   }catch(e){
     console.error('Failed to load contacts:',e);
     contacts=[];

@@ -834,6 +834,23 @@ function saveGlobalCardsDebounced(){
   });
 }
 async function saveC(){
+  // ★ 修复：头像(base64)剥离单独存 localStorage，防止 contacts 超50KB走异步队列导致刷新丢头像
+  // 联系人数组本体只保留头像占位（avatar 保留给运行时，但持久化时单独存）
+  var _avatarBackup={};
+  try{
+    contacts.forEach(function(c){
+      if(c&&c.avatar&&typeof c.avatar==='string'&&c.avatar.length>500){
+        _avatarBackup[c.id]=c.avatar;
+        try{localStorage.setItem('ml2_contact_avatar_'+c.id, c.avatar);}catch(e){
+          // 超限时移除旧值重试（单头像最大）
+          try{localStorage.removeItem('ml2_contact_avatar_'+c.id);}catch(e2){}
+        }
+        if(window.localforage){
+          try{window.localforage.setItem('ml2_contact_avatar_'+c.id, c.avatar).catch(function(){});}catch(e3){}
+        }
+      }
+    });
+  }catch(e){console.warn('saveC avatar split failed:',e);}
   ls(LC, contacts);
   if(window.localforage){
     try{await window.localforage.setItem(LC, contacts);}catch(e){console.warn('saveC localforage failed:',e);}

@@ -339,7 +339,9 @@ function openRedPacketMessage(contactId,rpId){
   if(rp.status==='received'||rp.status==='returned'||rp.status==='expired'){
     var contact2=contacts.find(function(c){return c.id===contactId});
     var amountYuan2=(rp.amount/100).toFixed(2);
-    $('opened-redpacket-from').textContent='来自 '+((contact2?contact2.name:'TA'));
+    // ★ 修复：隐藏昵称设置也作用于红包弹窗（显示 TA 而不是昵称）
+    var _hideRpName2=!!(contact2&&(contact2.hideQuoteNames||contact2.hideTouchNames||getHideTouchNames(contactId)===true));
+    $('opened-redpacket-from').textContent='来自 '+(_hideRpName2?'TA':(contact2?contact2.name:'TA'));
     $('opened-redpacket-amount').textContent=amountYuan2;
     $('opened-redpacket-greeting').textContent=rp.message||'';
     $('opened-redpacket-status').textContent=rp.status==='received'?'红包已存入你的余额':(rp.status==='returned'?'红包已退回':'红包已过期');
@@ -354,7 +356,9 @@ function openRedPacketMessage(contactId,rpId){
   pushCollectedCard(contactId,rp,true);
   var contact=contacts.find(function(c){return c.id===contactId});
   var amountYuan=(rp.amount/100).toFixed(2);
-  $('opened-redpacket-from').textContent='来自 '+((contact?contact.name:'TA'));
+  // ★ 修复：隐藏昵称设置也作用于红包弹窗（显示 TA 而不是昵称）
+  var _hideRpName=!!(contact&&(contact.hideQuoteNames||contact.hideTouchNames||getHideTouchNames(contactId)===true));
+  $('opened-redpacket-from').textContent='来自 '+(_hideRpName?'TA':(contact?contact.name:'TA'));
   $('opened-redpacket-amount').textContent=amountYuan;
   $('opened-redpacket-greeting').textContent=rp.message||'';
   $('opened-redpacket-status').textContent='红包已存入你的余额';

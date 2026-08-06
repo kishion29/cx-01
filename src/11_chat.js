@@ -2068,6 +2068,10 @@ function _doRenderMsgs(messages){
     var _isAtEnd=!(_loadMoreLock||_jumpFocusJustJumped);
     if(_isAtEnd){
       requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});
+      // ★ 修复：iOS 键盘弹出/收起动画期间视口高度变化，rAF 一次可能滚不到位；
+      // 延迟再滚两次，确保新消息始终自动滚到底部可见
+      setTimeout(function(){try{box.scrollTop=box.scrollHeight;}catch(e){}},200);
+      setTimeout(function(){try{box.scrollTop=box.scrollHeight;}catch(e){}},500);
     }
   }
   // ★ 修复：输入框 blur 后 300ms 内阻止误重聚焦（点其他按钮/切页后键盘重弹问题）——只绑一次
