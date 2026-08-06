@@ -1329,6 +1329,7 @@ async function applyChatSettings(contact){
     if(!hasSelectors){
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则覆盖导致失效
       var cssImp=css.replace(/([a-z-]+)\s*:\s*([^;{}]+);/gi,'$1:$2!important;');
+      // ★ 修复：同时输出 body.night 前缀版本（同特异性后插入胜），保证夜间模式用户 CSS 不被夜间气泡规则覆盖
       var wrapped='.mr.self .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.mr.other .mb{--border:transparent;border:none;box-shadow:none}';
       wrapped+='.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}';
@@ -1337,6 +1338,10 @@ async function applyChatSettings(contact){
       wrapped+='.mr.other .mb{'+cssImp+'}';
       wrapped+='.long-ss-container .mr.self .mb{'+cssImp+'}';
       wrapped+='.long-ss-container .mr.other .mb{'+cssImp+'}';
+      wrapped+='body.night .mr.self .mb{'+cssImp+'}';
+      wrapped+='body.night .mr.other .mb{'+cssImp+'}';
+      wrapped+='body.night .long-ss-container .mr.self .mb{'+cssImp+'}';
+      wrapped+='body.night .long-ss-container .mr.other .mb{'+cssImp+'}';
       customStyle.textContent=wrapped;
     }else{
       var mappedCSS=css
@@ -1348,7 +1353,8 @@ async function applyChatSettings(contact){
         .replace(/\.long-ss-container\s+\.mr\.other\s*\.mb/g,'.mr.other .mb');
       // ★ 修复：给用户自定义 CSS 每个声明追加 !important，避免夜间规则等覆盖导致失效
       mappedCSS=mappedCSS.replace(/([a-z-]+)\s*:\s*([^;{}]+);/gi,'$1:$2!important;');
-      customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS;
+      // ★ 修复：复制一份 body.night 前缀版本（同特异性后插入胜），夜间模式用户 CSS 同样生效
+      customStyle.textContent='.mr.self .mb{--border:transparent;border:none;box-shadow:none}.mr.other .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.self .mb{--border:transparent;border:none;box-shadow:none}.long-ss-container .mr.other .mb{--border:transparent;border:none;box-shadow:none}'+mappedCSS+'\n'+mappedCSS.replace(/\.mr\.self/g,'body.night .mr.self').replace(/\.mr\.other/g,'body.night .mr.other');
     }
   }else{
     var msgbox=$('msgbox');

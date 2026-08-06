@@ -1176,7 +1176,26 @@ function showContactSwitcher(){
   var list=$('contact-switcher-list');
   if(!list)return;
   var allContacts=contacts.slice();
+  var allGroups=groups.slice();
   var html='';
+  // ★ 修复：切换窗口加入群聊（之前只显示联系人，无法切到群聊）
+  if(allGroups.length>0){
+    html+='<div style="padding:8px 12px 4px;font-size:12px;color:var(--txt3);font-weight:600;">👥 群聊</div>';
+    allGroups.forEach(function(g){
+      var isActive=g.id===cid;
+      var avatarHtml=g.avatar?'<img src="'+g.avatar.replace(/"/g,'&quot;')+'" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">':'<div style="width:40px;height:40px;border-radius:10px;background:var(--c3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txt2);">👥</div>';
+      html+='<div class="contact-switcher-item" data-cid="'+g.id.replace(/"/g,'&quot;')+'" data-type="group" style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin:2px 4px;border-radius:10px;cursor:pointer;background:'+(isActive?'var(--c3)':'var(--c2)')+';transition:background 0.15s;">'+
+        avatarHtml+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:15px;font-weight:'+(isActive?'600':'400')+';color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+g.name.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
+          '<div style="font-size:12px;color:var(--txt3);">'+(isActive?'当前聊天':'群聊')+'</div>'+
+        '</div>'+
+      '</div>';
+    });
+  }
+  if(allContacts.length>0){
+    html+='<div style="padding:8px 12px 4px;font-size:12px;color:var(--txt3);font-weight:600;">👤 联系人</div>';
+  }
   allContacts.forEach(function(c){
     var isActive=c.id===cid;
     var avatarHtml=c.avatar?'<img src="'+c.avatar.replace(/"/g,'&quot;')+'" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">':'<div style="width:40px;height:40px;border-radius:10px;background:var(--c3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txt2);">✦</div>';

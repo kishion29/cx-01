@@ -178,7 +178,7 @@ function sendMsg(){
   var m2=msgs(cid);var msg2={id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:SELF,t:t,ts:new Date(),pc:false,quote:replyingToMsg,isGroup:window.currentConvType==='group',read:true,senderName:'我',senderId:me.id};m2.push(msg2);savemsgs(cid,m2);inp.value='';inp.style.height='36px';replyingToMsg=null;$('quote-preview').style.display='none';renderMsgs(m2);updateSendBtn();renderChatList();scheduleReply();playSound('send',cid);haptic('light');simulateTAFavorite();
 }
 function updateSendBtn(){var inp=$('msg-inp'),s=$('btn-send');if(inp.value.trim().length>0||pendingImages.length>0){s.classList.remove('disabled')}else{s.classList.add('disabled')}}
-function scheduleReply(){if(!cid||cid==='fh')return;if(isBatchMode)return;if(pomodoroState.isRunning&&!pomodoroState.isPaused&&pomodoroSettings.blockDuringFocus)return;var rsMin=getSpeed('rs-min',cid),rsMax=getSpeed('rs-max',cid),rnProb=getSpeed('rn-prob',cid);var targetId=cid;var msgbox=$('msgbox');if(msgbox)msgbox.scrollTop=msgbox.scrollHeight;if(Math.random()*100<rnProb){rtimers[targetId]=setTimeout(function(){markMessageReadIgnored(targetId)},(1+Math.random()*3)*1000);return}typingStates[targetId]=true;if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;if(rtimers[targetId])clearTimeout(rtimers[targetId]);rtimers[targetId]=setTimeout(function(){var group=groups.find(function(g){return g.id===targetId});var isGroup=!!group;if(isGroup){/* For group chats, keep typing indicator visible until all members respond */genReply(targetId);}else{typingStates[targetId]=false;if(targetId===window.currentCid){var typingEl2=$('typing');if(typingEl2)typingEl2.style.display='none';}genReply(targetId)}},delay)}
+function scheduleReply(){if(!cid||cid==='fh')return;if(isBatchMode)return;if(pomodoroState.isRunning&&!pomodoroState.isPaused&&pomodoroSettings.blockDuringFocus)return;var rsMin=getSpeed('rs-min',cid),rsMax=getSpeed('rs-max',cid),rnProb=getSpeed('rn-prob',cid);var targetId=cid;var msgbox=$('msgbox');if(msgbox)msgbox.scrollTop=msgbox.scrollHeight;if(Math.random()*100<rnProb){rtimers[targetId]=setTimeout(function(){markMessageReadIgnored(targetId)},(1+Math.random()*3)*1000);return}typingStates[targetId]=true;if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;if(rtimers[targetId])clearTimeout(rtimers[targetId]);rtimers[targetId]=setTimeout(function(){try{var group=groups.find(function(g){return g.id===targetId});var isGroup=!!group;if(isGroup){/* For group chats, keep typing indicator visible until all members respond */genReply(targetId).catch(function(e){console.warn('genReply group failed:',e)});}else{typingStates[targetId]=false;if(targetId===window.currentCid){var typingEl2=$('typing');if(typingEl2)typingEl2.style.display='none';}genReply(targetId).catch(function(e){console.warn('genReply failed:',e)})}}catch(e){console.warn('scheduleReply exec failed:',e);typingStates[targetId]=false;if(targetId===window.currentCid){var _te=$('typing');if(_te)_te.style.display='none';}}},delay)}
 function markMessageReadIgnored(targetId,silent){
   var m=msgs(targetId);
   if(m.length===0)return;
@@ -287,7 +287,7 @@ async function genReply(targetId,forceSingle){
       (function(memberId,delay){
         setTimeout(async function(){
           try{
-            await genSingleMemberReply(targetId,memberId,group);
+            await genSingleMemberReply(targetId,memberId,group,undefined,forceSingle);
           }finally{
             onMemberComplete();
           }
@@ -308,10 +308,10 @@ async function genReply(targetId,forceSingle){
   var baseName=sender?sender.name:'未知';
   senderName=baseName;
   
-  await genSingleMemberReply(targetId,senderId,null,senderName);
+  await genSingleMemberReply(targetId,senderId,null,senderName,forceSingle);
 }
 
-async function genSingleMemberReply(targetId,senderId,group,preComputedSenderName){
+async function genSingleMemberReply(targetId,senderId,group,preComputedSenderName,forceSingle){
   var isGroup=!!group;
   var senderName=preComputedSenderName||'';
   
@@ -396,7 +396,8 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   if(!availableCards.length){
     if(isGroup)return; // Skip group members with no cards silently
     var m=msgs(targetId);
-    if(!m||m.length===0){console.warn('genReply: msgs empty for',targetId,', skip');return;}
+    // ★ 修复：聊天记录为空也要发提示消息（之前直接 return 导致点【继续说】无任何反应）
+    if(!m||!Array.isArray(m))m=[];
     var replyMsg={id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:'请在字卡库里上传字卡后开始聊天',img:'',voice:'',voiceText:'',ts:new Date(),pc:false,isAuto:true,isInitiative:false,quote:null,isSticker:false,isVoice:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid)};
     m.push(replyMsg);
     savemsgs(targetId,m);
@@ -576,10 +577,18 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     }
   }
   
-  var moodCard=await getRandomMoodCard(targetId);
+  var moodCard=null,heartCard=null,intentCard=null;
+  // ★ 修复：情绪/心意/交流意图字卡获取异常绝不能阻断主回复（之前异常会导致整个回复静默失败）
+  try{
+    moodCard=await getRandomMoodCard(targetId);
+  }catch(e){console.warn('moodCard failed:',e);}
   if(moodCard){emotionStreak+=1;}else{emotionStreak=0;}
-  var heartCard=await getRandomHeartCard(targetId, moodCard);
-  var intentCard=await getRandomIntentCard(targetId, heartCard);
+  try{
+    heartCard=await getRandomHeartCard(targetId, moodCard);
+  }catch(e){console.warn('heartCard failed:',e);}
+  try{
+    intentCard=await getRandomIntentCard(targetId, heartCard);
+  }catch(e){console.warn('intentCard failed:',e);}
   
   var m=msgs(targetId);
   if(!m||m.length===0){

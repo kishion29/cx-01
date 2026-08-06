@@ -18,7 +18,3 @@ for f in ['AGENTS.md', 'README.md', '.gitignore', 'LICENSE']:
 def md5(p):
     return hashlib.md5(open(p, 'rb').read()).hexdigest()
 print('md5 一致:', md5('app/index.html') == md5(os.path.join(dst, 'index.html')))
-bt = open(os.path.join(dst, 'index.html'), encoding='utf-8', errors='replace').read()
-print('1.7.1 公告:', "version: '1.7.1'" in bt)
-print('公告区无红字:', 'e74c3c' not in bt.split('UPDATE_NOTICES')[1][:6000])
-print('开私人群描述:', '星言也可能开私人群' in bt)
