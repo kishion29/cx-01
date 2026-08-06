@@ -1,19 +1,26 @@
 // ---------- Auto Send ----------
 var lastAutoSendTime={};
+var nextAutoSendTime={}; // ★ 主动发消息的"下次触发时间戳"（间隔触发）
 var proactiveScheduled={};
-function maybeAutoSend(){
+function maybeAutoSend(onlyTargetId){
   if(!hasEnteredApp)return;
   if(currentCall)return;
   
   // 确保 globalCards 已加载，避免因字卡为空导致无法触发主动发消息
   // 不阻塞 return，允许在字卡为空时仍可发送带情绪/心意/交流意图字卡的消息
   if(!globalCards||globalCards.length===0){
-    try{loadGlobalCards().then(function(){maybeAutoSend();}).catch(function(){});}catch(e){}
+    try{loadGlobalCards().then(function(){maybeAutoSend(onlyTargetId);}).catch(function(){});}catch(e){}
   }
 
   // TA Highlight 每日触发由 checkTAHighlightsDaily() 的 setInterval 统一管理，此处不再重复
 
-  var cs=contacts.filter(function(x){return x.id!=='fh'});if(!cs.length)return;
+  var cs=contacts.filter(function(x){return x.id!=='fh'});
+  if(!cs.length)return;
+  // ★ 支持单联系人精确触发：只处理指定联系人（链式调度用）
+  if(onlyTargetId){
+    cs=cs.filter(function(x){return x.id===onlyTargetId});
+    if(!cs.length)return;
+  }
 
   cs.forEach(function(contact){
     var targetId=contact.id;
@@ -35,28 +42,30 @@ function maybeAutoSend(){
     var minInterval=asMin*1000;
     var maxInterval=asMax*1000;
     
-    var lastTime=lastAutoSendTime[targetId]||0;
     var now=Date.now();
-    var timeSinceLast=now-lastTime;
     
-    // 先检查间隔，间隔够了再检查概率，防止概率检查过于频繁
-    if(timeSinceLast<minInterval){
-      return;
+    // ★ 修复：真正的"间隔触发"——下次触发时间 = 上次发送 + 随机(最短~最长)，
+    // 到了时间点才判定概率并发送，时间戳 = 实际发送时刻，不做提前调度/延迟送达
+    var nextTime=nextAutoSendTime[targetId];
+    if(!nextTime||nextTime<lastAutoSendTime[targetId]||nextTime<now-maxInterval*2){
+      // 初始化或数据异常：首次/重置时立即按概率判定
+      nextTime=now;
+    }
+    if(now<nextTime){
+      return; // 还没到下次触发时间
     }
 
     // 修复：如果该联系人已有待发送的主动消息调度中，跳过避免重复触发
     if(proactiveScheduled[targetId])return;
+    // 到点了，重置下次时间（无论概率是否命中，下次都要等一个随机间隔）
+    nextAutoSendTime[targetId]=now+minInterval+Math.random()*(maxInterval-minInterval);
 
     // 间隔已到，按概率决定是否触发
     if(Math.random()*100>asProb)return;
 
-    // 在 minInterval ~ maxInterval 之间随机延迟
-    var randomDelay=Math.random()*(maxInterval-minInterval);
-    // 修复：使用独立标志位标记"已调度"，不再把 lastAutoSendTime 设为未来时间
-    // lastAutoSendTime 保持为上次实际发送时间，避免手机后台暂停定时器后永久阻塞
+    // ★ 修复：到点即发，不做延迟送达——直接异步发送（时间戳=now）
     proactiveScheduled[targetId]=true;
-
-    setTimeout(async function(){
+    (async function(){
       // 修复：使用 try-finally 确保 proactiveScheduled 标志位在任何情况下都被清除
       try{
         if(currentCall)return;
@@ -103,13 +112,15 @@ function maybeAutoSend(){
       }
 
       var reply='',imgSrc='',voiceSrc='',voiceText='';
+      var textCards=[],stickerCards=[],voiceCards=[],emojiCards=[],kaomojiCards=[],imageCards=[];
       
       if(availableCards.length>0){
-        var textCards=availableCards.filter(function(c){return c.category!=='stickers'&&c.category!=='voices'&&c.category!=='emojis'&&c.category!=='kaomoji'});
+        var textCards=availableCards.filter(function(c){return c.category!=='stickers'&&c.category!=='voices'&&c.category!=='emojis'&&c.category!=='kaomoji'&&c.category!=='image'});
         var stickerCards=availableCards.filter(function(c){return c.category==='stickers'});
         var voiceCards=availableCards.filter(function(c){return c.category==='voices'});
         var emojiCards=availableCards.filter(function(c){return c.category==='emojis'});
         var kaomojiCards=availableCards.filter(function(c){return c.category==='kaomoji'});
+        var imageCards=availableCards.filter(function(c){return c.category==='image'});
         
         var stickerProb=getSpeed('sticker-prob',targetId);
         var isStickerReply=stickerCards.length>0&&Math.random()*100<stickerProb;
@@ -120,9 +131,24 @@ function maybeAutoSend(){
         var emojiProb=getSpeed('emoji-prob',targetId);
         var isEmojiReply=!isStickerReply&&!isVoiceReply&&emojiCards.length>0&&Math.random()*100<emojiProb;
         
+        var imageProb=getSpeed('image-prob',targetId);
+        var isImageReply=!isStickerReply&&!isVoiceReply&&!isEmojiReply&&imageCards.length>0&&Math.random()*100<imageProb;
+        
         if(isStickerReply){
           var rc=stickerCards[Math.floor(Math.random()*stickerCards.length)];
           imgSrc=rc.content;
+          var _isStickerType=true;
+          // ★ 修复：图片表情可与文字字卡同发——抽一张文字卡拼进 reply
+          if(textCards.length>0&&Math.random()<0.5){
+            reply=textCards[Math.floor(Math.random()*textCards.length)].content;
+          }
+        }else if(isImageReply){
+          // ★ 修复：图片字卡可发——命中时发图，并大概率附带文字字卡
+          var irc=imageCards[Math.floor(Math.random()*imageCards.length)];
+          imgSrc=irc.content;
+          if(textCards.length>0&&Math.random()<0.6){
+            reply=textCards[Math.floor(Math.random()*textCards.length)].content;
+          }
         }else if(isVoiceReply){
           var vrc=voiceCards[Math.floor(Math.random()*voiceCards.length)];
           voiceSrc=vrc.content;
@@ -130,6 +156,10 @@ function maybeAutoSend(){
         }else if(isEmojiReply){
           var erc=emojiCards[Math.floor(Math.random()*emojiCards.length)];
           reply=erc.content;
+          // ★ 修复：emoji 表情也可附带文字字卡
+          if(textCards.length>0&&Math.random()<0.3){
+            reply=textCards[Math.floor(Math.random()*textCards.length)].content+' '+reply;
+          }
         }else{
           var rc=textCards.length>0?textCards[Math.floor(Math.random()*textCards.length)]:availableCards[Math.floor(Math.random()*availableCards.length)];
           reply=rc.content;
@@ -174,7 +204,21 @@ function maybeAutoSend(){
         memoryCache[LM+targetId]=m;
         savemsgs(targetId,m);
       }
-      m.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:reply,img:imgSrc,voice:voiceSrc,voiceText:voiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:moodCard,heartCard:heartCard,intentCard:intentCard,quote:quoteMsgId,isSticker:imgSrc?true:false,isVoice:voiceSrc?true:false});savemsgs(targetId,m);
+      var _asMin=parseInt(getSpeed('as-count-min',targetId))||1;
+      var _asMax=parseInt(getSpeed('as-count-max',targetId))||1;
+      if(_asMax<_asMin)_asMax=_asMin;
+      if(_asMax>20)_asMax=20;
+      var _asCount=_asMin+Math.floor(Math.random()*(_asMax-_asMin+1));
+      if(_asCount<1)_asCount=1;
+      var _asBaseId='m_'+Date.now();
+      for(var _ai=0;_ai<_asCount;_ai++){
+        var _curReply=reply,_curImg=imgSrc,_curVoice=voiceSrc,_curVoiceText=voiceText;
+        if(_ai>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
+          _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
+        }
+        m.push({id:_asBaseId+'_'+_ai+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:(_ai===0?moodCard:null),heartCard:(_ai===0?heartCard:null),intentCard:(_ai===0?intentCard:null),quote:(_ai===0?quoteMsgId:null),isSticker:(_isStickerType===true),isVoice:_curVoice?true:false});
+      }
+      savemsgs(targetId,m);
       // 更新上次发送时间，防止下次循环立即再次触发
       lastAutoSendTime[targetId]=Date.now();
 
@@ -201,8 +245,43 @@ function maybeAutoSend(){
         // 避免手机后台暂停定时器后标志位永久残留导致主动消息永久阻塞
         proactiveScheduled[targetId]=false;
       }
-    },randomDelay);
+    })();
   });
+}
+
+// ★ 修复：主动发消息改为"精确间隔触发"——每个联系人独立链式 setTimeout，
+// 间隔 = 随机(最短~最长)，到点才执行发送逻辑并排下一次，无固定轮询、无延迟送达
+var _autoSendTimers={};
+function scheduleAutoSendFor(targetId){
+  try{
+    if(_autoSendTimers[targetId]){clearTimeout(_autoSendTimers[targetId]);_autoSendTimers[targetId]=null;}
+    var asEn=getSpeed('as-en');
+    if(asEn!==1){return;}
+    var dndEn=getSpeed('dnd-en');
+    var asMin=getSpeed('as-min'),asMax=getSpeed('as-max')*60;
+    if(dndEn===1){asMin=1;asMax=10800;}
+    var minMs=asMin*1000,maxMs=asMax*1000;
+    if(maxMs<minMs)maxMs=minMs+1000;
+    // 链式：到点执行该联系人的发送逻辑，然后排下一次
+    var delay=minMs+Math.random()*(maxMs-minMs);
+    _autoSendTimers[targetId]=setTimeout(function(){
+      _autoSendTimers[targetId]=null;
+      try{
+        // 链式已精确到点，重置 nextTime 让 maybeAutoSend 直接执行发送逻辑
+        nextAutoSendTime[targetId]=0;
+        maybeAutoSendOne(targetId);
+      }catch(e){console.warn('scheduleAutoSendFor exec error:',e);}
+      // 无论是否发送成功，都排下一次（间隔从执行时刻起算）
+      scheduleAutoSendFor(targetId);
+    },delay);
+  }catch(e){console.warn('scheduleAutoSendFor error:',e);}
+}
+function initAutoSendSchedule(){
+  var cs=contacts.filter(function(x){return x.id!=='fh'});
+  cs.forEach(function(c){scheduleAutoSendFor(c.id);});
+}
+function maybeAutoSendOne(targetId){
+  maybeAutoSend(targetId);
 }
 
 // ---------- Init ----------

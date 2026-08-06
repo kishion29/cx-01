@@ -601,12 +601,27 @@ var momentsPosts=[],momentsMembers=[],momentsSettings={
   useMainCards:true,useKaomojiCards:true,useEmojiCards:true,useImageCards:true
 };
 async function loadMomentsData(){
-  var savedPosts=await lsGetWithDB('ml2_moments_posts');
-  if(!savedPosts||!Array.isArray(savedPosts))savedPosts=ls('ml2_moments_posts');
-  var savedMembers=await lsGetWithDB('ml2_moments_members');
-  if(!savedMembers||!Array.isArray(savedMembers))savedMembers=ls('ml2_moments_members');
-  var savedSettings=await lsGetWithDB('ml2_moments_settings');
-  if(!savedSettings||typeof savedSettings!=='object')savedSettings=ls('ml2_moments_settings');
+  // ★ 修复：localStorage 优先（同步、最新），IndexedDB 只补缺失不覆盖，避免旧快照覆盖新数据导致刷新丢朋友圈
+  var savedPosts=ls('ml2_moments_posts');
+  var savedMembers=ls('ml2_moments_members');
+  var savedSettings=ls('ml2_moments_settings');
+  try{
+    var dbPosts=await lsGetWithDB('ml2_moments_posts');
+    if((!savedPosts||!Array.isArray(savedPosts)||savedPosts.length===0)&&dbPosts&&Array.isArray(dbPosts))savedPosts=dbPosts;
+    else if(savedPosts&&Array.isArray(savedPosts)&&dbPosts&&Array.isArray(dbPosts)&&dbPosts.length>savedPosts.length){
+      // IndexedDB 有更多时按 id 去重合并，保留 localStorage 已有的
+      var _seenP={};savedPosts.forEach(function(p){if(p&&p.id)_seenP[p.id]=true;});
+      dbPosts.forEach(function(p){if(p&&p.id&&!_seenP[p.id]){_seenP[p.id]=true;savedPosts.push(p);}});
+    }
+    var dbMembers=await lsGetWithDB('ml2_moments_members');
+    if((!savedMembers||!Array.isArray(savedMembers)||savedMembers.length===0)&&dbMembers&&Array.isArray(dbMembers))savedMembers=dbMembers;
+    else if(savedMembers&&Array.isArray(savedMembers)&&dbMembers&&Array.isArray(dbMembers)&&dbMembers.length>savedMembers.length){
+      var _seenM={};savedMembers.forEach(function(p){if(p&&p.id)_seenM[p.id]=true;});
+      dbMembers.forEach(function(p){if(p&&p.id&&!_seenM[p.id]){_seenM[p.id]=true;savedMembers.push(p);}});
+    }
+    var dbSettings=await lsGetWithDB('ml2_moments_settings');
+    if((!savedSettings||typeof savedSettings!=='object')&&dbSettings&&typeof dbSettings==='object')savedSettings=dbSettings;
+  }catch(e){}
   if(savedPosts&&Array.isArray(savedPosts))momentsPosts=savedPosts;
   if(savedSettings&&typeof savedSettings==='object')Object.assign(momentsSettings,savedSettings);
   if(!momentsSettings.contacts)momentsSettings.contacts={};
@@ -1130,11 +1145,14 @@ function showMomentsCommentInput(postId){
   inputArea.className='moments-comment-input-area';
   inputArea.style.cssText='margin-top:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg2);border-radius:20px;';
   var me=getMomentsMember('self')||{nickname:'我',avatar:''};
-  inputArea.innerHTML='<div class="moments-comment-av" style="width:24px;height:24px;border-radius:0;">'+(me.avatar?'<img src="'+me.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:0;">':'✦')+'</div>'+'<button class="moments-emoji-btn" style="width:32px;height:32px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="选择表情">😊</button>'+'<input type="text" placeholder="写评论..." style="flex:1;padding:6px 10px;border:none;border-radius:16px;background:transparent;color:var(--txt);font-size:13px;outline:none;">'+'<button class="moments-send-btn" style="padding:6px 16px;border:none;border-radius:16px;background:var(--accent);color:white;font-size:13px;cursor:pointer;flex-shrink:0;">发送</button>';
+  inputArea.innerHTML='<div class="moments-comment-av" style="width:24px;height:24px;border-radius:0;">'+(me.avatar?'<img src="'+me.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:0;">':'✦')+'</div>'+'<button class="moments-emoji-btn" style="width:32px;height:32px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="选择表情">😊</button>'+'<button class="moments-img-btn" style="width:32px;height:32px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="发送图片">🖼️</button>'+'<input type="file" class="moments-img-input" accept="image/*" style="display:none;">'+'<input type="text" placeholder="写评论..." style="flex:1;padding:6px 10px;border:none;border-radius:16px;background:transparent;color:var(--txt);font-size:13px;outline:none;">'+'<button class="moments-send-btn" style="padding:6px 16px;border:none;border-radius:16px;background:var(--accent);color:white;font-size:13px;cursor:pointer;flex-shrink:0;">发送</button>';
   
-  var input=inputArea.querySelector('input');
+  var input=inputArea.querySelector('input[type="text"]');
   var sendBtn=inputArea.querySelector('.moments-send-btn');
   var emojiBtn=inputArea.querySelector('.moments-emoji-btn');
+  var imgBtn=inputArea.querySelector('.moments-img-btn');
+  var imgInput=inputArea.querySelector('.moments-img-input');
+  var pendingImg='';
   
   var insertEmoji=function(emoji){
     var start=input.selectionStart||input.value.length;
@@ -1155,6 +1173,29 @@ function showMomentsCommentInput(postId){
     showMomentsEmojiPicker(input);
   });
   
+  // ★ 新增：评论图片上传
+  var triggerImgPick=function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    imgInput.click();
+  };
+  imgBtn.addEventListener('click',triggerImgPick);
+  imgBtn.addEventListener('touchend',triggerImgPick);
+  imgInput.addEventListener('change',function(){
+    var file=this.files&&this.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      pendingImg=ev.target.result;
+      if(pendingImg){
+        input.placeholder='已选图片，可继续输入文字…';
+      }
+      input.focus();
+    };
+    reader.readAsDataURL(file);
+    this.value='';
+  });
+  
   var closeInput=function(){
     inputArea.remove();
     document.removeEventListener('click',closeInputHandler);
@@ -1169,16 +1210,16 @@ function showMomentsCommentInput(postId){
   
   sendBtn.addEventListener('click',function(){
     var val=input.value.trim();
-    if(!val)return;
-    addComment(postId,'self',val);
+    if(!val&&!pendingImg)return;
+    addComment(postId,'self',val,pendingImg||'');
     closeInput();
   });
   
   input.addEventListener('keypress',function(e){
     if(e.key==='Enter'){
       var val=input.value.trim();
-      if(val){
-        addComment(postId,'self',val);
+      if(val||pendingImg){
+        addComment(postId,'self',val,pendingImg||'');
         closeInput();
       }
     }
@@ -1223,14 +1264,32 @@ function showMomentsReplyInput(postId,commentId,nickname){
   inputArea.className='moments-comment-input-area';
   inputArea.style.cssText='width:100%;display:flex;align-items:center;gap:6px;padding:6px;background:var(--bg2);border-radius:16px;';
   var me=getMomentsMember('self')||{nickname:'我',avatar:''};
-  inputArea.innerHTML='<div class="moments-comment-av" style="width:22px;height:22px;border-radius:0;">'+(me.avatar?'<img src="'+me.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:0;">':'✦')+'</div>'+'<button class="moments-emoji-btn" style="width:28px;height:28px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="选择表情">😊</button>'+'<input type="text" placeholder="回复 '+nickname+'..." style="flex:1;padding:4px 10px;border:none;border-radius:12px;background:transparent;color:var(--txt);font-size:12px;outline:none;">'+'<button class="moments-send-btn" style="padding:4px 12px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:12px;cursor:pointer;flex-shrink:0;">发送</button>';
+  inputArea.innerHTML='<div class="moments-comment-av" style="width:22px;height:22px;border-radius:0;">'+(me.avatar?'<img src="'+me.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:0;">':'✦')+'</div>'+'<button class="moments-emoji-btn" style="width:28px;height:28px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="选择表情">😊</button>'+'<button class="moments-img-btn" style="width:28px;height:28px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="发送图片">🖼️</button>'+'<input type="file" class="moments-img-input" accept="image/*" style="display:none;">'+'<input type="text" placeholder="回复 '+nickname+'..." style="flex:1;padding:4px 10px;border:none;border-radius:12px;background:transparent;color:var(--txt);font-size:12px;outline:none;">'+'<button class="moments-send-btn" style="padding:4px 12px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:12px;cursor:pointer;flex-shrink:0;">发送</button>';
   
-  var input=inputArea.querySelector('input');
+  var input=inputArea.querySelector('input[type="text"]');
   var sendBtn=inputArea.querySelector('.moments-send-btn');
   var emojiBtn=inputArea.querySelector('.moments-emoji-btn');
+  var imgBtn=inputArea.querySelector('.moments-img-btn');
+  var imgInput=inputArea.querySelector('.moments-img-input');
+  var pendingImg='';
   
   emojiBtn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();showMomentsEmojiPicker(input);});
   emojiBtn.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();showMomentsEmojiPicker(input);});
+  var triggerImgPick2=function(e){e.preventDefault();e.stopPropagation();imgInput.click();};
+  imgBtn.addEventListener('click',triggerImgPick2);
+  imgBtn.addEventListener('touchend',triggerImgPick2);
+  imgInput.addEventListener('change',function(){
+    var file=this.files&&this.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      pendingImg=ev.target.result;
+      if(pendingImg)input.placeholder='已选图片，可继续输入…';
+      input.focus();
+    };
+    reader.readAsDataURL(file);
+    this.value='';
+  });
   
   var closeInput=function(){
     inputArea.remove();
@@ -1244,13 +1303,15 @@ function showMomentsReplyInput(postId,commentId,nickname){
     }
   };
   
-  var handleReply=function(val){
+  var handleReply=function(val,img){
     var post=momentsPosts.find(function(p){return p.id===postId});
     if(post){
       var comment=post.comments.find(function(c){return c.id===commentId});
       if(comment){
         var replyId='r_'+Date.now();
-        comment.replies.push({id:replyId,authorId:'self',content:val,timestamp:Date.now()});
+        var replyObj={id:replyId,authorId:'self',content:val,timestamp:Date.now()};
+        if(img)replyObj.image=img;
+        comment.replies.push(replyObj);
         saveMomentsData();
         
         if(comment.authorId!=='self'){
@@ -1290,20 +1351,20 @@ function showMomentsReplyInput(postId,commentId,nickname){
   sendBtn.addEventListener('click',function(){
     var val=input.value.trim();
     if(!val)return;
-    handleReply(val);
+    handleReply(val,pendingImg);
   });
   sendBtn.addEventListener('touchend',function(e){
     e.preventDefault();
     var val=input.value.trim();
-    if(!val)return;
-    handleReply(val);
+    if(!val&&!pendingImg)return;
+    handleReply(val,pendingImg);
   });
   
   input.addEventListener('keypress',function(e){
     if(e.key==='Enter'){
       var val=input.value.trim();
-      if(val){
-        handleReply(val);
+      if(val||pendingImg){
+        handleReply(val,pendingImg);
       }
     }
   });

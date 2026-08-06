@@ -382,10 +382,10 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     // 有自己的字卡：默认字卡不进池，由后面的独立概率逻辑决定是否用默认字卡
   }
   
-  // ★ 兜底：既没有自己的字卡，默认字卡也没触发 → 发提示
+  // ★ 兜底：既没有自己的字卡，默认字卡也没触发 → 用默认通用字卡（force 绕过开关/概率），发提示兜底
   if(!availableCards.length){
     try{
-      var _fbCards=getDefaultCommonCardsForContact(senderId);
+      var _fbCards=getDefaultCommonCardsForContact(senderId,true,_fallbackDefaultCat||'main');
       if(_fbCards&&_fbCards.length>0){
         availableCards=_fbCards.map(function(text){return {content:text,category:'custom',type:'default_common',groupId:null};});
         _useDefaultOnly=true;
@@ -505,6 +505,10 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
 
       imgSrc=rc.content;
       isStickerImg=true;
+      // ★ 修复：图片表情可与文字字卡同发
+      if(textCards.length>0&&Math.random()<0.5){
+        reply=textCards[Math.floor(Math.random()*textCards.length)].content;
+      }
     }else if(isImageReply){
       var irc=imageCards[Math.floor(Math.random()*imageCards.length)];
       imgSrc=irc.content;
@@ -513,6 +517,10 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
       var erc=emojiCards[Math.floor(Math.random()*emojiCards.length)];
 
       reply=erc.content;
+      // ★ 修复：emoji 表情也可附带文字字卡
+      if(textCards.length>0&&Math.random()<0.3){
+        reply=textCards[Math.floor(Math.random()*textCards.length)].content+' '+reply;
+      }
     }else if(isVoiceReply){
       var vrc=voiceCards[Math.floor(Math.random()*voiceCards.length)];
 
@@ -578,8 +586,33 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     // ★ 修复：新联系人或空聊天记录时，创建新数组来发送第一条回复（而不是直接跳过）
     m=[];
   }
-  var replyMsg={id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:reply,img:imgSrc,voice:voiceSrc,voiceText:voiceText,ts:new Date(),pc:pc,isAuto:true,isInitiative:false,quote:quoteMsgId,isSticker:isStickerImg,isVoice:voiceSrc?true:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid),moodCard:moodCard,heartCard:heartCard,intentCard:intentCard};
-  m.push(replyMsg);
+  // ★ 修复：按"回复消息条数"设置（reply-min ~ reply-max）随机发送多条
+  var _rMin=parseInt(getSpeed('reply-min',targetId))||1;
+  var _rMax=parseInt(getSpeed('reply-max',targetId))||5;
+  if(_rMax<_rMin)_rMax=_rMin;
+  var _replyCount=_rMin+Math.floor(Math.random()*(_rMax-_rMin+1));
+  var _replyBaseId='m_'+Date.now();
+  var _sentCount=0;
+  for(var _ri=0;_ri<_replyCount;_ri++){
+    // 多字卡随机：每条从 textCards 重新抽（若前面没生成 reply 池）
+    var _curReply=reply, _curImg=imgSrc, _curVoice=voiceSrc, _curVoiceText=voiceText;
+    if(_ri>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
+      _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
+      // 多字卡设置：概率附加更多字卡
+      var _pyEn=getSpeed('py-en',targetId), _pyProb=getSpeed('py-prob',targetId)/100;
+      if(_pyEn&&Math.random()<_pyProb){
+        var _pyMin=parseInt(getSpeed('py-min',targetId))||2;
+        var _pyMax=parseInt(getSpeed('py-max',targetId))||4;
+        var _extra=Math.floor(Math.random()*Math.max(1,_pyMax-_pyMin+1))+_pyMin;
+        for(var _ei=0;_ei<_extra&&textCards.length>0;_ei++){
+          _curReply+=' '+textCards[Math.floor(Math.random()*textCards.length)].content;
+        }
+      }
+    }
+    var replyMsg={id:_replyBaseId+'_'+_ri+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:pc,isAuto:true,isInitiative:false,quote:(_ri===0?quoteMsgId:null),isSticker:isStickerImg,isVoice:_curVoice?true:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid),moodCard:(_ri===0?moodCard:null),heartCard:(_ri===0?heartCard:null),intentCard:(_ri===0?intentCard:null)};
+    m.push(replyMsg);
+    _sentCount++;
+  }
   savemsgs(targetId,m);
   if(targetId===window.currentCid)renderMsgs(m);renderChatList();playSound('recv',targetId);
   
@@ -954,18 +987,14 @@ if($('ov-emoji'))$('ov-emoji').addEventListener('click',function(e){
 function sendSticker(sticker){
   if(momentsInputForEmoji){
     var input=momentsInputForEmoji;
-    if(sticker.content&&sticker.content.startsWith('data:image')){
+    // ★ 修复：所有表情包（含 http url 图片表情）统一用 [表情:id] 占位符，
+    // 未发送草稿不显示 url，发送后再解析成图片
+    if(sticker.content){
       var stickerText='[表情:'+(sticker.id||sticker.name||'未命名')+']';
       var s=input.selectionStart||input.value.length;
       var e=input.selectionEnd||input.value.length;
       input.value=input.value.slice(0,s)+stickerText+input.value.slice(e);
       try{input.selectionStart=input.selectionEnd=s+stickerText.length}catch(err){}
-      input.focus();
-    }else if(sticker.content){
-      var s2=input.selectionStart||input.value.length;
-      var e2=input.selectionEnd||input.value.length;
-      input.value=input.value.slice(0,s2)+sticker.content+input.value.slice(e2);
-      try{input.selectionStart=input.selectionEnd=s2+sticker.content.length}catch(err){}
       input.focus();
     }
     momentsInputForEmoji=null;

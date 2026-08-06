@@ -132,8 +132,13 @@ var Storage = (function(){
     if(keys.length === 0) return;
     for(var i = 0; i < keys.length; i++){
       try { localStorage.setItem('ml2_lf_' + keys[i], lsWriteQueue[keys[i]]); } catch(e) {
-        // localStorage 满了，跳过——完整数据在 IndexedDB 里
-        console.warn('flushLSWrites: localStorage full for', keys[i]);
+        // localStorage 满了——★ 修复：降级分片写入，避免丢失（完整数据在 IndexedDB 里但刷新竞态可能丢）
+        console.warn('flushLSWrites: localStorage full for', keys[i], ', sharding');
+        try{
+          if(typeof _saveToLocalStorageSharded==='function'){
+            _saveToLocalStorageSharded(keys[i], lsWriteQueue[keys[i]]);
+          }
+        }catch(e2){}
       }
     }
     lsWriteQueue = {};
@@ -189,8 +194,12 @@ var Storage = (function(){
           localStorage.setItem(lsKey, serialized);
         }catch(e){
           console.warn('Storage: localStorage full for', k, 'data is in IndexedDB');
-          // ★ 修复：IndexedDB 可用时（网站版）localStorage 满不影响数据（IndexedDB 有完整备份），
-          // 只在 IndexedDB 也不可用时（可能丢数据）才弹警告
+          // ★ 修复：localStorage 满时降级分片（OPPO/iOS 等 IndexedDB 不可用或慢时保住数据）
+          try{
+            if(typeof _saveToLocalStorageSharded==='function'){
+              _saveToLocalStorageSharded(k,serialized);
+            }
+          }catch(e3){}
           if(!window.localforage){
             try{ if(typeof toast==='function') toast('⚠️ 本地存储空间不足，部分数据未能保存'); }catch(e2){}
           }
@@ -216,11 +225,13 @@ var Storage = (function(){
   }
   
   // 分片保存到localStorage（当数据超过5MB限制时）
+  // ★ 约定：key 传不带 ml2_lf_ 前缀的原始 key，内部统一加前缀
   function _saveToLocalStorageSharded(key, data){
+    var baseKey='ml2_lf_'+key;
     try{
       // 清除旧的分片
       for(var i=0; i<100; i++){
-        var oldKey = 'ml2_lf_' + key + '_shard_' + i;
+        var oldKey = baseKey + '_shard_' + i;
         if(localStorage.getItem(oldKey) !== null){
           localStorage.removeItem(oldKey);
         }else{
@@ -229,7 +240,7 @@ var Storage = (function(){
       }
       
       // 尝试直接保存完整数据
-      localStorage.setItem('ml2_lf_' + key, data);
+      localStorage.setItem(baseKey, data);
       return;
     }catch(e){
       // 数据太大，需要分片
@@ -243,9 +254,10 @@ var Storage = (function(){
     }
     
     try{
-      localStorage.setItem('ml2_lf_' + key + '_meta', JSON.stringify({chunks: chunks.length, compressed: true}));
+      // ★ 修复：compressed 改 false（chunks 是未压缩的 substring，避免读端 LZString.decompress 解坏数据）
+      localStorage.setItem(baseKey + '_meta', JSON.stringify({chunks: chunks.length, compressed: false}));
       for(var j=0; j<chunks.length; j++){
-        localStorage.setItem('ml2_lf_' + key + '_shard_' + j, chunks[j]);
+        localStorage.setItem(baseKey + '_shard_' + j, chunks[j]);
       }
     }catch(e2){
       console.warn('Storage: sharded save failed:', key, e2);
@@ -280,35 +292,33 @@ var Storage = (function(){
     
     stats.misses++;
     var lsVal = safeGetItem('ml2_lf_'+k);
-    if(lsVal !== null){
-      // 检查是否是压缩的分片数据
-      var metaKey = 'ml2_lf_' + k + '_meta';
-      var shardMeta = safeGetItem(metaKey);
-      if(shardMeta){
-        try{
-          var meta = JSON.parse(shardMeta);
-          if(meta && meta.chunks){
-            // 从分片恢复数据
-            var reconstructed = '';
-            for(var i=0; i<meta.chunks; i++){
-              var chunk = safeGetItem('ml2_lf_' + k + '_shard_' + i);
-              if(chunk !== null){
-                reconstructed += chunk;
-              }
-            }
-            if(meta.compressed && window.LZString){
-              reconstructed = window.LZString.decompress(reconstructed);
-            }
-            if(reconstructed){
-              try{ var parsed = JSON.parse(reconstructed); cache[k] = parsed; return parsed; }
-              catch(e){ cache[k] = reconstructed; return reconstructed; }
+    // ★ 修复：分片读取不依赖主键（分片场景主键必然为空），meta 存在即读分片
+    var metaKey = 'ml2_lf_' + k + '_meta';
+    var shardMeta = safeGetItem(metaKey);
+    if(shardMeta){
+      try{
+        var meta = JSON.parse(shardMeta);
+        if(meta && meta.chunks){
+          var reconstructed = '';
+          for(var i=0; i<meta.chunks; i++){
+            var chunk = safeGetItem('ml2_lf_' + k + '_shard_' + i);
+            if(chunk !== null){
+              reconstructed += chunk;
             }
           }
-        }catch(e){
-          console.warn('Storage: sharded read failed:', k, e);
+          if(meta.compressed && window.LZString){
+            reconstructed = window.LZString.decompress(reconstructed);
+          }
+          if(reconstructed){
+            try{ var parsed = JSON.parse(reconstructed); cache[k] = parsed; return parsed; }
+            catch(e){ cache[k] = reconstructed; return reconstructed; }
+          }
         }
+      }catch(e){
+        console.warn('Storage: sharded read failed:', k, e);
       }
-      
+    }
+    if(lsVal !== null){
       // 检查是否是压缩数据（以特定前缀开头）
       if(lsVal && lsVal.startsWith && (lsVal.startsWith('Ŵ') || lsVal.startsWith('x\x9c'))){
         if(window.LZString){
@@ -579,6 +589,46 @@ var Storage = (function(){
                     }
                   }catch(e3){}
                 }
+              }else if(origKey.startsWith('ml2_m_')&&Array.isArray(cachedData)){
+                // ★ 修复：聊天记录——localStorage 为最新，按 id 合并 IndexedDB 中没有的消息
+                var _mv=safeGetItem(_k);
+                if(_mv){
+                  try{
+                    var _mp=JSON.parse(_mv);
+                    if(Array.isArray(_mp)&&_mp.length>0){
+                      var _mseen={};
+                      cachedData.forEach(function(x){if(x&&x.id)_mseen[x.id]=true;});
+                      var _madded=0;
+                      _mp.forEach(function(x){
+                        if(x&&x.id&&!_mseen[x.id]){_mseen[x.id]=true;cachedData.push(x);_madded++;}
+                      });
+                      if(_madded>0){
+                        cachedData.sort(function(a,b){return (b.tm||0)-(a.tm||0);});
+                        cache[origKey]=cachedData;loaded++;
+                      }
+                    }
+                  }catch(e4){}
+                }
+              }else if(origKey==='ml2_moments_posts'&&Array.isArray(cachedData)){
+                // ★ 修复：朋友圈——localStorage 为最新，合并 IndexedDB 中没有的
+                var _mv2=safeGetItem(_k);
+                if(_mv2){
+                  try{
+                    var _mp2=JSON.parse(_mv2);
+                    if(Array.isArray(_mp2)&&_mp2.length>0){
+                      var _mseen2={};
+                      cachedData.forEach(function(x){if(x&&x.id)_mseen2[x.id]=true;});
+                      var _madded2=0;
+                      _mp2.forEach(function(x){
+                        if(x&&x.id&&!_mseen2[x.id]){_mseen2[x.id]=true;cachedData.push(x);_madded2++;}
+                      });
+                      if(_madded2>0){
+                        cachedData.sort(function(a,b){return (b.timestamp||b.tm||0)-(a.timestamp||a.tm||0);});
+                        cache[origKey]=cachedData;loaded++;
+                      }
+                    }
+                  }catch(e5){}
+                }
               }
             }
           }
@@ -698,6 +748,29 @@ window.addEventListener('beforeunload', function(){
   }catch(e){}
   // 3. 刷新 IndexedDB 写入
   if(Storage.flushWrites) Storage.flushWrites();
+});
+// ★ 修复：OPPO 等安卓浏览器后台/切走时可能不触发 beforeunload，补 pagehide + visibilitychange 同步保存
+function _flushAllDataSync(){
+  try{
+    if(Storage.flushLSWrites) Storage.flushLSWrites();
+    if(Storage.cache){
+      for(var _k in Storage.cache){
+        if(Storage.cache.hasOwnProperty(_k)){
+          var _v=Storage.cache[_k];
+          if(_k.startsWith('ml2_card_img_')||_k.startsWith('ml2_msg_img_')||_k.startsWith('ml2_msg_voice_')||_k.startsWith('ml2_avh_')||_k.startsWith('ml2_avatar_lib_'))continue;
+          try{
+            var _sv=(typeof _v==='object')?JSON.stringify(_v):String(_v);
+            localStorage.setItem('ml2_lf_'+_k,_sv);
+          }catch(e){}
+        }
+      }
+    }
+    if(Storage.flushWrites) Storage.flushWrites();
+  }catch(e){}
+}
+window.addEventListener('pagehide',_flushAllDataSync);
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden')_flushAllDataSync();
 });
 
 var memoryCache = Storage.cache;
@@ -1238,6 +1311,25 @@ function msgs(id){
   if(!m||!m.length){
     try{var localStored=safeGetItem('ml2_lf_'+key);if(localStored)m=JSON.parse(localStored);}catch(e){}
   }
+  // ★ 修复：分片读取无条件执行（分片场景主键可能残留旧值），meta 存在即用分片数据
+  try{
+    var _meta=safeGetItem('ml2_lf_'+key+'_meta');
+    if(_meta){
+      var _metaObj=JSON.parse(_meta);
+      if(_metaObj&&_metaObj.chunks){
+        var _rec='';
+        for(var _ci=0;_ci<_metaObj.chunks;_ci++){
+          var _ch=safeGetItem('ml2_lf_'+key+'_shard_'+_ci);
+          if(_ch!==null)_rec+=_ch;
+        }
+        if(_metaObj.compressed&&window.LZString)_rec=window.LZString.decompress(_rec);
+        if(_rec){
+          var _parsed=JSON.parse(_rec);
+          if(Array.isArray(_parsed)&&_parsed.length>0)m=_parsed;
+        }
+      }
+    }
+  }catch(e){}
   if(!m||!m.length){
     try{var directStored=safeGetItem(key);if(directStored)m=JSON.parse(directStored);}catch(e){}
   }
@@ -1643,11 +1735,18 @@ function savemsgs(id,m){
   try{
     localStorage.setItem(lsKey, serializedData);
   }catch(e){
-    console.warn('savemsgs: localStorage full, full data is in IndexedDB');
-    // ★ 修复：IndexedDB 可用时（网站版）localStorage 满不影响聊天记录（IndexedDB 有完整备份），
-    // 只在 IndexedDB 也不可用时才弹警告
-    if(!window.localforage){
-      try{ if(typeof toast==='function') toast('⚠️ 本地存储空间不足，聊天记录可能无法完整保存'); }catch(e2){}
+    // ★ 修复：localStorage 满时降级为分片写入（OPPO 等浏览器 file:// 下 IndexedDB 不可用时也能保住数据）
+    console.warn('savemsgs: localStorage full, fallback to sharded write',key);
+    var _shardedTried=false;
+    try{
+      if(typeof _saveToLocalStorageSharded==='function'){
+        // ★ 传原始 key（内部统一加 ml2_lf_ 前缀），避免双前缀
+        _saveToLocalStorageSharded(key,serializedData);
+        _shardedTried=true;
+      }
+    }catch(e2){}
+    if(!_shardedTried&&!window.localforage){
+      try{ if(typeof toast==='function') toast('⚠️ 本地存储空间不足，聊天记录可能无法完整保存'); }catch(e3){}
     }
   }
 

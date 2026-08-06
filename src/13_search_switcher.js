@@ -121,13 +121,24 @@ function jumpToDateInChat(dateKey,msgsOfDay){
     // 找到当天第一条消息
     var firstMsg=msgsOfDay[0];
     if(firstMsg){
+      // ★ 修复：设置焦点消息 id，强制 _doRenderMsgs 渲染包含该消息的窗口，
+      // 否则目标日期在最近 80 条之外时 DOM 里根本找不到元素
+      try{
+        _jumpFocusMsgId=firstMsg.id;
+        _jumpFocusJustJumped=true;
+        setTimeout(function(){_jumpFocusJustJumped=false;},2500);
+        var allMsgs=msgs(cid);
+        if(allMsgs&&allMsgs.length>0){
+          renderMsgs(allMsgs);
+        }
+      }catch(e){console.warn('jumpToDate render fail:',e);}
+      // 渲染后滚动到焦点元素（渲染是异步/节流的，延迟查找）
       var msgEl=document.querySelector('[data-mid="'+firstMsg.id+'"]');
       if(msgEl){
         msgEl.scrollIntoView({behavior:'smooth',block:'start'});
         msgEl.style.background='rgba(201,169,110,0.15)';
         setTimeout(function(){msgEl.style.background='';},2500);
       }else{
-        // 元素还没渲染，多试几次
         var attempts=0;
         var tryFind=function(){
           attempts++;
@@ -136,7 +147,7 @@ function jumpToDateInChat(dateKey,msgsOfDay){
             el.scrollIntoView({behavior:'smooth',block:'start'});
             el.style.background='rgba(201,169,110,0.15)';
             setTimeout(function(){el.style.background='';},2500);
-          }else if(attempts<10){
+          }else if(attempts<15){
             setTimeout(tryFind,100);
           }
         };

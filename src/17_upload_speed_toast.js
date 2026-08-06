@@ -1323,6 +1323,8 @@ var speedSettings={
   'as-min':{key:'as_min',default:5,min:1,max:600,step:1,val:'as-min-val'},
   'as-max':{key:'as_max',default:10,min:1,max:60,step:1,val:'as-max-val'},
   'as-count':{key:'as_count',default:1,min:1,max:5,step:1,val:'as-count-val'},
+  'as-count-min':{key:'as_count_min',default:1,min:1,max:20,step:1,val:'as-count-min-val'},
+  'as-count-max':{key:'as_count_max',default:1,min:1,max:20,step:1,val:'as-count-max-val'},
   'reply-min':{key:'reply_min',default:1,min:1,max:10,step:1,val:'reply-min-val'},
   'reply-max':{key:'reply_max',default:5,min:1,max:10,step:1,val:'reply-max-val'},
   'rn-prob':{key:'rn_prob',default:20,min:0,max:100,step:5,val:'rn-prob-val'},

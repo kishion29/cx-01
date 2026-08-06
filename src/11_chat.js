@@ -9,6 +9,8 @@ function openConv(id,type){
   }
   cid=id;window.currentCid=id;
   window.currentConvType=type||(c?'contact':'group');
+  // ★ 切换联系人时重置渲染窗口，避免继承上一个联系人的窗口位置
+  _renderStartIdx=null;
   var typingEl=$('typing');if(typingEl)typingEl.style.display=typingStates[id]?'flex':'none';
   var convTitle=$('conv-title');if(convTitle)convTitle.textContent=item.hideName?'':item.name;
   
@@ -1444,6 +1446,9 @@ var _lastMsgCount=0;
 var _renderMsgsTimer=null;
 var _renderMsgsPending=false;
 var _jumpFocusMsgId=null; // 日期跳转时聚焦的消息ID
+var _renderStartIdx=null; // ★ 聊天渲染窗口起点（触顶加载/日期跳转时前移）
+var _loadMoreLock=false;  // ★ 触顶加载防抖锁
+var _jumpFocusJustJumped=false; // ★ 日期跳转后短暂保持窗口（防止普通渲染拉回末尾）
 // 缓存 contactMap/groupMap，避免每次 renderMsgs 都遍历重建
 var _contactMapCache=null;
 var _groupMapCache=null;
@@ -1506,27 +1511,28 @@ function _doRenderMsgs(messages){
       var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       var MAX_RENDER=isMobile?80:500;
       var msgsToRender=m;
-      if(m.length>MAX_RENDER){
-        // 日期跳转：如果设置了焦点消息ID，渲染包含该消息的窗口
-        if(_jumpFocusMsgId){
-          var focusIdx=-1;
-          for(var fi=0;fi<m.length;fi++){
-            if(m[fi].id===_jumpFocusMsgId){focusIdx=fi;break;}
-          }
-          if(focusIdx>=0){
-            var halfWindow=Math.floor(MAX_RENDER/2);
-            var startIdx=Math.max(0,focusIdx-halfWindow);
-            var endIdx=Math.min(m.length,startIdx+MAX_RENDER);
-            msgsToRender=m.slice(startIdx,endIdx);
-            _jumpFocusMsgId=null; // 用完即清，不影响后续渲染
-          }else{
-            msgsToRender=m.slice(m.length-MAX_RENDER);
-            _jumpFocusMsgId=null;
-          }
-        }else{
-          msgsToRender=m.slice(m.length-MAX_RENDER);
+      // ★ 修复：渲染窗口——终点永远是 m.length（最新消息必须显示），触顶加载只前移起点
+      var startIdx=(typeof _renderStartIdx==='number')?_renderStartIdx:Math.max(0,m.length-MAX_RENDER);
+      if(startIdx<0)startIdx=0;
+      // 日期跳转优先：渲染包含焦点消息的窗口
+      if(_jumpFocusMsgId){
+        var focusIdx=-1;
+        for(var fi=0;fi<m.length;fi++){
+          if(m[fi].id===_jumpFocusMsgId){focusIdx=fi;break;}
         }
+        if(focusIdx>=0){
+          startIdx=Math.max(0,focusIdx-Math.floor(MAX_RENDER/2));
+          startIdx=Math.min(startIdx,Math.max(0,m.length-MAX_RENDER));
+          _renderStartIdx=startIdx;
+        }
+        _jumpFocusMsgId=null; // 用完即清
       }
+      // 普通渲染（非触顶加载、非日期跳转）：窗口含末尾 MAX_RENDER 条，最新消息一定可见
+      if(!_loadMoreLock&&!_jumpFocusJustJumped){
+        if(startIdx>Math.max(0,m.length-MAX_RENDER))startIdx=Math.max(0,m.length-MAX_RENDER);
+      }
+      msgsToRender=m.slice(startIdx);
+      _renderStartIdx=startIdx;
       
       var isGroup=!!g;
       var myAvatar=c&&c.myAvatar?'<img src="'+c.myAvatar.replace(/"/g,'&quot;')+'">':me.avatar?'<img src="'+me.avatar.replace(/"/g,'&quot;')+'">':'✦';
@@ -1818,7 +1824,10 @@ function _doRenderMsgs(messages){
             if(cachedImg2){
               _u=cachedImg2;_realUrl=cachedImg2;
             }else{
-              onerrorHandler2=' onload="retryLoadImg(this,\''+_cacheK.replace(/"/g,'&quot;')+'\')"';
+              // ★ 修复：http 图 iOS ATS 禁明文——占位图挂 onerror（加载失败可重试/查看原链接），并尝试转 https
+              var _retryUrl=_u;
+              if(_retryUrl.indexOf('http:')===0)_retryUrl='https:'+_retryUrl.substring(5);
+              onerrorHandler2=' onerror="retryLoadImg(this,\''+_cacheK.replace(/"/g,'&quot;')+'\')" onload="this.setAttribute(\'data-real\',\''+_realUrl.replace(/"/g,'&quot;')+'\')"';
               _u='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect fill="%23f0f0f0" width="100" height="100" rx="8"/%3E%3Ctext fill="%23999" font-size="12" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E加载中%3C/text%3E%3C/svg%3E';
             }
           }
@@ -1828,7 +1837,9 @@ function _doRenderMsgs(messages){
           var imgHtml=imgsHtml;
           // 修复：确保 x.t 是字符串后再调用 .trim()，避免非字符串类型导致渲染崩溃
           var _imgText=typeof x.t==='string'?x.t:(x.t!=null?String(x.t):'');
-          if(_imgText&&_imgText.trim()){
+          // ★ 修复：图片消息的 t 字段若是 base64/图片 url（旧格式），不当作文字渲染，避免显示乱码
+          var _isImgTextLike=_imgText&&(_imgText.startsWith('data:image/')||(_imgText.startsWith('http')&&/\.(png|jpe?g|gif|webp|svg|bmp)(\?|#|$)/i.test(_imgText)));
+          if(_imgText&&_imgText.trim()&&!_isImgTextLike){
             var textHtml=_imgText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
             contentHtml='<div class="message-text-img-combo">'+imgHtml+'<div class="message-text-below">'+textHtml+'</div></div>';
           }else{
@@ -1837,7 +1848,8 @@ function _doRenderMsgs(messages){
         }else{
           contentHtml='<div style="'+gridWrapStyle+'">'+imgsHtml+'</div>';
           var _imgText2=typeof x.t==='string'?x.t:(x.t!=null?String(x.t):'');
-          if(_imgText2&&_imgText2.trim()){
+          var _isImgTextLike2=_imgText2&&(_imgText2.startsWith('data:image/')||(_imgText2.startsWith('http')&&/\.(png|jpe?g|gif|webp|svg|bmp)(\?|#|$)/i.test(_imgText2)));
+          if(_imgText2&&_imgText2.trim()&&!_isImgTextLike2){
             var textHtml2=_imgText2.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
             contentHtml+='<div class="message-text-below">'+textHtml2+'</div>';
           }
@@ -1888,15 +1900,15 @@ function _doRenderMsgs(messages){
           quoteContent='[一封信]';
         }else if(quoteMsg.redpacketAmount){
           quoteContent='🧧 红包 ¥'+quoteMsg.redpacketAmount;
+        }else if(quoteMsg.t){
+          // ★ 修复：优先显示原文（文字消息不应显示成情绪字卡）；仅当无原文时才用情绪卡内容
+          quoteContent=String(quoteMsg.t);
         }else if(quoteMsg.moodCard||quoteMsg.heartCard||quoteMsg.intentCard){
           var cardParts=[];
           if(quoteMsg.moodCard&&quoteMsg.moodCard.content)cardParts.push('💭 '+quoteMsg.moodCard.content);
           if(quoteMsg.heartCard&&quoteMsg.heartCard.content)cardParts.push('❤️ '+quoteMsg.heartCard.content);
           if(quoteMsg.intentCard&&quoteMsg.intentCard.content)cardParts.push('💬 '+quoteMsg.intentCard.content);
           quoteContent=cardParts.join(' ');
-        }else if(quoteMsg.t){
-          // 修复：确保非字符串类型（数字、对象等）不会导致后续 .replace() 崩溃
-          quoteContent=String(quoteMsg.t);
         }else if(quoteMsg.callMessage){
           quoteContent=String(quoteMsg.callMessage);
         }else{
@@ -1957,7 +1969,7 @@ function _doRenderMsgs(messages){
         }else{
           memberAv='✦';
         }
-        var senderAv=memberAv.startsWith('data:image')?'<img src="'+memberAv.replace(/"/g,'&quot;')+'">':memberAv;
+        var senderAv=(typeof memberAv==='string'&&memberAv.startsWith('data:image'))?'<img src="'+memberAv.replace(/"/g,'&quot;')+'">':String(memberAv||'✦');
         avatarHtml='<div class="ma-wrap"><div class="ma" data-contact-id="'+x.senderId+'">'+senderAv+'</div>'+(timelineStyle==='avatar'?timeHtml:'')+'</div>';
       }else{
         avatarHtml='<div class="ma-wrap"><div class="ma" data-contact-id="'+cid+'">'+otherAvatar+'</div>'+(timelineStyle==='avatar'?timeHtml:'')+'</div>';
@@ -2020,11 +2032,39 @@ function _doRenderMsgs(messages){
         openLetterDetail(lid);
       }
     });
+    // ★ 触顶加载更早的消息（原 80 条硬截断导致历史消息不可见/无法上划）
+    box.addEventListener('scroll',function(){
+      if(_loadMoreLock)return;
+      if(box.scrollTop<60){
+        var allMsgs=msgs(cid);
+        if(!allMsgs||allMsgs.length===0)return;
+        var curStart=(typeof _renderStartIdx==='number')?_renderStartIdx:Math.max(0,allMsgs.length-80);
+        if(curStart<=0)return; // 已到最早
+        _loadMoreLock=true;
+        var newStart=Math.max(0,curStart-80);
+        var prevHeight=box.scrollHeight;
+        _renderStartIdx=newStart;
+        _jumpFocusJustJumped=true;
+        setTimeout(function(){_jumpFocusJustJumped=false;},1500);
+        try{renderMsgs(allMsgs);}catch(e){}
+        // 渲染后保持滚动位置（新内容加到顶部）
+        setTimeout(function(){
+          try{
+            box.scrollTop=box.scrollHeight-prevHeight;
+          }catch(e){}
+          _loadMoreLock=false;
+        },80);
+      }
+    });
   }
 
   initMsgActions();
   if(!longScreenshotMode){
-    requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});
+    // ★ 修复：只在窗口包含最新消息时滚到底；触顶加载/日期跳转时不强制滚底
+    var _isAtEnd=!(_renderStartIdx>0);
+    if(_isAtEnd){
+      requestAnimationFrame(function(){box.scrollTop=box.scrollHeight});
+    }
   }
 
   var _entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
