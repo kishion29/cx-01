@@ -2089,16 +2089,21 @@ function _doRenderMsgs(messages){
     }
   }catch(e){}
 
-  var _entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
-  if(_entity&&_entity.chatSettings&&_entity.chatSettings.customCSS&&_entity.chatSettings.customCSS.trim()){
-    var _bubbles=box.querySelectorAll('.mb');
-    for(var _bi=0;_bi<_bubbles.length;_bi++){
-      _bubbles[_bi].style.setProperty('--border','none','important');
-      _bubbles[_bi].style.setProperty('box-shadow','none','important');
+  try{
+    var _entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
+    if(_entity&&_entity.chatSettings&&_entity.chatSettings.customCSS&&_entity.chatSettings.customCSS.trim()){
+      var _bubbles=box.querySelectorAll('.mb');
+      for(var _bi=0;_bi<_bubbles.length;_bi++){
+        _bubbles[_bi].style.setProperty('--border','none','important');
+        _bubbles[_bi].style.setProperty('box-shadow','none','important');
+      }
     }
-  }
   }catch(e){
     console.error('renderMsgs error:',e);
+  }
+  // ★ 修复：关闭 _doRenderMsgs 最外层 rAF 回调里 1504 行的 try（缺失的 catch，导致整页 JS 语法崩溃）
+  }catch(e){
+    console.error('renderMsgs outer error:',e);
   }
   _renderingMsgs=false;
   renderChatMusicStatus();

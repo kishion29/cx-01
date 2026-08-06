@@ -178,7 +178,7 @@ function sendMsg(){
   var m2=msgs(cid);var msg2={id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:SELF,t:t,ts:new Date(),pc:false,quote:replyingToMsg,isGroup:window.currentConvType==='group',read:true,senderName:'我',senderId:me.id};m2.push(msg2);savemsgs(cid,m2);inp.value='';inp.style.height='36px';replyingToMsg=null;$('quote-preview').style.display='none';renderMsgs(m2);updateSendBtn();renderChatList();scheduleReply();playSound('send',cid);haptic('light');simulateTAFavorite();
 }
 function updateSendBtn(){var inp=$('msg-inp'),s=$('btn-send');if(inp.value.trim().length>0||pendingImages.length>0){s.classList.remove('disabled')}else{s.classList.add('disabled')}}
-function scheduleReply(){if(!cid||cid==='fh')return;if(isBatchMode)return;if(pomodoroState.isRunning&&!pomodoroState.isPaused&&pomodoroSettings.blockDuringFocus)return;var rsMin=getSpeed('rs-min',cid),rsMax=getSpeed('rs-max',cid),rnProb=getSpeed('rn-prob',cid);var targetId=cid;var msgbox=$('msgbox');if(msgbox)msgbox.scrollTop=msgbox.scrollHeight;if(Math.random()*100<rnProb){rtimers[targetId]=setTimeout(function(){markMessageReadIgnored(targetId)},(1+Math.random()*3)*1000);return}typingStates[targetId]=true;if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;if(rtimers[targetId])clearTimeout(rtimers[targetId]);rtimers[targetId]=setTimeout(function(){try{var group=groups.find(function(g){return g.id===targetId});var isGroup=!!group;if(isGroup){/* For group chats, keep typing indicator visible until all members respond */genReply(targetId).catch(function(e){console.warn('genReply group failed:',e)});}else{typingStates[targetId]=false;if(targetId===window.currentCid){var typingEl2=$('typing');if(typingEl2)typingEl2.style.display='none';}genReply(targetId).catch(function(e){console.warn('genReply failed:',e)})}}catch(e){console.warn('scheduleReply exec failed:',e);typingStates[targetId]=false;if(targetId===window.currentCid){var _te=$('typing');if(_te)_te.style.display='none';}}},delay)}
+function scheduleReply(){console.log('[reply] scheduleReply cid='+cid);if(!cid||cid==='fh')return;if(isBatchMode)return;if(pomodoroState.isRunning&&!pomodoroState.isPaused&&pomodoroSettings.blockDuringFocus)return;var rsMin=getSpeed('rs-min',cid),rsMax=getSpeed('rs-max',cid),rnProb=getSpeed('rn-prob',cid);var targetId=cid;var msgbox=$('msgbox');if(msgbox)msgbox.scrollTop=msgbox.scrollHeight;if(Math.random()*100<rnProb){console.log('[reply] rnProb 已读不回',rnProb);rtimers[targetId]=setTimeout(function(){markMessageReadIgnored(targetId)},(1+Math.random()*3)*1000);return}typingStates[targetId]=true;if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;if(rtimers[targetId])clearTimeout(rtimers[targetId]);rtimers[targetId]=setTimeout(function(){console.log('[reply] delay结束, 调genReply',targetId);try{var group=groups.find(function(g){return g.id===targetId});var isGroup=!!group;if(isGroup){/* For group chats, keep typing indicator visible until all members respond */genReply(targetId).catch(function(e){console.warn('genReply group failed:',e)});}else{typingStates[targetId]=false;if(targetId===window.currentCid){var typingEl2=$('typing');if(typingEl2)typingEl2.style.display='none';}genReply(targetId).catch(function(e){console.warn('genReply failed:',e)})}}catch(e){console.warn('scheduleReply exec failed:',e);typingStates[targetId]=false;if(targetId===window.currentCid){var _te=$('typing');if(_te)_te.style.display='none';}}},delay)}
 function markMessageReadIgnored(targetId,silent){
   var m=msgs(targetId);
   if(m.length===0)return;
@@ -194,14 +194,23 @@ function markMessageReadIgnored(targetId,silent){
 
 
 async function genReply(targetId,forceSingle){
+  console.log('[reply] genReply target='+targetId+' forceSingle='+forceSingle);
   if(!targetId)targetId=cid;
   if(!targetId)return;
 
   // ★ 修复：确保用户自己的字卡（globalCards）已加载，避免点【让对方继续说】时
   // globalCards 未加载导致只剩默认通用字卡（用户自己的公用/专享字卡没进池）
+  // ★ 修复：loadGlobalCards 读 IndexedDB 在部分设备可能挂起 → 加 1.5 秒超时，超时继续（按空字卡走兜底）
   if(typeof globalCards==='undefined'||!globalCards||globalCards.length===0){
     try{
-      if(typeof loadGlobalCards==='function'){await loadGlobalCards();}
+      if(typeof loadGlobalCards==='function'){
+        console.log('[reply] 开始 loadGlobalCards');
+        await Promise.race([
+          loadGlobalCards(),
+          new Promise(function(_res){setTimeout(function(){_res();},1500);})
+        ]);
+        console.log('[reply] loadGlobalCards 完成, globalCards.length='+(globalCards?globalCards.length:'undef'));
+      }
     }catch(e){console.warn('genReply loadGlobalCards failed:',e);}
   }
 
@@ -394,6 +403,7 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   }
   
   if(!availableCards.length){
+    console.log('[reply] 无可用字卡 availableCards=0, 走提示分支');
     if(isGroup)return; // Skip group members with no cards silently
     var m=msgs(targetId);
     // ★ 修复：聊天记录为空也要发提示消息（之前直接 return 导致点【继续说】无任何反应）
@@ -577,26 +587,37 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     }
   }
   
+  console.log('[reply] availableCards.length='+availableCards.length+' 到达moodCard步骤');
   var moodCard=null,heartCard=null,intentCard=null;
-  // ★ 修复：情绪/心意/交流意图字卡获取异常绝不能阻断主回复（之前异常会导致整个回复静默失败）
-  // ★ 修复：异步获取，不阻塞第一条消息发送（localforage 慢时第一条不再额外延迟）
-  (async function(){
-    try{
-      moodCard=await getRandomMoodCard(targetId);
-    }catch(e){console.warn('moodCard failed:',e);}
-    if(moodCard){emotionStreak+=1;}else{emotionStreak=0;}
-    try{
-      heartCard=await getRandomHeartCard(targetId, moodCard);
-    }catch(e){console.warn('heartCard failed:',e);}
-    try{
-      intentCard=await getRandomIntentCard(targetId, heartCard);
-    }catch(e){console.warn('intentCard failed:',e);}
-  })();
+  // ★ 修复：情绪/心意/交流意图字卡用 3 秒超时——localforage(IndexedDB) 在部分 iOS/Edge 可能挂起，
+  // 无超时会导致 genReply 永远卡在 await、消息发不出来。
+  // 3 秒内读到→带情绪卡；超时→跳过情绪卡但回复正常发出。
+  // ★ 异常/超时绝不阻断主回复
+  try{
+    var _cardsResult=await Promise.race([
+      (async function(){
+        var _mc=await getRandomMoodCard(targetId);
+        if(_mc){emotionStreak+=1;}else{emotionStreak=0;}
+        var _hc=await getRandomHeartCard(targetId, _mc);
+        var _ic=await getRandomIntentCard(targetId, _hc);
+        return {moodCard:_mc,heartCard:_hc,intentCard:_ic};
+      })(),
+      new Promise(function(_res){setTimeout(function(){_res(null);},3000);})
+    ]);
+    if(_cardsResult){
+      moodCard=_cardsResult.moodCard;
+      heartCard=_cardsResult.heartCard;
+      intentCard=_cardsResult.intentCard;
+    }
+  }catch(e){console.warn('[reply] mood/heart/intent cards timeout/failed:',e);}
+  console.log('[reply] moodCard步骤完成 moodCard='+(moodCard?'有':'无'));
   
   var m=msgs(targetId);
-  if(!m||m.length===0){
-    // ★ 修复：新联系人或空聊天记录时，创建新数组来发送第一条回复（而不是直接跳过）
-    m=[];
+  if(!m||!Array.isArray(m))m=[];
+  // ★ 修复：过滤损坏的空槽/undefined 元素（历史数据损坏会导致 push/render 时抛错 → 静默无消息）
+  if(m.some(function(x){return !x;})){
+    m=m.filter(function(x){return !!x;});
+    try{savemsgs(targetId,m);}catch(e){console.warn('[reply] 过滤损坏消息后保存失败:',e);}
   }
   // ★ 修复：按"回复消息条数"设置（reply-min ~ reply-max）随机发送多条
   // 传 senderId：getSpeed 优先 per-contact，无则回退全局，两者都能读到
@@ -612,6 +633,8 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   }
   var _replyBaseId='m_'+Date.now();
   var _sentCount=0;
+  // ★ 修复：replyMsg 提升为函数级变量（rcProb 撤回块闭包引用它，若为 _sendReplyBatch 局部则 undefined 抛错）
+  var replyMsg=null;
   // ★ 修复：多条消息逐条延迟发送（间隔 1.2~2.8 秒），不是一次性全蹦出来
   function _sendReplyBatch(idx){
     if(idx>=_replyCount){
@@ -621,7 +644,23 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     }
     // 多字卡随机：每条从 textCards 重新抽（若前面没生成 reply 池）
     var _curReply=reply, _curImg=imgSrc, _curVoice=voiceSrc, _curVoiceText=voiceText;
-    if(idx>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
+    if(idx>0){
+      // ★ 模拟真人：多条表情包时，小概率连发同一条（真人常见），大概率换一条
+      // 15% 复用第一条（连发相同表情包），85% 重新随机抽
+      if(Math.random()<0.15){
+        // 保持 _curImg/_curVoice 不变（连发同一条）
+      }else if(imgSrc&&stickerCards&&stickerCards.length>0){
+        var _rc2=stickerCards[Math.floor(Math.random()*stickerCards.length)];
+        _curImg=_rc2.content;
+      }else if(imgSrc&&imageCards&&imageCards.length>0){
+        var _rc3=imageCards[Math.floor(Math.random()*imageCards.length)];
+        _curImg=_rc3.content;
+      }else if(voiceSrc&&voiceCards&&voiceCards.length>0){
+        var _rc4=voiceCards[Math.floor(Math.random()*voiceCards.length)];
+        _curVoice=_rc4.content;
+        _curVoiceText=_rc4.voiceText||'';
+      }
+      if(textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
       _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
       // 多字卡设置：概率附加更多字卡
       var _pyEn=getSpeed('py-en',targetId), _pyProb=getSpeed('py-prob',targetId)/100;
@@ -634,9 +673,11 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
         }
       }
     }
-    var replyMsg={id:_replyBaseId+'_'+idx+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:pc,isAuto:true,isInitiative:false,quote:(idx===0?quoteMsgId:null),isSticker:isStickerImg,isVoice:_curVoice?true:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid),moodCard:(idx===0?moodCard:null),heartCard:(idx===0?heartCard:null),intentCard:(idx===0?intentCard:null)};
+    } // ★ 修复：关闭 if(idx>0) 块（此前 push 代码被错误包在 if(idx>0) 内，idx=0 时第一条消息永远不发出）
+    replyMsg={id:_replyBaseId+'_'+idx+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:pc,isAuto:true,isInitiative:false,quote:(idx===0?quoteMsgId:null),isSticker:isStickerImg,isVoice:_curVoice?true:false,senderName:senderName,senderId:senderId,isGroup:isGroup,read:(targetId===cid),moodCard:(idx===0?moodCard:null),heartCard:(idx===0?heartCard:null),intentCard:(idx===0?intentCard:null)};
     m.push(replyMsg);
     _sentCount++;
+    console.log('[reply] 已push消息 idx='+idx+' m.length='+m.length+' reply='+String(_curReply||'').slice(0,20));
     savemsgs(targetId,m);
     if(targetId===window.currentCid)renderMsgs(m);renderChatList();
     if(idx===0)playSound('recv',targetId);
@@ -666,7 +707,8 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
       var all=msgs(targetId);
       if(all.length>0){
         var lastMsg=all[all.length-1];
-        if(lastMsg.id===replyMsg.id){
+        // ★ 修复：数组可能含 undefined 空槽（数据损坏/并发写），读 .id 会抛错导致整个回复中断
+        if(lastMsg&&lastMsg.id===replyMsg.id){
           lastMsg.retracted=true;
           lastMsg.originalContent=lastMsg.t||'';
           lastMsg.originalImg=lastMsg.img||'';
@@ -778,6 +820,7 @@ function showDefaultCatPicker(targetId){
   });
 }
 async function simulateReply(){
+  console.log('[reply] simulateReply cid='+cid);
   // ★ 无字卡时：先弹窗让用户选择默认字卡分类
   // 仅当"没有自己的字卡 且 默认通用字卡未开启"时才弹窗（开启默认字卡时直接可用，无需弹窗）
   if(cid&&cid!=='fh'){
