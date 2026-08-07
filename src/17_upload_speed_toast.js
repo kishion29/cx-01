@@ -1312,7 +1312,7 @@ function playVoiceMsg(btn){
 // ---------- Speed Settings ----------
 var speedSettings={
   'rs-min':{key:'rs_min',default:1,min:1,max:600,step:1,val:'rs-min-val'},
-  'rs-max':{key:'rs_max',default:84,min:1,max:600,step:1,val:'rs-max-val'},
+  'rs-max':{key:'rs_max',default:40,min:1,max:600,step:1,val:'rs-max-val'},
   'py-en':{key:'py_en',default:1,min:0,max:1,step:1,val:'py-en'},
   'py-prob':{key:'py_prob',default:50,min:0,max:100,step:5,format:function(v){return v+'%'},val:'prob-val'},
   'py-min':{key:'py_min',default:2,min:1,max:15,step:1,val:'min-val'},
@@ -1326,7 +1326,7 @@ var speedSettings={
   'as-count-min':{key:'as_count_min',default:1,min:1,max:20,step:1,val:'as-count-min-val'},
   'as-count-max':{key:'as_count_max',default:1,min:1,max:20,step:1,val:'as-count-max-val'},
   'reply-min':{key:'reply_min',default:1,min:1,max:10,step:1,val:'reply-min-val'},
-  'reply-max':{key:'reply_max',default:5,min:1,max:10,step:1,val:'reply-max-val'},
+  'reply-max':{key:'reply_max',default:2,min:1,max:10,step:1,val:'reply-max-val'},
   'rn-prob':{key:'rn_prob',default:20,min:0,max:100,step:5,val:'rn-prob-val'},
   'rc-prob':{key:'rc_prob',default:5,min:0,max:100,step:1,val:'rc-prob-val'},
   'quote-prob':{key:'quote_prob',default:5,min:0,max:100,step:1,val:'quote-prob-val'},
@@ -1448,7 +1448,8 @@ function applySpeedToAllContacts(){
     contactSelect=$('speed-contact-select')||$('letter-contact-select');
   }
   var contactId=contactSelect?contactSelect.value:null;
-  if(!contactId){toast('请先选择联系人');return;}
+  // ★ 修复：contactId 为空（默认"全部联系人"）时不再报"请先选择联系人"，直接视为应用到全部
+  if(!contactId)contactId='__all__';
   
   var s=ls('ml2_speed');
   if(!s)s={};
@@ -1466,7 +1467,7 @@ function applySpeedToAllContacts(){
     }
   });
   
-  if(contactId==='__all__'){
+  if(contactId==='__all__'&&!letterVisible){
     if(!confirm('确定将当前设置保存为全局默认值吗？所有联系人将使用这些设置。'))return;
     Object.keys(currentSettings).forEach(function(key){
       s[key]=currentSettings[key];

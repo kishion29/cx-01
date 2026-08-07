@@ -453,9 +453,9 @@ var Storage = (function(){
                 if(k===LL){
                   // 信件数据特殊处理：先跳过，读完IndexedDB再合并
                   loadedFromLS=false;
-                }else if(lsIsValidArray&&(k.indexOf(LM)===0||k==='ml2_moments_posts'||k==='ml2_moments_members')){
-                  // ★ Bug4修复：消息/朋友圈不直接用 localStorage 快照（可能只有少量/旧数据），
-                  // 强制读 IndexedDB 后合并取最完整，防止 iOS 刷新后丢聊天记录/朋友圈
+                }else if(lsIsValidArray&&(k.indexOf(LM)===0||k===LC||k==='ml2_moments_posts'||k==='ml2_moments_members')){
+                  // ★ Bug4修复：消息/联系人/朋友圈不直接用 localStorage 快照（可能只有少量/旧数据），
+                  // 强制读 IndexedDB 后合并取最完整，防止刷新后丢聊天记录/朋友圈/头像
                   loadedFromLS=false;
                 }else if(lsIsValidArray){
                   cache[k]=lsParsed;loaded++;loadedFromLS=true;
@@ -507,6 +507,15 @@ var Storage = (function(){
                     (cachedBeforeReload||[]).forEach(function(x){if(x&&x.id&&!msgSeen[x.id]){msgSeen[x.id]=true;msgMerged.push(x);}});
                     cache[k]=msgMerged;loaded++;
                     try{safeSetItem('ml2_lf_'+k,JSON.stringify(msgMerged));}catch(e){}
+                  }else if(k===LC&&lsParsed){
+                    // ★ 修复：联系人数据（含头像）合并 IndexedDB + localStorage，按 id 去重取最完整，
+                    // 防止 OPPO/Edge 上旧 localStorage 快照遮蔽 IndexedDB 新上传的头像
+                    var conMerged=[];
+                    var conSeen={};
+                    (val||[]).forEach(function(x){if(x&&x.id&&!conSeen[x.id]){conSeen[x.id]=true;conMerged.push(x);}});
+                    (lsParsed||[]).forEach(function(x){if(x&&x.id&&!conSeen[x.id]){conSeen[x.id]=true;conMerged.push(x);}});
+                    cache[k]=conMerged;loaded++;
+                    try{safeSetItem('ml2_lf_'+k,JSON.stringify(conMerged));}catch(e){}
                   }else if(k==='ml2_moments_posts'&&lsParsed){
                     // ★ Bug4修复：朋友圈同样合并 IndexedDB + localStorage，按 id 去重取最完整
                     var momMerged=[];
@@ -658,7 +667,10 @@ var Storage = (function(){
           var ck=localStorage.key(ci);
           if(!ck)continue;
           var isCacheKey=ck.indexOf('_voice_')>=0||ck.indexOf('_img_')>=0||ck.indexOf('_orig')>=0||ck.indexOf('_avh_')>=0;
-          if(isCacheKey&&(ck.indexOf('ml2_')===0||ck.indexOf('ml2_lf_')===0)){
+          // ★ 修复：ml2_avh_* 是用户上传的头像历史（IndexedDB 不可用时降级存 localStorage），
+          // 不能删——删了联系人头像引用会失效。仅清理 ml2_msg_/ml2_card_ 的临时图片/语音缓存
+          var isAvatarHistory=ck.indexOf('ml2_avh_')===0;
+          if(isCacheKey&&!isAvatarHistory&&(ck.indexOf('ml2_')===0||ck.indexOf('ml2_lf_')===0)){
             try{
               localStorage.removeItem(ck);
               _cleanRemoved++;
