@@ -1352,7 +1352,7 @@ var speedSettings={
   'ni-min':{key:'ni_min',default:1,min:1,max:86400,step:1,val:'ni-min-val'},
   'ni-max':{key:'ni_max',default:86400,min:1,max:86400,step:60,val:'ni-max-val'}
 };
-function getSpeed(k,contactId){
+function getSpeed(k,contactId,skipGroupFallback){
   var m=speedSettings[k];
   if(!m)return 0;
   var s=ls('ml2_speed');
@@ -1363,7 +1363,7 @@ function getSpeed(k,contactId){
     val=s.contacts[contactId][m.key];
   }
   
-  if((val===null||val===undefined)&&contactId){
+  if((val===null||val===undefined)&&contactId&&!skipGroupFallback){
     var group=groups.find(function(g){return g.memberIds&&g.memberIds.indexOf(contactId)>=0});
     if(group&&s.groupMembers&&s.groupMembers[group.id]&&s.groupMembers[group.id][contactId]){
       val=s.groupMembers[group.id][contactId][m.key];

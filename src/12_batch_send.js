@@ -178,7 +178,7 @@ function sendMsg(){
   var m2=msgs(cid);var msg2={id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:SELF,t:t,ts:new Date(),pc:false,quote:replyingToMsg,isGroup:window.currentConvType==='group',read:true,senderName:'我',senderId:me.id};m2.push(msg2);savemsgs(cid,m2);inp.value='';inp.style.height='36px';replyingToMsg=null;$('quote-preview').style.display='none';renderMsgs(m2);updateSendBtn();renderChatList();scheduleReply();playSound('send',cid);haptic('light');simulateTAFavorite();
 }
 function updateSendBtn(){var inp=$('msg-inp'),s=$('btn-send');if(inp.value.trim().length>0||pendingImages.length>0){s.classList.remove('disabled')}else{s.classList.add('disabled')}}
-function scheduleReply(){console.log('[reply] scheduleReply cid='+cid);if(!cid||cid==='fh')return;if(isBatchMode)return;if(pomodoroState.isRunning&&!pomodoroState.isPaused&&pomodoroSettings.blockDuringFocus)return;var rsMin=getSpeed('rs-min',cid),rsMax=getSpeed('rs-max',cid),rnProb=getSpeed('rn-prob',cid);var targetId=cid;var msgbox=$('msgbox');if(msgbox)msgbox.scrollTop=msgbox.scrollHeight;if(Math.random()*100<rnProb){console.log('[reply] rnProb 已读不回',rnProb);rtimers[targetId]=setTimeout(function(){markMessageReadIgnored(targetId)},(1+Math.random()*3)*1000);return}typingStates[targetId]=true;if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;if(rtimers[targetId])clearTimeout(rtimers[targetId]);rtimers[targetId]=setTimeout(function(){console.log('[reply] delay结束, 调genReply',targetId);try{var group=groups.find(function(g){return g.id===targetId});var isGroup=!!group;if(isGroup){/* For group chats, keep typing indicator visible until all members respond */genReply(targetId).catch(function(e){console.warn('genReply group failed:',e)});}else{typingStates[targetId]=false;if(targetId===window.currentCid){var typingEl2=$('typing');if(typingEl2)typingEl2.style.display='none';}genReply(targetId).catch(function(e){console.warn('genReply failed:',e)})}}catch(e){console.warn('scheduleReply exec failed:',e);typingStates[targetId]=false;if(targetId===window.currentCid){var _te=$('typing');if(_te)_te.style.display='none';}}},delay)}
+function scheduleReply(){console.log('[reply] scheduleReply cid='+cid);if(!cid||cid==='fh')return;if(isBatchMode)return;if(pomodoroState.isRunning&&!pomodoroState.isPaused&&pomodoroSettings.blockDuringFocus)return;var rsMin=getSpeed('rs-min',cid),rsMax=getSpeed('rs-max',cid),rnProb=getSpeed('rn-prob',cid,true);var targetId=cid;var msgbox=$('msgbox');if(msgbox)msgbox.scrollTop=msgbox.scrollHeight;if(Math.random()*100<rnProb){console.log('[reply] rnProb 已读不回',rnProb);rtimers[targetId]=setTimeout(function(){markMessageReadIgnored(targetId)},(1+Math.random()*3)*1000);return}typingStates[targetId]=true;if(cid===window.currentCid){var typingEl=$('typing');if(typingEl)typingEl.style.display='flex';}var delay=(rsMin+Math.random()*(rsMax-rsMin))*1000;if(rtimers[targetId])clearTimeout(rtimers[targetId]);rtimers[targetId]=setTimeout(function(){console.log('[reply] delay结束, 调genReply',targetId);try{var group=groups.find(function(g){return g.id===targetId});var isGroup=!!group;if(isGroup){/* For group chats, keep typing indicator visible until all members respond */genReply(targetId).catch(function(e){console.warn('genReply group failed:',e)});}else{typingStates[targetId]=false;if(targetId===window.currentCid){var typingEl2=$('typing');if(typingEl2)typingEl2.style.display='none';}genReply(targetId).catch(function(e){console.warn('genReply failed:',e)})}}catch(e){console.warn('scheduleReply exec failed:',e);typingStates[targetId]=false;if(targetId===window.currentCid){var _te=$('typing');if(_te)_te.style.display='none';}}},delay)}
 function markMessageReadIgnored(targetId,silent){
   var m=msgs(targetId);
   if(m.length===0)return;
@@ -422,7 +422,7 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   var voiceCards=availableCards.filter(function(c){return c.category==='voices'});
   var imageCards=availableCards.filter(function(c){return c.category==='image'});
 
-  var reply='',pc=false,imgSrc='',voiceSrc='',voiceText='',isStickerImg=false;
+  var reply='',pc=false,imgSrc='',voiceSrc='',voiceText='',isStickerImg=false,_firstType='text';
 
   // 核心逻辑：仅有语音字卡 → 100%语音回复；仅有文字字卡 → 100%文字回复
   var onlyVoice=(textCards.length===0&&emojiCards.length===0&&kaomojiCards.length===0&&stickerCards.length===0&&imageCards.length===0&&voiceCards.length>0);
@@ -432,17 +432,17 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   var onlySticker=(textCards.length===0&&emojiCards.length===0&&kaomojiCards.length===0&&stickerCards.length>0&&imageCards.length===0&&voiceCards.length===0);
   var onlyImage=(textCards.length===0&&emojiCards.length===0&&kaomojiCards.length===0&&stickerCards.length===0&&imageCards.length>0&&voiceCards.length===0);
   
-  if(onlyVoice){
+  if(onlyVoice){_firstType='voice';
     var vrc=voiceCards[Math.floor(Math.random()*voiceCards.length)];
 
     voiceSrc=vrc.content;
     voiceText=vrc.voiceText||'';
-  }else if(onlySticker){
+  }else if(onlySticker){_firstType='sticker';
     var src=stickerCards[Math.floor(Math.random()*stickerCards.length)];
 
     imgSrc=src.content;
     isStickerImg=true;
-  }else if(onlyImage){
+  }else if(onlyImage){_firstType='image';
     var imgRC=imageCards[Math.floor(Math.random()*imageCards.length)];
     imgSrc=imgRC.content;
     isStickerImg=false;
@@ -488,11 +488,11 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
         reply=rc3.content;
       }
     }
-  }else if(onlyEmoji){
+  }else if(onlyEmoji){_firstType='emoji';
     var erc=emojiCards[Math.floor(Math.random()*emojiCards.length)];
     
     reply=erc.content;
-  }else if(onlyKaomoji){
+  }else if(onlyKaomoji){_firstType='kaomoji';
     var krc=kaomojiCards[Math.floor(Math.random()*kaomojiCards.length)];
     
     reply=krc.content;
@@ -511,7 +511,7 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     if(textCards.length===0&&emojiCards.length===0&&voiceCards.length>0)voiceProb=100;
     var isVoiceReply=!isStickerReply&&!isEmojiReply&&!isImageReply&&voiceCards.length>0&&Math.random()*100<voiceProb;
 
-    if(isStickerReply){
+    if(isStickerReply){_firstType='sticker';
       var rc=stickerCards[Math.floor(Math.random()*stickerCards.length)];
 
       imgSrc=rc.content;
@@ -520,11 +520,11 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
       if(textCards.length>0&&Math.random()<0.5){
         reply=textCards[Math.floor(Math.random()*textCards.length)].content;
       }
-    }else if(isImageReply){
+    }else if(isImageReply){_firstType='image';
       var irc=imageCards[Math.floor(Math.random()*imageCards.length)];
       imgSrc=irc.content;
       isStickerImg=false;
-    }else if(isEmojiReply){
+    }else if(isEmojiReply){_firstType='emoji';
       var erc=emojiCards[Math.floor(Math.random()*emojiCards.length)];
 
       reply=erc.content;
@@ -532,7 +532,7 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
       if(textCards.length>0&&Math.random()<0.3){
         reply=textCards[Math.floor(Math.random()*textCards.length)].content+' '+reply;
       }
-    }else if(isVoiceReply){
+    }else if(isVoiceReply){_firstType='voice';
       var vrc=voiceCards[Math.floor(Math.random()*voiceCards.length)];
 
       voiceSrc=vrc.content;
@@ -653,7 +653,7 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
         if(_um.isSticker&&_um.img)_usedSticker.push(_um.img);
         else if(_um.img)_usedImage.push(_um.img);
         if(_um.voice)_usedVoice.push(_um.voice);
-        if(_um.t&&!_um.isSticker&&!_um.img&&!_um.voice)_usedText.push(_um.t);
+        if(_um.t&&!_um.voice)_usedText.push(_um.t);
       }
       function _pickNoDup(_arr,_used,_maxTry){
         _maxTry=_maxTry||12;
@@ -663,8 +663,8 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
         }
         return _arr[Math.floor(Math.random()*_arr.length)];
       }
-      if(Math.random()<0.15&&imgSrc&&isStickerImg&&stickerCards&&stickerCards.length>0){
-        // 保持 _curImg 不变（连发相同表情包，真人常见）
+      if(Math.random()<0.15&&_firstType==='sticker'&&imgSrc&&isStickerImg&&stickerCards&&stickerCards.length>0){
+        // 保持 _curImg 不变（连发相同表情包图片，真人常见）——仅表情包图片允许 15% 重复
       }else if(imgSrc&&stickerCards&&stickerCards.length>0){
         var _rc2=_pickNoDup(stickerCards,_usedSticker);
         _curImg=_rc2.content;
@@ -675,8 +675,18 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
         var _rc4=_pickNoDup(voiceCards,_usedVoice);
         _curVoice=_rc4.content;
         _curVoiceText=_rc4.voiceText||'';
+      }else if(!_curImg&&!_curVoice&&!imgSrc&&!voiceSrc&&_firstType==='emoji'&&emojiCards&&emojiCards.length>0){
+        // ★ 修复：emoji 不允许重复，直接去重重抽
+        var _rc6=_pickNoDup(emojiCards,_usedText);
+        _curReply=_rc6.content;
+      }else if(!_curImg&&!_curVoice&&!imgSrc&&!voiceSrc&&_firstType==='kaomoji'&&kaomojiCards&&kaomojiCards.length>0){
+        // ★ 修复：颜文字不允许重复，直接去重重抽
+        var _rc7=_pickNoDup(kaomojiCards,_usedText);
+        _curReply=_rc7.content;
       }
-      if(textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
+      // ★ 修复：文字重选——文字型消息（含表情包+文字）绝不重复，每次去重重抽；
+      // emoji/颜文字/语音/图片由各自分支处理，不在这里覆盖
+      if(textCards&&textCards.length>0&&_curReply&&_firstType!=='emoji'&&_firstType!=='kaomoji'&&_firstType!=='voice'&&_firstType!=='image'){
       var _rc5=_pickNoDup(textCards,_usedText);
       _curReply=_rc5.content;
       // 多字卡设置：概率附加更多字卡
@@ -699,7 +709,22 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     if(targetId===window.currentCid)renderMsgs(m);renderChatList();
     if(idx===0)playSound('recv',targetId);
     if(idx<_replyCount-1){
-      setTimeout(function(){_sendReplyBatch(idx+1);},1200+Math.random()*1600);
+      // ★ 拟真间隔：按本条消息长度决定基础间隔，长消息打字久；偶发停顿思考 / 偶发快速连发
+      var _mlen=(_curReply||'').length+(imgSrc?10:0)+(voiceSrc?8:0);
+      var _mbase=900;
+      if(_mlen>60)_mbase=2600;
+      else if(_mlen>30)_mbase=2000;
+      else if(_mlen>15)_mbase=1500;
+      else _mbase=1000;
+      var _mturn=Math.random();
+      if(_mturn<0.08){
+        // 8% 停顿思考 2.5~4.5s
+        _mbase+=2500+Math.random()*2000;
+      }else if(_mturn>0.9){
+        // 10% 快速连发（打断感）
+        _mbase=500+Math.random()*500;
+      }
+      setTimeout(function(){_sendReplyBatch(idx+1);},_mbase+Math.random()*800);
     }else{
       setTimeout(function(){_sendReplyBatch(idx+1);},0);
     }

@@ -606,20 +606,25 @@ async function loadMomentsData(){
   var savedMembers=ls('ml2_moments_members');
   var savedSettings=ls('ml2_moments_settings');
   try{
-    var dbPosts=await lsGetWithDB('ml2_moments_posts');
+    // ★ Bug4修复：不能经 lsGetWithDB 读（memoryCache 已有 localStorage 小快照会短路返回），
+    // 直接从 IndexedDB 强制读取再与 localStorage 合并，防止 iOS 刷新后丢朋友圈
+    var dbPosts=null;
+    if(window.localforage){try{dbPosts=await window.localforage.getItem('ml2_moments_posts');}catch(e){}}
     if((!savedPosts||!Array.isArray(savedPosts)||savedPosts.length===0)&&dbPosts&&Array.isArray(dbPosts))savedPosts=dbPosts;
     else if(savedPosts&&Array.isArray(savedPosts)&&dbPosts&&Array.isArray(dbPosts)&&dbPosts.length>savedPosts.length){
       // IndexedDB 有更多时按 id 去重合并，保留 localStorage 已有的
       var _seenP={};savedPosts.forEach(function(p){if(p&&p.id)_seenP[p.id]=true;});
       dbPosts.forEach(function(p){if(p&&p.id&&!_seenP[p.id]){_seenP[p.id]=true;savedPosts.push(p);}});
     }
-    var dbMembers=await lsGetWithDB('ml2_moments_members');
+    var dbMembers=null;
+    if(window.localforage){try{dbMembers=await window.localforage.getItem('ml2_moments_members');}catch(e){}}
     if((!savedMembers||!Array.isArray(savedMembers)||savedMembers.length===0)&&dbMembers&&Array.isArray(dbMembers))savedMembers=dbMembers;
     else if(savedMembers&&Array.isArray(savedMembers)&&dbMembers&&Array.isArray(dbMembers)&&dbMembers.length>savedMembers.length){
       var _seenM={};savedMembers.forEach(function(p){if(p&&p.id)_seenM[p.id]=true;});
       dbMembers.forEach(function(p){if(p&&p.id&&!_seenM[p.id]){_seenM[p.id]=true;savedMembers.push(p);}});
     }
-    var dbSettings=await lsGetWithDB('ml2_moments_settings');
+    var dbSettings=null;
+    if(window.localforage){try{dbSettings=await window.localforage.getItem('ml2_moments_settings');}catch(e){}}
     if((!savedSettings||typeof savedSettings!=='object')&&dbSettings&&typeof dbSettings==='object')savedSettings=dbSettings;
   }catch(e){}
   if(savedPosts&&Array.isArray(savedPosts))momentsPosts=savedPosts;
@@ -1991,8 +1996,7 @@ function syncMomentsUI(){
 function applyMomentsToAllContacts(){
   var contactSelect=$('moments-contact-select');
   var contactId=contactSelect?contactSelect.value:null;
-  if(!contactId){toast('请先选择联系人');return;}
-  if(!confirm('确定将当前联系人的设置应用到所有联系人吗？'))return;
+  if(!confirm('确定将当前设置应用到所有联系人吗？'))return;
   var s=ls('ml2_moments_settings');
   if(!s||typeof s!=='object')s={};
   if(!s.contacts)s.contacts={};

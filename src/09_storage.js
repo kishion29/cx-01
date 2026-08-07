@@ -453,6 +453,10 @@ var Storage = (function(){
                 if(k===LL){
                   // 信件数据特殊处理：先跳过，读完IndexedDB再合并
                   loadedFromLS=false;
+                }else if(lsIsValidArray&&(k.indexOf(LM)===0||k==='ml2_moments_posts'||k==='ml2_moments_members')){
+                  // ★ Bug4修复：消息/朋友圈不直接用 localStorage 快照（可能只有少量/旧数据），
+                  // 强制读 IndexedDB 后合并取最完整，防止 iOS 刷新后丢聊天记录/朋友圈
+                  loadedFromLS=false;
                 }else if(lsIsValidArray){
                   cache[k]=lsParsed;loaded++;loadedFromLS=true;
                 }else if(lsIsValidObject||lsIsValidPrimitive){
@@ -494,14 +498,23 @@ var Storage = (function(){
                     merged.sort(function(a,b){return (b.tm||0)-(a.tm||0);});
                     cache[k]=merged;loaded++;loadedFromLS=true;
                     try{safeSetItem('ml2_lf_'+k,JSON.stringify(merged));}catch(e){}
-                  }else if(k.indexOf(LM)===0 && cachedBeforeReload && Array.isArray(cachedBeforeReload) && cachedBeforeReload.length>0){
-                    // Bug1修复：消息key合并 IndexedDB 与 缓存中已有的数据，按 id 去重，防止初始化竞态丢消息
+                  }else if(k.indexOf(LM)===0 && (lsParsed||(cachedBeforeReload&&Array.isArray(cachedBeforeReload)&&cachedBeforeReload.length>0))){
+                    // Bug1+Bug4修复：消息key合并 IndexedDB + localStorage 备份 + 缓存，按 id 去重，取最完整数据
                     var msgMerged=[];
                     var msgSeen={};
                     (val||[]).forEach(function(x){if(x&&x.id&&!msgSeen[x.id]){msgSeen[x.id]=true;msgMerged.push(x);}});
+                    (lsParsed||[]).forEach(function(x){if(x&&x.id&&!msgSeen[x.id]){msgSeen[x.id]=true;msgMerged.push(x);}});
                     (cachedBeforeReload||[]).forEach(function(x){if(x&&x.id&&!msgSeen[x.id]){msgSeen[x.id]=true;msgMerged.push(x);}});
                     cache[k]=msgMerged;loaded++;
                     try{safeSetItem('ml2_lf_'+k,JSON.stringify(msgMerged));}catch(e){}
+                  }else if(k==='ml2_moments_posts'&&lsParsed){
+                    // ★ Bug4修复：朋友圈同样合并 IndexedDB + localStorage，按 id 去重取最完整
+                    var momMerged=[];
+                    var momSeen={};
+                    (val||[]).forEach(function(x){if(x&&x.id&&!momSeen[x.id]){momSeen[x.id]=true;momMerged.push(x);}});
+                    (lsParsed||[]).forEach(function(x){if(x&&x.id&&!momSeen[x.id]){momSeen[x.id]=true;momMerged.push(x);}});
+                    cache[k]=momMerged;loaded++;
+                    try{safeSetItem('ml2_lf_'+k,JSON.stringify(momMerged));}catch(e){}
                   }else{
                     cache[k]=val;
                     loaded++;
@@ -1812,6 +1825,9 @@ function savemsgs(id,m){
           });
           // 更新 memoryCache 为合并后的完整数据
           memoryCache[key]=mergedArr;
+          // ★ Bug4修复：IndexedDB 合并出更完整数据后，必须同步回写 localStorage，
+          // 否则刷新后 restoreFromDB 用落后的 localStorage 快照遮蔽 IndexedDB 完整历史
+          try{safeSetItem('ml2_lf_'+key,JSON.stringify(mergedArr));}catch(e){}
           // 如果正在查看该会话，重新渲染
           if(cid===id){try{renderMsgs();}catch(e){}}
         }

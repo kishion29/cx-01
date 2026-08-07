@@ -565,7 +565,7 @@ function performTouch(targetId,action){
 }
 function scheduleTouchReply(targetId){
   if(!targetId)return;
-  var rnProb=getSpeed('rn-prob',targetId);
+  var rnProb=getSpeed('rn-prob',targetId,true);
   if(Math.random()*100<rnProb){
     markMessageReadIgnored(targetId,true);
     return;
