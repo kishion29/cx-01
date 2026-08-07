@@ -731,7 +731,7 @@ var UPDATE_NOTICES = [
 ];
 
 var CURRENT_VERSION = '1.7.1';
-var DEPLOY_TIME = '2026-08-06 17:09';
+var DEPLOY_TIME = '2026-08-07 20:32';
 
 function compareVersions(v1, v2) {
   var parts1 = v1.split('.').map(Number);
