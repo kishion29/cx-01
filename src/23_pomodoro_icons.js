@@ -2201,6 +2201,11 @@ function openApiSettings(){
   };
   // ★ 梦角语音：加载 MiniMax 设置 + 绑定事件
   loadMmSettingsUI();
+  var mmContactSel=$('api-contact-select');
+  if(mmContactSel&&!mmContactSel._mmBound){
+    mmContactSel._mmBound=true;
+    mmContactSel.onchange=function(){loadMmSettingsUI();};
+  }
   var mmEn=$('mm-enable-toggle');
   if(mmEn&&!mmEn._mmBound){
     mmEn._mmBound=true;
@@ -2664,16 +2669,14 @@ var MM_KEY='ml2_mm_settings';
 function getMmSettings(contactId){
   var s=ls(MM_KEY)||{};
   // ★ 每个梦角独立设置：per-contact 覆盖全局（全局作默认）
-  var cSet=null;
-  if(contactId&&s.contacts&&s.contacts[contactId])cSet=s.contacts[contactId];
-  var enabled=(cSet&&cSet.enabled!==undefined)?cSet.enabled:(s.enabled!==false);
-  var apiKey=(cSet&&cSet.apiKey)?cSet.apiKey:(s.apiKey||'');
-  var baseUrl=(cSet&&cSet.baseUrl)?cSet.baseUrl:(s.baseUrl||'https://api.minimax.chat');
+  // ★ Key/地址全局共享（切换联系人不丢）；音色才按联系人独立
+  var enabled=s.enabled!==false;
+  var apiKey=s.apiKey||'';
+  var baseUrl=s.baseUrl||'https://api.minimax.chat';
   // 兼容旧缓存变量（防刷新被 IndexedDB 覆盖导致"key 丢失"）
   if((!apiKey)&&window.mmSettingsCached&&window.mmSettingsCached.apiKey){
     apiKey=window.mmSettingsCached.apiKey;
     baseUrl=window.mmSettingsCached.baseUrl||baseUrl;
-    if(window.mmSettingsCached.groupId)groupId=window.mmSettingsCached.groupId;
     if(window.mmSettingsCached.enabled!==undefined)enabled=window.mmSettingsCached.enabled;
   }
   return {enabled:enabled,baseUrl:baseUrl,apiKey:apiKey};
@@ -2719,24 +2722,17 @@ function mmVoiceIdEdited(){
   }
 }
 function mmSaveSettings(){
-  var sel=$('api-contact-select');
-  var contactId=sel&&sel.value?sel.value:null;
   var s=ls(MM_KEY)||{};
-  if(!s.contacts)s.contacts={};
-  var cSet=s.contacts[contactId]||{};
-  // ★ 每个梦角独立：enabled/key/baseUrl 存到该联系人
-  cSet.enabled=$('mm-enable-toggle')?$('mm-enable-toggle').checked:true;
-  cSet.baseUrl=$('mm-base-url')?$('mm-base-url').value.trim():'';
-  cSet.apiKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
-  if(!cSet.baseUrl)cSet.baseUrl='https://api.minimax.chat';
-  if(contactId){
-    s.contacts[contactId]=cSet;
-  }else{
-    s.enabled=cSet.enabled;s.baseUrl=cSet.baseUrl;s.apiKey=cSet.apiKey;
-  }
+  // ★ Key/地址全局保存（切换联系人仍生效）；音色按联系人另存
+  s.enabled=$('mm-enable-toggle')?$('mm-enable-toggle').checked:true;
+  s.baseUrl=$('mm-base-url')?$('mm-base-url').value.trim():'';
+  s.apiKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
+  if(!s.baseUrl)s.baseUrl='https://api.minimax.chat';
   ls(MM_KEY,s);
   if(window.localforage)window.localforage.setItem(MM_KEY,s).catch(function(){});
-  try{window.mmSettingsCached=JSON.parse(JSON.stringify({enabled:cSet.enabled,baseUrl:cSet.baseUrl,apiKey:cSet.apiKey}));}catch(e){}
+  try{window.mmSettingsCached=JSON.parse(JSON.stringify({enabled:s.enabled,baseUrl:s.baseUrl,apiKey:s.apiKey}));}catch(e){}
+  var sel=$('api-contact-select');
+  var contactId=sel&&sel.value?sel.value:(typeof cid!=='undefined'?cid:null);
   var vid=$('mm-voice-id')?$('mm-voice-id').value.trim():'';
   if(contactId&&vid)setContactVoiceId(contactId,vid);
   toast('语音设置已保存');
@@ -2887,7 +2883,7 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   var mmBase=$('mm-base-url')?$('mm-base-url').value.trim():s.baseUrl;
   if(!mmKey)mmKey=s.apiKey;
   if(!mmBase)mmBase=s.baseUrl||'https://api.minimax.chat';
-  var vid=$('mm-voice-id')?$('mm-voice-id').value.trim():getContactVoiceId(tcid);
+  var vid=getContactVoiceId(tcid);
   var _finish=function(){
     if(onFailTimer)clearTimeout(onFailTimer);
     if(typeof onDone==='function')onDone();
