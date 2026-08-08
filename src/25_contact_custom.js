@@ -482,6 +482,7 @@ function confirmFavMsgs(){
     if(msg.isSticker)msgData.isSticker=msg.isSticker;
     if(msg.voice)msgData.voice=msg.voice;
     if(msg.voiceText)msgData.voiceText=msg.voiceText;
+    if(msg.mmAudioUrl)msgData.mmAudioUrl=msg.mmAudioUrl;
     msgData.s=msg.s;
     
     myFavs[cid].push({
@@ -552,7 +553,11 @@ function renderMyFavs(){
           previewHtml='<div style="font-size:13px;color:var(--txt);">'+fav.msgText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+previewHtml;
         }
       }else if(fav.msgType==='voice'){
+        var _favUrl=fav.msgData&&fav.msgData.mmAudioUrl;
         previewHtml='<span style="color:var(--txt3);">🎤 '+fav.msgText+'</span>';
+        if(_favUrl){
+          previewHtml+='<button onclick="playFavVoice(\''+fav.id+'\')" style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;">▶ 播放已存语音（不消耗额度）</button>';
+        }
       }else{
         var txt=fav.msgText||'';
         if(txt.length>40){txt=txt.substring(0,40)+'...'}
@@ -572,6 +577,23 @@ function renderMyFavs(){
   });
   
   list.innerHTML=html;
+}
+
+function playFavVoice(favId){
+  var found=null;
+  Object.keys(myFavs).forEach(function(cc){
+    (myFavs[cc]||[]).forEach(function(f){
+      if(f.id===favId)found=f;
+    });
+  });
+  if(!found||!found.msgData||!found.msgData.mmAudioUrl){toast('该语音没有保存的音频');return;}
+  try{
+    var au=new Audio(found.msgData.mmAudioUrl);
+    au.play();
+    toast('播放已保存的语音');
+  }catch(e){
+    toast('播放失败');
+  }
 }
 
 function deleteFav(contactId,favId){

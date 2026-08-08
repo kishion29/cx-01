@@ -2880,7 +2880,6 @@ function mmOpenBalance(){
   toast('已打开 MiniMax 控制台，请在左侧「费用/账单」查看余额');
 }
 function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
-  window._mmLastHttpStatus=0;
   var tcid=contactId||(typeof cid!=='undefined'?cid:null);
   var s=getMmSettings(tcid);
   // ★ 优先用已保存的设置（输入框可能不在当前页面）
@@ -2903,17 +2902,25 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
       text:String(text||'').slice(0,300),
       voice_setting:{voice_id:vid,speed:1.0,vol:1.0,pitch:0},
       audio_setting:{sample_rate:32000,bitrate:128000,format:'mp3',channel:1},
-      stream:false
+      stream:false,
+      output_format:'url'
     })
-  }).then(function(res){window._mmLastHttpStatus=res.status;return res.json();})
+  }).then(function(res){return res.json();})
   .then(function(data){
     var audioUrl=data&&data.data&&data.data.audio;
     if(!audioUrl){throw new Error((data&&data.base_resp&&data.base_resp.status_msg)||'合成失败');}
-    // ★ MiniMax 返回 base64 音频，需加 data URI 前缀；若已是 http/data: 开头则直接用
-    if(audioUrl.indexOf('http')!==0&&audioUrl.indexOf('data:')!==0){audioUrl='data:audio/mp3;base64,'+audioUrl;}
     // ★ 缓存 URL：之后重复点击直接播放，不再重复合成
     if(msgId){
-      try{_mmAudioCache[msgId]={url:audioUrl,audio:null,ts:Date.now()};}catch(e){}
+      try{
+        _mmAudioCache[msgId]={url:audioUrl,audio:null,ts:Date.now()};
+        // ★ 持久化到消息对象：刷新页面/收藏后仍可免费重播（不再调 MiniMax）
+        var _all=msgs(cid);
+        var _m0=_all&&_all.find? _all.find(function(x){return x.id===msgId}):null;
+        if(_m0&&_m0.mmAudioUrl!==audioUrl){
+          _m0.mmAudioUrl=audioUrl;
+          savemsgs(cid,_all);
+        }
+      }catch(e){}
     }
     var au=new Audio(audioUrl);
     if(msgId&&_mmAudioCache[msgId])_mmAudioCache[msgId].audio=au;
@@ -2938,11 +2945,7 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
     _finish();
   }).catch(function(e){
     console.warn('mm tts failed:',e);
-    var em=String((e&&e.message)||e);
-    var en=String((e&&e.name)||'Error');
-    var detail=en+': '+em;
-    if(window._mmLastHttpStatus)detail='HTTP '+window._mmLastHttpStatus+' | '+detail;
-    toast('语音合成失败 ['+detail.slice(0,120)+']');
+    toast('语音合成失败：'+(e.message||e));
     _finish();
   });
 }
@@ -2992,6 +2995,18 @@ function mmSpeakMsg(msgId,el){
   }
   var m=msgs(cid);
   var msg=m.find(function(x){return x.id===msgId});
+  // ★ 消息对象上已保存合成 URL（刷新后）：直接播放，不调 MiniMax 不花钱
+  if(msg&&msg.mmAudioUrl){
+    clearTimeout(_fallback);
+    try{
+      _mmAudioCache[msgId]={url:msg.mmAudioUrl,audio:null,ts:Date.now()};
+      var _au2=new Audio(msg.mmAudioUrl);
+      _mmAudioCache[msgId].audio=_au2;
+      _au2.play();
+    }catch(e2){}
+    _restore();
+    return;
+  }
   if(!msg||!msg.t){toast('没有可播放的文字');_restore();return;}
   mmSpeak(msg.t,cid,msgId,_restore,_fallback);
 }
