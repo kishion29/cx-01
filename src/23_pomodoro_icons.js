@@ -2907,13 +2907,14 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
       text:String(text||'').slice(0,300),
       voice_setting:{voice_id:vid,speed:1.0,vol:1.0,pitch:0},
       audio_setting:{sample_rate:32000,bitrate:128000,format:'mp3',channel:1},
-      stream:false,
-      output_format:'url'
+      stream:false
     })
   }).then(function(res){return res.json();})
   .then(function(data){
     var audioUrl=data&&data.data&&data.data.audio;
     if(!audioUrl){throw new Error((data&&data.base_resp&&data.base_resp.status_msg)||'合成失败');}
+    // ★ MiniMax 返回 base64 音频，需加 data URI 前缀；若已是 http/data: 开头则直接用
+    if(audioUrl.indexOf('http')!==0&&audioUrl.indexOf('data:')!==0){audioUrl='data:audio/mp3;base64,'+audioUrl;}
     // ★ 缓存 URL：之后重复点击直接播放，不再重复合成
     if(msgId){
       try{_mmAudioCache[msgId]={url:audioUrl,audio:null,ts:Date.now()};}catch(e){}
@@ -2941,7 +2942,12 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
     _finish();
   }).catch(function(e){
     console.warn('mm tts failed:',e);
-    toast('语音合成失败：'+(e.message||e));
+    var em=String((e&&e.message)||e);
+    if(/Failed to fetch|NetworkError|Network request failed/i.test(em)){
+      toast('语音合成失败：网络请求被拦截（浏览器跨域限制或 MiniMax 网络不通），请确认 API 地址可访问');
+    }else{
+      toast('语音合成失败：'+em);
+    }
     _finish();
   });
 }
