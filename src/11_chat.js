@@ -1842,9 +1842,19 @@ function _doRenderMsgs(messages){
           var _imgText=typeof x.t==='string'?x.t:(x.t!=null?String(x.t):'');
           // ★ 修复：图片消息的 t 字段若是 base64/图片 url（旧格式），不当作文字渲染，避免显示乱码
           var _isImgTextLike=_imgText&&(_imgText.startsWith('data:image/')||(_imgText.startsWith('http')&&/\.(png|jpe?g|gif|webp|svg|bmp)(\?|#|$)/i.test(_imgText)));
-          if(_imgText&&_imgText.trim()&&!_isImgTextLike){
+          if(_imgText&&_imgText.trim()&&!_isImgTextLike&&typeof window.isEmojiOnly==='function'&&!isEmojiOnly(_imgText)){
             var textHtml=_imgText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-            contentHtml='<div class="message-text-img-combo">'+imgHtml+'<div class="message-text-below">'+textHtml+'</div></div>';
+            // ★ 表情包+文字组合：文字旁也加 ▶ 语音按钮（仅启用且有音色时）
+            var _comboVoice='';
+            if(x.s===OTHER&&!x.retracted&&typeof window.getMmSettings==='function'&&typeof window.getContactVoiceId==='function'){
+              try{
+                var _mmC=getMmSettings();
+                if(_mmC.enabled!==false&&getContactVoiceId(cid)){
+                  _comboVoice='<span onclick="event.stopPropagation();mmSpeakMsg(\''+x.id+'\',this)" title="用梦角的声音播放" data-mid="'+x.id+'" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:4px;color:var(--accent);cursor:pointer;user-select:none;-webkit-user-select:none;vertical-align:middle;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>';
+                }
+              }catch(e){}
+            }
+            contentHtml='<div class="message-text-img-combo">'+imgHtml+'<div class="message-text-below">'+textHtml+_comboVoice+'</div></div>';
           }else{
             contentHtml=imgHtml;
           }
@@ -1857,6 +1867,19 @@ function _doRenderMsgs(messages){
             contentHtml+='<div class="message-text-below">'+textHtml2+'</div>';
           }
         }
+      }else if(x.isLink&&x.linkUrl){
+        // ★ 链接卡片：小红书/B站/QQ音乐/网易云等
+        var _lp=x.linkPlatform||'链接';
+        var _li=x.linkIcon||'🔗';
+        var _lc=x.linkColor||'var(--accent)';
+        contentHtml='<div onclick="window.open(\''+x.linkUrl.replace(/'/g,'&#39;').replace(/"/g,'&quot;')+'\',\'_blank\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--c2);border:1px solid var(--border);cursor:pointer;max-width:240px;">'+
+          '<span style="font-size:24px;flex-shrink:0;">'+_li+'</span>'+
+          '<div style="min-width:0;flex:1;">'+
+            '<div style="font-weight:600;font-size:13px;color:'+_lc+';">'+_lp+'</div>'+
+            '<div style="font-size:11px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+String(x.linkUrl).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
+          '</div>'+
+          '<span style="font-size:11px;color:var(--txt3);flex-shrink:0;">打开 ↗</span>'+
+        '</div>';
       }else if(x.voice){
         var voiceUrl=x.voice;
         // 修复：确保 voiceUrl 是字符串，避免对象类型导致 startsWith 报错
@@ -1869,11 +1892,24 @@ function _doRenderMsgs(messages){
           if(cachedVoice){voiceUrl=cachedVoice}
         }
         var voiceDisplayText=x.voiceText||'语音消息';
+        if(x.sttText)voiceDisplayText=voiceDisplayText+'（'+x.sttText+'）';
         contentHtml='<div class="voice-message-player" style="display:flex;align-items:center;gap:8px;padding:8px;"><button class="voice-play-btn" onclick="playVoiceMsg(this)" data-src="'+voiceUrl.replace(/"/g,'&quot;')+'" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,0.25);color:inherit;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▶</button><div class="voice-wave-bars" style="display:flex;align-items:flex-end;gap:2px;height:18px;flex:1;"><span style="width:3px;background:currentColor;border-radius:2px;opacity:0.5;animation:voiceWave 0.8s ease-in-out infinite alternate;animation-play-state:paused;height:40%;animation-delay:0s;"></span><span style="width:3px;background:currentColor;border-radius:2px;opacity:0.5;animation:voiceWave 0.8s ease-in-out infinite alternate;animation-play-state:paused;height:60%;animation-delay:0.1s;"></span><span style="width:3px;background:currentColor;border-radius:2px;opacity:0.5;animation:voiceWave 0.8s ease-in-out infinite alternate;animation-play-state:paused;height:80%;animation-delay:0.2s;"></span><span style="width:3px;background:currentColor;border-radius:2px;opacity:0.5;animation:voiceWave 0.8s ease-in-out infinite alternate;animation-play-state:paused;height:60%;animation-delay:0.3s;"></span><span style="width:3px;background:currentColor;border-radius:2px;opacity:0.5;animation:voiceWave 0.8s ease-in-out infinite alternate;animation-play-state:paused;height:40%;animation-delay:0.4s;"></span></div><div style="font-size:11px;opacity:0.7;flex-shrink:0;">'+voiceDisplayText+'</div></div>';
       }else{
         // 修复：确保 x.t 是字符串后再调用 .replace()，避免非字符串类型导致渲染崩溃
         var _plainText=typeof x.t==='string'?x.t:(x.t!=null?String(x.t):'');
         contentHtml=_plainText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        // ★ 梦角文字消息旁：播放按钮（MiniMax 音色 TTS）——仅该梦角已复刻音色时显示，纯矢量图标
+        // ★ 梦角文字消息旁：播放按钮（MiniMax 音色 TTS）——仅该梦角已复刻音色且内容为真实文字（非纯表情/emoji）时显示
+        var _hasRealText=_plainText&&_plainText.trim()&&/[a-zA-Z\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef0-9]/.test(_plainText)&&!isEmojiOnly(_plainText);
+        if(_hasRealText&&x.s===OTHER&&!x.retracted&&typeof window.mmSpeak==='function'&&typeof window.getContactVoiceId==='function'&&typeof window.getMmSettings==='function'){
+          var _mmSt=getMmSettings(cid);
+          var _hasVoice=_mmSt.enabled!==false&&!!getContactVoiceId(cid);
+          if(_hasVoice){
+            contentHtml+='<span onclick="event.stopPropagation();mmSpeakMsg(\''+x.id+'\',this)" title="用梦角的声音播放" data-mid="'+x.id+'" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:4px;color:var(--accent);cursor:pointer;user-select:none;-webkit-user-select:none;vertical-align:middle;flex-shrink:0;">'+
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'+
+              '</span>';
+          }
+        }
       }
     
     // ★ AI 解读块：解读附加在原消息上；解读中显示进度，完成后自动展开显示
@@ -2671,6 +2707,7 @@ function showMsgActionMenu(x,y,msgId,isLiked,isNonInstant){
   var copyBtn=$('msg-action-copy');
   var deleteBtn=$('msg-action-delete');
   var aiBtn=$('msg-action-ai');
+  var sttBtn=$('msg-action-stt');
   
   var getMsgs=function(){return isNonInstant?nonInstantMsgs(nonInstantCid):msgs(cid)};
   var saveMsgs=function(id,m){return isNonInstant?saveNonInstantMsgs(id,m):savemsgs(id,m)};
@@ -2691,6 +2728,16 @@ function showMsgActionMenu(x,y,msgId,isLiked,isNonInstant){
     if(typeof aiInterpretCard==='function'){aiInterpretCard(msgId);}
     else{hideMsgActionMenu();toast('AI 功能未加载');}
   };
+  // ★ 语音转文字按钮：仅语音消息显示
+  if(sttBtn){
+    var _isVoiceMsg=msg&&(msg.isVoice===true||msg.voice);
+    sttBtn.style.display=_isVoiceMsg?'flex':'none';
+    sttBtn.onclick=function(e){e.stopPropagation();
+      hideMsgActionMenu();
+      if(typeof voiceToText==='function'){voiceToText(msgId);}
+      else{toast('语音转文字不可用');}
+    };
+  }
   
   if(isSelf){
     editBtn.style.display='flex';

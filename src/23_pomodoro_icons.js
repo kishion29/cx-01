@@ -1520,6 +1520,8 @@ var chatbarItems=[
   {id:'settings',name:'设置',icon:'⚙️',fixed:true,category:'底部导航',isNav:true},
   {id:'image',name:'发送图片',icon:'🖼️',fixed:true,category:'消息工具'},
   {id:'copy_msg',name:'复制文字消息',icon:'📋',fixed:false,category:'消息工具'},
+  {id:'send_voice',name:'发送语音',icon:'🎤',fixed:false,category:'消息工具'},
+  {id:'send_link',name:'发送链接',icon:'🔗',fixed:false,category:'消息工具'},
   {id:'long_screenshot',name:'长截图',icon:'📸',fixed:false,category:'消息工具'},
   {id:'fav_msg',name:'收藏聊天消息',icon:'⭐',fixed:false,category:'消息工具'},
   {id:'my_favs',name:'我的收藏夹',icon:'📁',fixed:false,category:'消息工具'},
@@ -1558,7 +1560,7 @@ var chatbarItems=[
   {id:'more_action',name:'更多操作',icon:'⋯',fixed:false,category:'其他'}
 ];
 var chatbarCategoryOrder=['消息工具','聊天互动','更多','梦角','字卡库','底部导航','其他'];
-var customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','moments','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','ta_distance','ta_touch','diary','giftbox'];
+var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','moments','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','ta_distance','ta_touch','diary','giftbox'];
 
 // ★ TA与你的距离：梦角存在感可视化（随机生成，非地图定位）
 var TA_DISTANCE_LEVELS=[
@@ -2097,6 +2099,13 @@ function getApiSettings(){
   var s=ls(API_SETTINGS_KEY)||{};
   return {enabled:s.enabled===true,gender:s.gender||'boy',baseUrl:s.baseUrl||'https://api.deepseek.com/v1',apiKey:s.apiKey||'',model:s.model||'deepseek-chat',divineInstr:s.divineInstr||''};
 }
+// ★ 启用开关视觉：开启=深灰底+浅色圆点右移，关闭=浅灰底+圆点左移
+function updateApiToggleVisual(checked){
+  var slider=$('api-enable-slider');
+  var knob=$('api-enable-knob');
+  if(slider)slider.style.background=checked?'#3a3a3a':'#c8c8cc';
+  if(knob)knob.style.left=checked?'22px':'2px';
+}
 // 每个联系人独立人设：存 ml2_api_contact_persona:{contactId:persona}
 function getContactPersona(contactId){
   var p=ls('ml2_api_contact_persona')||{};
@@ -2125,8 +2134,7 @@ function setContactGender(contactId,g){
 function openApiSettings(){
   var s=getApiSettings();
   var en=$('api-enable-toggle');if(en)en.checked=s.enabled;
-  var slider=$('api-enable-slider');
-  if(slider)slider.style.background=s.enabled?'var(--accent)':'var(--c3)';
+  updateApiToggleVisual(s.enabled);
   if($('api-base-url'))$('api-base-url').value=s.baseUrl;
   if($('api-key'))$('api-key').value=s.apiKey;
   if($('api-model'))$('api-model').value=s.model;
@@ -2143,14 +2151,21 @@ function openApiSettings(){
       sel.appendChild(opt);
     });
     if(!curId&&sel.options.length>0)sel.selectedIndex=0;
-    var curSel=sel.value||(sel.options[0]?sel.options[0].value:'');
-    if($('api-persona'))$('api-persona').value=getContactPersona(curSel)||'';
-    renderApiGender(getContactGender(curSel));
-    // 切换联系人时加载对应人设和性别
-    sel.onchange=function(){
-      if($('api-persona'))$('api-persona').value=getContactPersona(sel.value)||'';
-      renderApiGender(getContactGender(sel.value));
-    };
+    // ★ 按选中联系人完整重载：人设/性别/MiniMax 语音/音色
+    function reloadApiContact(){
+      var cc=sel.value||(sel.options[0]?sel.options[0].value:'');
+      if($('api-persona'))$('api-persona').value=getContactPersona(cc)||'';
+      renderApiGender(getContactGender(cc));
+      var _v2=getContactVoiceId(cc)||'';
+      if($('mm-voice-id'))$('mm-voice-id').value=_v2;
+      var _m2=getMmSettings(cc);
+      var _e2=$('mm-enable-toggle');if(_e2)_e2.checked=_m2.enabled;
+      updateMmToggleVisual(_m2.enabled);
+      if($('mm-base-url'))$('mm-base-url').value=_m2.baseUrl;
+      if($('mm-api-key'))$('mm-api-key').value=_m2.apiKey;
+    }
+    reloadApiContact();
+    sel.onchange=reloadApiContact;
   }else{
     if($('api-persona'))$('api-persona').value='';
   }
@@ -2160,12 +2175,10 @@ function openApiSettings(){
   // 开关切换视觉
   var apiEnToggle=$('api-enable-toggle');
   if(apiEnToggle)apiEnToggle.onchange=function(){
-    var slider=$('api-enable-slider');
-    if(slider)slider.style.background=apiEnToggle.checked?'var(--accent)':'var(--c3)';
+    updateApiToggleVisual(apiEnToggle.checked);
   };
   // 测试连接
-  var apiTestBtn=$('api-test-btn');
-  if(apiTestBtn)apiTestBtn.onclick=function(){
+  var apiTestBtn=$('api-test-btn');  if(apiTestBtn)apiTestBtn.onclick=function(){
     var bs=$('api-base-url')?$('api-base-url').value.trim():'';
     var k=$('api-key')?$('api-key').value.trim():'';
     var md=$('api-model')?$('api-model').value.trim():'';
@@ -2186,6 +2199,54 @@ function openApiSettings(){
       if(result)result.innerHTML='<span style="color:#ff4d4f;">❌ 连接失败：'+String(e.message||e).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>';
     });
   };
+  // ★ 梦角语音：加载 MiniMax 设置 + 绑定事件
+  loadMmSettingsUI();
+  var mmEn=$('mm-enable-toggle');
+  if(mmEn&&!mmEn._mmBound){
+    mmEn._mmBound=true;
+    mmEn.addEventListener('change',function(){
+      updateMmToggleVisual(mmEn.checked);
+      mmSaveSettings();
+    });
+  }
+  // ★ 自动保存：任何输入框失焦时保存，防止忘了点保存导致刷新丢失
+  ['api-base-url','api-key','api-model','api-divine-instr','api-persona','mm-base-url','mm-api-key'].forEach(function(id){
+    var _inp=$(id);
+    if(_inp&&!_inp._autoSaveBound){
+      _inp._autoSaveBound=true;
+      _inp.addEventListener('blur',function(){setTimeout(function(){if(typeof saveApiSettings==='function')saveApiSettings();},100);});
+      // ★ MiniMax 的 Key/地址：输入即保存，避免忘记触发保存
+      if(id==='mm-api-key'||id==='mm-base-url'){
+        _inp.addEventListener('input',function(){
+          clearTimeout(_inp._saveTimer);
+          _inp._saveTimer=setTimeout(function(){
+            var _ms=ls(MM_KEY)||{};
+            _ms.apiKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
+            _ms.baseUrl=$('mm-base-url')?$('mm-base-url').value.trim():'https://api.minimax.chat';
+            if(!_ms.baseUrl)_ms.baseUrl='https://api.minimax.chat';
+            ls(MM_KEY,_ms);
+            if(window.localforage)window.localforage.setItem(MM_KEY,_ms).catch(function(){});
+            // ★ 同步记忆，防止 input 即存只写 localStorage 被 IndexedDB 旧值覆盖
+            try{window.mmSettingsCached=_ms;}catch(e){}
+          },300);
+        });
+      }
+    }
+  });
+  var mmFile=$('mm-voice-file');
+  if(mmFile&&!mmFile._mmBound){
+    mmFile._mmBound=true;
+    mmFile.addEventListener('change',function(){mmUploadVoice();});
+  }
+  var mmTestBtn=$('mm-test-btn');
+  if(mmTestBtn&&!mmTestBtn._mmBound){
+    mmTestBtn._mmBound=true;
+    mmTestBtn.onclick=function(){
+      var sel2=$('api-contact-select');
+      var cid2=sel2&&sel2.value?sel2.value:null;
+      mmSpeak('你好，我在这里陪着你。',cid2);
+    };
+  }
   showPg('pg-api-settings');
 }
 function renderApiGender(g){
@@ -2224,6 +2285,10 @@ function saveApiSettings(){
   if(!s.model)s.model='deepseek-chat';
   ls(API_SETTINGS_KEY,s);
   if(window.localforage)window.localforage.setItem(API_SETTINGS_KEY,s).catch(function(){});
+  // ★ 一并保存 MiniMax 语音设置（同一个保存按钮）
+  if(typeof mmSaveSettings==='function'){
+    try{mmSaveSettings();}catch(e){}
+  }
   toast('API 设置已保存');
 }
 // ★ 通用 AI 解读：解读任意文本（朋友圈动态/信箱信件复用），结果展示在弹窗
@@ -2269,8 +2334,7 @@ function aiInterpretText(text,title,contactId){
 }
 
 // ★ 占卜抽牌后的 AI 解读：基础设定 + 梦角人设 + 占卜师指令
-function d2AiInterpret(){
-  var s=getApiSettings();
+function d2AiInterpret(){  var s=getApiSettings();
   if(!s.enabled||!s.apiKey){
     var r=confirm('还没有接入 AI 接口，无法解读。\n\n请在 底部导航「设置」→「API 接口」中：\n1. 打开「启用 AI 解读」开关\n2. 填入 API 地址和 Key（如 DeepSeek）\n3. 保存后即可使用\n\n现在去配置吗？');
     if(r)openApiSettings();
@@ -2278,6 +2342,24 @@ function d2AiInterpret(){
   }
   var resultText='';
   if(typeof d2BuildResultText==='function')resultText=d2BuildResultText();
+  // ★ 兜底：d2BuildResultText 可能因状态未就绪返回空，直接从 d2DrawState 拼牌面
+  if(!resultText&&typeof d2DrawState!=='undefined'&&d2DrawState){
+    try{
+      var _lines=[];
+      if(d2DrawState.question)_lines.push('问题：'+d2DrawState.question);
+      if(d2DrawState.contactName)_lines.push('对象：'+d2DrawState.contactName);
+      var _all=d2DrawState.mixedAllResults&&d2DrawState.mixedAllResults.length?d2DrawState.mixedAllResults:null;
+      if(_all){
+        _all.forEach(function(ph){
+          _lines.push(ph.label+'：');
+          ph.results.forEach(function(r){_lines.push((r.card?r.card.name:r.name||'?')+(r.reversed?'（逆位）':''));});
+        });
+      }else if(d2DrawState.currentResults&&d2DrawState.currentResults.length){
+        d2DrawState.currentResults.forEach(function(r){_lines.push((r.card?r.card.name:r.name||'?')+(r.reversed?'（逆位）':''));});
+      }
+      if(_lines.length)resultText=_lines.join('\n');
+    }catch(e){}
+  }
   if(!resultText){toast('无占卜结果可解读');return;}
   // 占卜对象联系人（d2DrawState.contactId），用于取梦角人设/性别
   var divContactId=null;
@@ -2290,8 +2372,13 @@ function d2AiInterpret(){
   var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
   AI_BASE_SETTING+personaText+'\n'+
   '【AI占卜师指令】'+divineInstr+'\n'+
-  '【解读要求】用 200~350 字解读这次占卜：先简述牌面，再联系用户与其梦角的关系给出含义与指引，最后给用户一句话温暖的回应。用第二人称"你"对用户说话，第一人称"我"=TA。';
-  var userPrompt='这是我的占卜结果：\n'+resultText+'\n请以梦角TA的身份，结合占卜师指令解读这次占卜。';
+  '【解读要求·必须逐张解牌】严格按以下结构解读，每一张牌都必须单独分析，不许跳过、不许只谈感受：\n'+
+  '1. 【牌面】列出抽到的每张牌（含正/逆位），逐个说明这张牌的含义；\n'+
+  '2. 【整体联系】这些牌组合起来在回答用户问题时的整体含义；\n'+
+  '3. 【指引】联系用户与其梦角的关系给出建议；\n'+
+  '4. 【回应】给用户一句话温暖的回应。\n'+
+  '用 250~400 字。用第二人称"你"对用户说话，第一人称"我"=TA。';
+  var userPrompt='这是我的占卜结果（牌面）：\n'+resultText+'\n请务必逐张解读上面列出的每一张牌，再给出整体解读和指引。';
   var area=$('d2-ai-area');
   if(area){
     area.style.display='block';
@@ -2310,12 +2397,597 @@ function d2AiInterpret(){
     if(!text){throw new Error('返回为空');}
     var esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     if(area)area.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">📜 <b>AI 占卜解读</b><br><br>'+esc+'</div>';
+    // ★ 存入占卜历史 + 同步聊天记录
+    if(typeof window.d2SaveAiInterpret==='function'){
+      try{window.d2SaveAiInterpret(text);}catch(e){console.warn('save ai interpret failed:',e);}
+    }
   }).catch(function(e){
     console.warn('d2 AI interpret failed:',e);
     if(area)area.innerHTML='<div style="text-align:center;padding:20px;color:#ff4d4f;font-size:13px;">AI 解读失败：'+String(e.message||e).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
   });
 }
 
+// ★ 判断内容是否为纯 emoji/表情（不含真实文字）——用于决定是否显示语音播放按钮
+function isEmojiOnly(text){
+  if(!text)return true;
+  var t=String(text).replace(/\s/g,'');
+  if(!t)return true;
+  // 含中英文/数字/标点 → 不是纯表情
+  if(/[a-zA-Z0-9\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/.test(t))return false;
+  // 全 emoji 表情（含代理对/变体选择符）
+  var emojiOnly=/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\u200D|[\u2190-\u21FF]|[\u2B00-\u2BFF]|[\u1F000-\u1FAFF]|\u{1F000}-\u{1FAFF})*$/u;
+  return emojiOnly.test(t);
+}
+
+// ===== 发送语音（录制 → 存入聊天，与普通消息一样持久化）=====
+var _svRecorder=null,_svChunks=[],_svTimer=null,_svSecs=0,_svStream=null;
+function showSendVoiceModal(){
+  showOv('ov-send-voice');
+  var t=$('sv-timer');if(t)t.textContent='00:00';
+  var st=$('sv-status');if(st)st.textContent='点击下方开始录音';
+  var rec=$('sv-record-btn');if(rec){rec.style.display='';rec.textContent='● 开始录音';}
+  var send=$('sv-send-btn');if(send)send.style.display='none';
+  var wave=$('sv-wave');if(wave)wave.style.opacity='0.4';
+  _svSecs=0;
+}
+function svStopRecording(){
+  try{if(_svRecorder&&_svRecorder.state==='recording')_svRecorder.stop();}catch(e){}
+  try{if(_svTimer)clearInterval(_svTimer);_svTimer=null;}catch(e){}
+}
+function svSendVoice(){
+  if(_svRecorder&&_svRecorder.state==='recording')_svRecorder.stop();
+  try{if(_svTimer)clearInterval(_svTimer);_svTimer=null;}catch(e){}
+  if(!_svChunks.length){toast('没有录音内容');return;}
+  var blob=new Blob(_svChunks,{type:_svChunks[0]?(_svChunks[0].type||'audio/webm'):'audio/webm'});
+  var reader=new FileReader();
+  reader.onloadend=function(){
+    var dataUrl=reader.result;
+    try{
+      if(!cid){toast('请先打开聊天');hideOv('ov-send-voice');return;}
+      var mm=msgs(cid);
+      if(!mm||!Array.isArray(mm))mm=[];
+      mm.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:SELF,t:'',img:'',voice:dataUrl,voiceText:'语音消息',ts:new Date(),pc:false,isAuto:false,isInitiative:false,quote:null,isSticker:false,isVoice:true,senderName:'我',senderId:me?me.id:null,isGroup:!!(groups&&groups.find&&groups.find(function(g){return g.id===cid})),read:true});
+      savemsgs(cid,mm);
+      if(cid===window.currentCid)renderMsgs(mm);
+      renderChatList();
+      playSound('send',cid);
+      toast('语音已发送');
+    }catch(e){console.warn('sv send failed:',e);toast('发送失败');}
+    hideOv('ov-send-voice');
+    _svChunks=[];
+  };
+  reader.readAsDataURL(blob);
+}
+// 绑定录音弹窗事件（页面加载后绑定一次）
+function initSendVoiceModal(){
+  var rec=$('sv-record-btn');
+  if(rec&&!rec._svBound){
+    rec._svBound=true;
+    rec.onclick=function(){
+      if(_svRecorder&&_svRecorder.state==='recording'){
+        // 停止录音
+        svStopRecording();
+        var st=$('sv-status');if(st)st.textContent='录音完成，可点击发送';
+        rec.textContent='● 重新录制';
+        var send=$('sv-send-btn');if(send)send.style.display='';
+        var wave=$('sv-wave');if(wave)wave.style.opacity='1';
+        return;
+      }
+      // 开始录音
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+        toast('当前浏览器不支持录音');return;
+      }
+      navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+        _svStream=stream;
+        _svChunks=[];
+        var mime=null;
+        if(window.MediaRecorder){
+          try{
+            if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported('audio/webm'))mime='audio/webm';
+            else if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported('audio/mp4'))mime='audio/mp4';
+          }catch(e){}
+        }
+        try{_svRecorder=new MediaRecorder(stream,{mimeType:mime});}catch(e){_svRecorder=new MediaRecorder(stream);}
+        _svRecorder.ondataavailable=function(e){if(e.data&&e.data.size>0)_svChunks.push(e.data);};
+        _svRecorder.onstop=function(){
+          try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+        };
+        _svRecorder.start();
+        _svSecs=0;
+        var t=$('sv-timer');if(t)t.textContent='00:00';
+        var st=$('sv-status');if(st)st.textContent='录音中... 再点一次停止';
+        rec.textContent='■ 停止';
+        var send=$('sv-send-btn');if(send)send.style.display='none';
+        var wave=$('sv-wave');if(wave)wave.style.opacity='1';
+        _svTimer=setInterval(function(){
+          _svSecs++;
+          var t2=$('sv-timer');
+          if(t2)t2.textContent=('0'+Math.floor(_svSecs/60)).slice(-2)+':'+('0'+(_svSecs%60)).slice(-2);
+          if(_svSecs>=120){svStopRecording();var st2=$('sv-status');if(st2)st2.textContent='已达 2 分钟上限';var rec2=$('sv-record-btn');if(rec2)rec2.textContent='● 重新录制';var send2=$('sv-send-btn');if(send2)send2.style.display='';}
+        },1000);
+      }).catch(function(err){
+        console.warn('sv getUserMedia failed:',err);
+        toast('无法访问麦克风：'+(err&&err.message?err.message:'权限被拒绝'));
+      });
+    };
+  }
+  var send=$('sv-send-btn');
+  if(send&&!send._svBound){
+    send._svBound=true;
+    send.onclick=function(){svSendVoice();};
+  }
+  var cancel=$('sv-cancel-btn');
+  if(cancel&&!cancel._svBound){
+    cancel._svBound=true;
+    cancel.onclick=function(){
+      svStopRecording();
+      hideOv('ov-send-voice');
+      _svChunks=[];
+    };
+  }
+}
+if(typeof document!=='undefined'&&document.getElementById){
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initSendVoiceModal);
+  }else{
+    initSendVoiceModal();
+  }
+}
+
+// ===== 发送链接（小红书/B站/QQ音乐/网易云等，卡片显示）=====
+function detectLinkPlatform(url){
+  var u=(url||'').toLowerCase();
+  if(u.indexOf('xiaohongshu.com')>=0)return {name:'小红书',icon:'📕',color:'#ff2442'};
+  if(u.indexOf('bilibili.com')>=0||u.indexOf('b23.tv')>=0)return {name:'哔哩哔哩',icon:'📺',color:'#fb7299'};
+  if(u.indexOf('y.qq.com')>=0||u.indexOf('qq音乐')>=0)return {name:'QQ音乐',icon:'🎵',color:'#31c27c'};
+  if(u.indexOf('music.163.com')>=0||u.indexOf('163cn.tv')>=0)return {name:'网易云音乐',icon:'🎶',color:'#c20c0c'};
+  if(u.indexOf('douyin.com')>=0||u.indexOf('iesdouyin.com')>=0)return {name:'抖音',icon:'🎬',color:'#000000'};
+  if(u.indexOf('weibo.com')>=0)return {name:'微博',icon:'🌐',color:'#e6162d'};
+  if(u.indexOf('zhihu.com')>=0)return {name:'知乎',icon:'💡',color:'#0084ff'};
+  if(u.indexOf('weixin.qq.com')>=0||u.indexOf('mp.weixin.qq.com')>=0)return {name:'微信文章',icon:'💬',color:'#07c160'};
+  return {name:'链接',icon:'🔗',color:'var(--accent)'};
+}
+function showSendLinkModal(){
+  showOv('ov-send-link');
+  var inp=$('sl-input');if(inp)inp.value='';
+  var prev=$('sl-preview');if(prev){prev.style.display='none';}
+  var send=$('sl-send-btn');if(send)send.disabled=false;
+  setTimeout(function(){if(inp)inp.focus();},200);
+}
+function slPreviewLink(){
+  var inp=$('sl-input');
+  var prev=$('sl-preview');
+  var send=$('sl-send-btn');
+  if(!inp||!prev||!send)return;
+  var url=inp.value.trim();
+  if(!url){prev.style.display='none';send.disabled=true;return;}
+  if(!/^https?:\/\//i.test(url)){prev.style.display='block';prev.innerHTML='⚠️ 请输入以 http:// 或 https:// 开头的链接';send.disabled=true;return;}
+  var p=detectLinkPlatform(url);
+  prev.style.display='block';
+  prev.innerHTML='<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">'+p.icon+'</span><div><div style="font-weight:600;color:'+p.color+';">'+p.name+'</div><div style="font-size:11px;color:var(--txt3);word-break:break-all;">'+url.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div></div>';
+  send.disabled=false;
+}
+function slSendLink(){
+  var inp=$('sl-input');
+  if(!inp)return;
+  var url=inp.value.trim();
+  if(!url||!/^https?:\/\//i.test(url)){toast('请输入有效链接');return;}
+  try{
+    if(!cid){toast('请先打开聊天');hideOv('ov-send-link');return;}
+    var p=detectLinkPlatform(url);
+    var mm=msgs(cid);
+    if(!mm||!Array.isArray(mm))mm=[];
+    mm.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:SELF,t:'',img:'',voice:'',voiceText:'',ts:new Date(),pc:false,isAuto:false,isInitiative:false,quote:null,isSticker:false,isVoice:false,isLink:true,linkUrl:url,linkPlatform:p.name,linkIcon:p.icon,linkColor:p.color,senderName:'我',senderId:me?me.id:null,isGroup:!!(groups&&groups.find&&groups.find(function(g){return g.id===cid})),read:true});
+    savemsgs(cid,mm);
+    if(cid===window.currentCid)renderMsgs(mm);
+    renderChatList();
+    playSound('send',cid);
+    toast('链接已发送');
+  }catch(e){console.warn('sl send failed:',e);toast('发送失败');}
+  hideOv('ov-send-link');
+}
+function initSendLinkModal(){
+  var inp=$('sl-input');
+  if(inp&&!inp._slBound){
+    inp._slBound=true;
+    inp.addEventListener('input',slPreviewLink);
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')slSendLink();});
+  }
+  var send=$('sl-send-btn');
+  if(send&&!send._slBound){
+    send._slBound=true;
+    send.onclick=function(){slSendLink();};
+  }
+}
+if(typeof document!=='undefined'&&document.getElementById){
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initSendLinkModal);
+  }else{
+    initSendLinkModal();
+  }
+}
+
+// ===== 语音转文字（浏览器自带 SpeechRecognition）=====
+function voiceToText(msgId){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    toast('当前浏览器不支持语音识别（建议 Chrome/Edge）');
+    return;
+  }
+  var m=msgs(cid);
+  var msg=m.find(function(x){return x.id===msgId});
+  if(!msg||!msg.voice){toast('未找到语音');return;}
+  // 取语音 URL（可能是 data URL 或缓存 key）
+  var voiceUrl=msg.voice;
+  if(voiceUrl&&!voiceUrl.startsWith('data:')&&!voiceUrl.startsWith('blob:')){
+    var cached=memoryCache&&memoryCache['_img_'+voiceUrl];
+    if(cached)voiceUrl=cached;
+  }
+  var rec=new SR();
+  rec.lang='zh-CN';
+  rec.interimResults=false;
+  rec.maxAlternatives=1;
+  var au=new Audio(voiceUrl);
+  var done=false;
+  var finish=function(text,err){
+    if(done)return;done=true;
+    try{if(rec)rec.stop();}catch(e){}
+    try{if(au)au.pause();}catch(e){}
+    if(text){
+      // ★ 识别结果存到消息 voiceText，并在消息下方显示
+      var mm=msgs(cid);
+      var t=mm.find(function(x){return x.id===msgId});
+      if(t){t.voiceText=text;t.sttText=text;savemsgs(cid,mm);if(cid===window.currentCid)renderMsgs(mm);}
+      toast('语音已转文字');
+    }else if(err){
+      toast('转文字失败：'+(err||'无法识别'));
+    }
+  };
+  rec.onresult=function(ev){
+    var t='';
+    for(var i=0;i<ev.results.length;i++){
+      if(ev.results[i][0])t+=ev.results[i][0].transcript;
+    }
+    finish(t||null);
+  };
+  rec.onerror=function(ev){
+    finish(null,ev&&ev.error==='not-allowed'?'麦克风权限被拒绝':(ev&&ev.error));
+  };
+  rec.onend=function(){finish(null,'没有识别到内容');};
+  // 播放语音 + 同时开麦克风识别（外放场景）
+  au.play().catch(function(){toast('语音播放失败，无法转文字');return;});
+  try{rec.start();}catch(e){toast('语音识别启动失败');}
+  toast('正在播放语音并识别...');
+}
+
+var MM_KEY='ml2_mm_settings';
+function getMmSettings(contactId){
+  var s=ls(MM_KEY)||{};
+  // ★ 每个梦角独立设置：per-contact 覆盖全局（全局作默认）
+  var cSet=null;
+  if(contactId&&s.contacts&&s.contacts[contactId])cSet=s.contacts[contactId];
+  var enabled=(cSet&&cSet.enabled!==undefined)?cSet.enabled:(s.enabled!==false);
+  var apiKey=(cSet&&cSet.apiKey)?cSet.apiKey:(s.apiKey||'');
+  var baseUrl=(cSet&&cSet.baseUrl)?cSet.baseUrl:(s.baseUrl||'https://api.minimax.chat');
+  // 兼容旧缓存变量（防刷新被 IndexedDB 覆盖导致"key 丢失"）
+  if((!apiKey)&&window.mmSettingsCached&&window.mmSettingsCached.apiKey){
+    apiKey=window.mmSettingsCached.apiKey;
+    baseUrl=window.mmSettingsCached.baseUrl||baseUrl;
+    if(window.mmSettingsCached.enabled!==undefined)enabled=window.mmSettingsCached.enabled;
+  }
+  return {enabled:enabled,baseUrl:baseUrl,apiKey:apiKey};
+}
+function getContactVoiceId(contactId){
+  var v=ls('ml2_mm_voice')||{};
+  return (contactId&&v[contactId])?v[contactId]:'';
+}
+function setContactVoiceId(contactId,vid){
+  if(!contactId)return;
+  var v=ls('ml2_mm_voice')||{};
+  v[contactId]=vid;
+  ls('ml2_mm_voice',v);
+  if(window.localforage)window.localforage.setItem('ml2_mm_voice',v).catch(function(){});
+}
+// ★ MiniMax 语音开关视觉：开启=深灰底+圆点右移，关闭=浅灰底+圆点左移
+function updateMmToggleVisual(checked){
+  var slider=$('mm-enable-slider');
+  var knob=$('mm-enable-knob');
+  if(slider)slider.style.background=checked?'#3a3a3a':'#c8c8cc';
+  if(knob)knob.style.left=checked?'22px':'2px';
+}
+function loadMmSettingsUI(){
+  var sel=$('api-contact-select');
+  var curSel=sel?sel.value:null;
+  var s=getMmSettings(curSel);
+  var en=$('mm-enable-toggle');if(en)en.checked=s.enabled;
+  updateMmToggleVisual(s.enabled);
+  if($('mm-base-url'))$('mm-base-url').value=s.baseUrl;
+  if($('mm-api-key'))$('mm-api-key').value=s.apiKey;
+  // ★ 音色 ID 输入框：始终显示（可手动粘贴）
+  if($('mm-voice-id'))$('mm-voice-id').value=getContactVoiceId(curSel)||'';
+}
+// ★ 手动输入/修改音色 ID 时立即保存到当前联系人
+function mmVoiceIdEdited(){
+  var sel=$('api-contact-select');
+  var contactId=sel&&sel.value?sel.value:(typeof cid!=='undefined'?cid:null);
+  if(!contactId)return;
+  var vid=$('mm-voice-id')?$('mm-voice-id').value.trim():'';
+  if(vid){
+    setContactVoiceId(contactId,vid);
+    toast('音色 ID 已保存');
+  }
+}
+function mmSaveSettings(){
+  var sel=$('api-contact-select');
+  var contactId=sel&&sel.value?sel.value:null;
+  var s=ls(MM_KEY)||{};
+  if(!s.contacts)s.contacts={};
+  var cSet=s.contacts[contactId]||{};
+  // ★ 每个梦角独立：enabled/key/baseUrl 存到该联系人
+  cSet.enabled=$('mm-enable-toggle')?$('mm-enable-toggle').checked:true;
+  cSet.baseUrl=$('mm-base-url')?$('mm-base-url').value.trim():'';
+  cSet.apiKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
+  if(!cSet.baseUrl)cSet.baseUrl='https://api.minimax.chat';
+  if(contactId){
+    s.contacts[contactId]=cSet;
+  }else{
+    s.enabled=cSet.enabled;s.baseUrl=cSet.baseUrl;s.apiKey=cSet.apiKey;
+  }
+  ls(MM_KEY,s);
+  if(window.localforage)window.localforage.setItem(MM_KEY,s).catch(function(){});
+  try{window.mmSettingsCached=JSON.parse(JSON.stringify({enabled:cSet.enabled,baseUrl:cSet.baseUrl,apiKey:cSet.apiKey}));}catch(e){}
+  var vid=$('mm-voice-id')?$('mm-voice-id').value.trim():'';
+  if(contactId&&vid)setContactVoiceId(contactId,vid);
+  toast('语音设置已保存');
+}
+function mmSetStatus(msg,color){
+  var st=$('mm-status');
+  if(st){st.style.display='block';st.style.color=color||'var(--txt3)';st.innerHTML=msg;}
+}
+function mmPickVoiceFile(){
+  var inp=$('mm-voice-file');
+  var sel=$('api-contact-select');
+  var cidNow=sel&&sel.value?sel.value:(typeof cid!=='undefined'?cid:null);
+  var mmKey=getMmSettings(cidNow).apiKey;
+  if(!mmKey){mmSetStatus('⚠️ 请先在上方填写 MiniMax API Key','#ff9800');return;}
+  if(inp)inp.click();
+}
+function mmUploadVoice(){
+  var inp=$('mm-voice-file');
+  if(!inp||!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  var mmKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
+  var mmBase=$('mm-base-url')?$('mm-base-url').value.trim():'https://api.minimax.chat';
+  if(!mmKey){mmSetStatus('⚠️ 请先填写 MiniMax API Key','#ff9800');return;}
+  // ★ 校验格式：MiniMax voice_clone 仅接受 mp3/m4a/wav（官方限制），时长 10秒~5分钟、大小≤20MB
+  var ext=(file.name||'').split('.').pop().toLowerCase();
+  var okExts=['mp3','m4a','wav'];
+  if(okExts.indexOf(ext)<0){
+    mmSetStatus('❌ 文件格式不支持：MiniMax 音色复刻仅接受 mp3 / m4a / wav 格式（时长 10秒~5分钟，≤20MB）。请用这 3 种格式的音频，不要用视频或其他格式。','#ff4d4f');
+    inp.value='';
+    return;
+  }
+  if(file.size>20*1024*1024){
+    mmSetStatus('❌ 文件太大：MiniMax 要求参考音频 ≤ 20MB。请压缩或截取更短的音频。','#ff4d4f');
+    inp.value='';
+    return;
+  }
+  // ★ 时长校验：读取音频时长，超过 5 分钟（300秒）提前拦截
+  var _durUrl=URL.createObjectURL(file);
+  var _au=new Audio();
+  _au.preload='metadata';
+  _au.onloadedmetadata=function(){
+    try{URL.revokeObjectURL(_durUrl);}catch(e){}
+    if(_au.duration>300){
+      mmSetStatus('❌ 音频太长：MiniMax 要求参考音频 10秒~5分钟（当前 '+(Math.round(_au.duration))+' 秒）。请截取更短的音频（10秒~1分钟最佳）。','#ff4d4f');
+      inp.value='';
+      return;
+    }
+    if(_au.duration<10){
+      mmSetStatus('❌ 音频太短：MiniMax 要求参考音频 ≥ 10 秒。','#ff4d4f');
+      inp.value='';
+      return;
+    }
+    mmDoUploadVoice(file);
+  };
+  _au.onerror=function(){
+    try{URL.revokeObjectURL(_durUrl);}catch(e){}
+    mmSetStatus('⚠️ 无法读取音频时长，尝试直接上传...','#ff9800');
+    mmDoUploadVoice(file);
+  };
+  _au.src=_durUrl;
+}
+function mmDoUploadVoice(file){
+  var inp=$('mm-voice-file');
+  var sel=$('api-contact-select');
+  var contactId=sel&&sel.value?sel.value:(typeof cid!=='undefined'?cid:null);
+  var mmKey=getMmSettings(contactId).apiKey;
+  var mmBase=getMmSettings(contactId).baseUrl||'https://api.minimax.chat';
+  var voiceId='voice_'+Date.now().toString(36)+'_'+(contactId||'x');
+  mmSetStatus('🔄 正在上传参考音频并复刻音色（可能需要 30~60 秒）...');
+  // Step1: 上传文件拿 file_id
+  var fd=new FormData();
+  fd.append('file',file);
+  fd.append('purpose','voice_clone');
+  fetch(mmBase.replace(/\/+$/,'')+'/v1/files/upload',{method:'POST',headers:{'Authorization':'Bearer '+mmKey},body:fd})
+  .then(function(res){return res.json();})
+  .then(function(data){
+    var fileId=data&&data.file&&data.file.file_id;
+    if(!fileId){throw new Error((data&&data.base_resp&&data.base_resp.status_msg)||'上传失败');}
+    mmSetStatus('🔄 音频已上传，正在创建专属音色...');
+    // Step2: 创建音色
+    return fetch(mmBase.replace(/\/+$/,'')+'/v1/voice_clone',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+mmKey},
+      body:JSON.stringify({file_id:fileId,voice_id:voiceId})
+    }).then(function(res){return res.json();}).then(function(d2){
+      if(d2&&d2.base_resp&&d2.base_resp.status_code!==0&&d2.base_resp.status_code!==undefined){
+        throw new Error(d2.base_resp.status_msg||'创建音色失败');
+      }
+      return {voiceId:voiceId,demo:d2&&d2.demo_audio};
+    });
+  })
+  .then(function(r){
+    if(contactId)setContactVoiceId(contactId,r.voiceId);
+    if($('mm-voice-id'))$('mm-voice-id').value=r.voiceId;
+    mmSetStatus('✅ 音色复刻成功！voice_id: '+r.voiceId,'#2ecc71');
+    toast('梦角音色已创建');
+    inp.value='';
+  })
+  .catch(function(e){
+    console.warn('mm voice clone failed:',e);
+    mmSetStatus('❌ 复刻失败：'+String(e.message||e),'#ff4d4f');
+    inp.value='';
+  });
+}
+function mmClearVoice(){
+  var sel=$('api-contact-select');
+  var cid2=sel&&sel.value?sel.value:null;
+  if(!cid2){toast('请先选择联系人');return;}
+  if(!confirm('确定清除该梦角的音色吗？清除后聊天消息将不再显示播放按钮。'))return;
+  var v=ls('ml2_mm_voice')||{};
+  delete v[cid2];
+  ls('ml2_mm_voice',v);
+  if(window.localforage)window.localforage.setItem('ml2_mm_voice',v).catch(function(){});
+  if($('mm-voice-id'))$('mm-voice-id').value='';
+  toast('已清除该梦角的音色');
+}
+function mmCopyVoiceId(){
+  var inp=$('mm-voice-id');
+  var vid=inp?inp.value.trim():'';
+  if(!vid){toast('还没有音色 ID');return;}
+  var done=function(){toast('音色 ID 已复制');};
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(vid).then(done).catch(function(){
+        try{inp.select();document.execCommand('copy');done();}catch(e2){fallbackCopy(vid);done();}
+      });
+    }else{
+      try{inp.select();document.execCommand('copy');done();}catch(e){fallbackCopy(vid);done();}
+    }
+  }catch(e){
+    try{fallbackCopy(vid);done();}catch(e2){toast('复制失败，请长按输入框手动复制');}
+  }
+}
+// ★ 查看 MiniMax 余额：跳转控制台费用页（MiniMax 无公开查余额 API）
+function mmOpenBalance(){
+  var s=getMmSettings($('api-contact-select')&&$('api-contact-select').value);
+  var base=s.baseUrl||'https://api.minimax.chat';
+  var host='https://platform.minimaxi.com';
+  if(base.indexOf('api.minimax.chat')>=0)host='https://platform.minimaxi.com';
+  window.open(host+'/user-center/billing','_blank');
+  toast('已打开 MiniMax 控制台，请在左侧「费用/账单」查看余额');
+}
+function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
+  var tcid=contactId||(typeof cid!=='undefined'?cid:null);
+  var s=getMmSettings(tcid);
+  // ★ 优先用已保存的设置（输入框可能不在当前页面）
+  var mmKey=$('mm-api-key')?$('mm-api-key').value.trim():s.apiKey;
+  var mmBase=$('mm-base-url')?$('mm-base-url').value.trim():s.baseUrl;
+  if(!mmKey)mmKey=s.apiKey;
+  if(!mmBase)mmBase=s.baseUrl||'https://api.minimax.chat';
+  var vid=$('mm-voice-id')?$('mm-voice-id').value.trim():getContactVoiceId(tcid);
+  var _finish=function(){
+    if(onFailTimer)clearTimeout(onFailTimer);
+    if(typeof onDone==='function')onDone();
+  };
+  if(!mmKey){toast('请先在 设置→API接口 填写 MiniMax Key');_finish();return;}
+  if(!vid){toast('该梦角还没有音色，请先上传参考音频复刻');_finish();return;}
+  fetch(mmBase.replace(/\/+$/,'')+'/v1/t2a_v2',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+mmKey},
+    body:JSON.stringify({
+      model:'speech-02-hd',
+      text:String(text||'').slice(0,300),
+      voice_setting:{voice_id:vid,speed:1.0,vol:1.0,pitch:0},
+      audio_setting:{sample_rate:32000,bitrate:128000,format:'mp3',channel:1},
+      stream:false,
+      output_format:'url'
+    })
+  }).then(function(res){return res.json();})
+  .then(function(data){
+    var audioUrl=data&&data.data&&data.data.audio;
+    if(!audioUrl){throw new Error((data&&data.base_resp&&data.base_resp.status_msg)||'合成失败');}
+    // ★ 缓存 URL：之后重复点击直接播放，不再重复合成
+    if(msgId){
+      try{_mmAudioCache[msgId]={url:audioUrl,audio:null,ts:Date.now()};}catch(e){}
+    }
+    var au=new Audio(audioUrl);
+    if(msgId&&_mmAudioCache[msgId])_mmAudioCache[msgId].audio=au;
+    // ★ 播放状态：按钮图标切换为"播放中"（动画），结束/出错恢复
+    var _btn=msgId?document.querySelector('[data-mid="'+msgId+'"]'):null;
+    var _btnOld=_btn?_btn.innerHTML:null;
+    var _setPlaying=function(playing){
+      try{
+        if(_btn){
+          _btn.innerHTML=playing
+            ?'<span style="display:inline-flex;align-items:flex-end;gap:2px;height:12px;"><span style="width:3px;background:currentColor;border-radius:2px;animation:voiceWave 0.8s ease-in-out infinite alternate;height:100%;"></span><span style="width:3px;background:currentColor;border-radius:2px;animation:voiceWave 0.8s ease-in-out infinite alternate;height:60%;animation-delay:0.15s;"></span><span style="width:3px;background:currentColor;border-radius:2px;animation:voiceWave 0.8s ease-in-out infinite alternate;height:30%;animation-delay:0.3s;"></span></span>'
+            :(_btnOld||'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>');
+        }
+      }catch(e){}
+    };
+    au.onplaying=function(){_setPlaying(true);};
+    au.onended=function(){_setPlaying(false);};
+    au.onpause=function(){_setPlaying(false);};
+    au.onerror=function(){_setPlaying(false);};
+    au.play().catch(function(){_setPlaying(false);});
+    toast('正在播放梦角的语音');
+    _finish();
+  }).catch(function(e){
+    console.warn('mm tts failed:',e);
+    toast('语音合成失败：'+(e.message||e));
+    _finish();
+  });
+}
+// 语音缓存：msgId → {url, ts}，重复点击直接播放不重复合成
+var _mmAudioCache={};
+// ★ 从消息读取文本并播放梦角语音（已生成的语音缓存，可重复播放）
+function mmSpeakMsg(msgId,el){
+  var oldInner='';
+  try{
+    if(el){
+      oldInner=el.innerHTML;
+      el.innerHTML='<span style="white-space:nowrap;font-size:11px;">生成中...</span>';
+      el.style.opacity='0.7';
+      el.style.minWidth='64px';
+      el.style.height='22px';
+      el.style.padding='0 8px';
+      el.style.borderRadius='11px';
+      el.style.background='rgba(0,0,0,0.06)';
+    }
+  }catch(e){}
+  // 还原按钮的函数（播放成功/失败/超时兜底时调用）
+  var _restore=function(){
+    try{
+      if(el){
+        el.innerHTML=oldInner||'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+        el.style.opacity='';
+        el.style.minWidth='';
+        el.style.height='';
+        el.style.padding='';
+        el.style.borderRadius='';
+        el.style.background='';
+      }
+    }catch(e2){}
+  };
+  // 兜底：最多 20 秒后强制还原
+  var _fallback=setTimeout(_restore,20000);
+  // 已有缓存：直接播放（可重复）
+  if(_mmAudioCache[msgId]){
+    clearTimeout(_fallback);
+    var _c=_mmAudioCache[msgId];
+    if(_c.audio){_c.audio.currentTime=0;_c.audio.play();}
+    else if(_c.url){
+      try{_c.audio=new Audio(_c.url);_c.audio.play();}catch(e2){}
+    }
+    _restore();
+    return;
+  }
+  var m=msgs(cid);
+  var msg=m.find(function(x){return x.id===msgId});
+  if(!msg||!msg.t){toast('没有可播放的文字');_restore();return;}
+  mmSpeak(msg.t,cid,msgId,_restore,_fallback);
+}
 // ★ AI 解读字卡：长按消息菜单调用
 function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
   var msg=m.find(function(x){return x.id===msgId});
@@ -2351,6 +3023,19 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
   '【解读要求】下面的字卡是"你（TA）"发给用户的话，不是用户说的。请以"你（TA）"第一人称，用 100~200 字解读这张字卡：字面意思 → 你真正想对用户说的话 → 你此刻的感受 → 给用户的一句话回应。用第二人称"你"称呼用户，第一人称"我"=你（TA）。';
   var userPrompt='你（TA）发给用户一张字卡：「'+cardText+'」'+cardExtra+'。请以你（TA）的身份，解读这张字卡想对用户传达的意思。';
   // ★ 不弹窗：直接在消息下方显示「解读中...」，完成后原地替换为解读内容
+  // ★ 保持滚动位置：渲染前后记录/恢复 scrollTop，避免点前面消息的解读按钮被弹到底部
+  var _scrollBox=document.getElementById('msgbox');
+  var _scrollTopBefore=_scrollBox?_scrollBox.scrollTop:0;
+  var _renderKeepScroll=function(){
+    if(_scrollBox){
+      var _h=_scrollBox.scrollHeight;
+      requestAnimationFrame(function(){
+        try{
+          _scrollBox.scrollTop=_scrollTopBefore+(_scrollBox.scrollHeight-_h);
+        }catch(e){}
+      });
+    }
+  };
   var _tmpM=msgs(cid);
   if(!_tmpM||!Array.isArray(_tmpM))_tmpM=[];
   var _tmpTarget=_tmpM.find(function(x){return x.id===msgId;});
@@ -2358,7 +3043,7 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
     _tmpTarget.aiInterpret='';      // 触发解读块渲染（空=解读中）
     _tmpTarget.aiLoading=true;
     savemsgs(cid,_tmpM);
-    if(cid===window.currentCid)renderMsgs(_tmpM);
+    if(cid===window.currentCid){renderMsgs(_tmpM);_renderKeepScroll();}
   }
   fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
     method:'POST',
@@ -2378,7 +3063,7 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
       target.aiInterpret=text;
       target.aiLoading=false;
       savemsgs(cid,mm2);
-      if(cid===window.currentCid)renderMsgs(mm2);
+      if(cid===window.currentCid){renderMsgs(mm2);_renderKeepScroll();}
       renderChatList();
     }else{
       toast('消息已不存在');
@@ -2388,7 +3073,7 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
     var mm3=msgs(cid);
     if(mm3&&Array.isArray(mm3)){
       var t3=mm3.find(function(x){return x.id===msgId;});
-      if(t3){t3.aiInterpret='';t3.aiLoading=false;t3.aiError=String(e.message||e);savemsgs(cid,mm3);if(cid===window.currentCid)renderMsgs(mm3);}
+      if(t3){t3.aiInterpret='';t3.aiLoading=false;t3.aiError=String(e.message||e);savemsgs(cid,mm3);if(cid===window.currentCid){renderMsgs(mm3);_renderKeepScroll();}}
     }
     toast('AI 解读失败：'+(e.message||e)+'，请检查 API 配置');
   });
@@ -2545,6 +3230,12 @@ function handleChatMoreAction(action){
       case 'image':
         var inp=$('chat-image-input');
         if(inp)inp.click();
+        break;
+      case 'send_voice':
+        showSendVoiceModal();
+        break;
+      case 'send_link':
+        showSendLinkModal();
         break;
       case 'cards':
         openCardSettings();

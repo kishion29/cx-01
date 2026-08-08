@@ -378,6 +378,38 @@ function d2HidePage(pageId) {
         let d2DrawHistory = [];
         try { const saved = localStorage.getItem('ml2_divine_history_d2'); if (saved) d2DrawHistory = JSON.parse(saved); } catch(e) {}
         function d2SaveHistory() { try { localStorage.setItem('ml2_divine_history_d2', JSON.stringify(d2DrawHistory)); } catch(e) {} }
+        // ★ 全局入口：AI 占卜解读结果存进占卜历史（最新一条）并同步聊天记录
+        window.d2SaveAiInterpret = function(text) {
+          try {
+            if (text && d2DrawHistory.length > 0) {
+              d2DrawHistory[0].aiInterpret = text;
+              d2SaveHistory();
+            }
+            // 同步到主占卜历史（ml2_divine_history）
+            try {
+              var mainHist = [];
+              try { var mh = localStorage.getItem('ml2_divine_history'); if (mh) mainHist = JSON.parse(mh); } catch(e2){}
+              if (mainHist.length > 0) {
+                var nowStr2 = new Date().toLocaleString('zh-CN');
+                var rec2 = mainHist.find(function(h){ return h.time === nowStr2 || (h.aiInterpret === undefined && (h.results || h.phases || h.cards)); });
+                if (rec2) { rec2.aiInterpret = text; }
+                localStorage.setItem('ml2_divine_history', JSON.stringify(mainHist));
+              }
+            } catch(e3){}
+            // 同步聊天记录：当前聊天里插入一条 TA 的解读消息
+            try {
+              if (typeof cid !== 'undefined' && cid && typeof msgs === 'function' && typeof savemsgs === 'function') {
+                var mm = msgs(cid);
+                if (!mm || !Array.isArray(mm)) mm = [];
+                var aiMsg = {id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9), s:OTHER, t:'📜 占卜解读：\n'+text, ts:new Date(), pc:false, isAuto:true, isInitiative:false, quote:null, isSticker:false, isVoice:false, senderName:'TA', senderId:cid, read:(cid===window.currentCid), isAiInterpret:true};
+                mm.push(aiMsg);
+                savemsgs(cid, mm);
+                if (cid === window.currentCid && typeof renderMsgs === 'function') renderMsgs(mm);
+                if (typeof renderChatList === 'function') renderChatList();
+              }
+            } catch(e4){}
+          } catch(e) { console.warn('d2SaveAiInterpret failed:', e); }
+        };
 
         // 修复：同步 d2 记录到主占卜历史(divineHistory)，使梦角主页能看到占卜记录
         function d2SyncToMainHistory(d2Record) {
@@ -1043,6 +1075,9 @@ function d2HidePage(pageId) {
                         }
                     } else if (h.results) {
                         html += '<div style="color:#8a7a8a;margin-top:2px;">' + (h.stepLabel ? h.stepLabel + '：' : '') + h.results.map(r => r.name + (r.reversed ? '(逆)' : '')).join('、') + '</div>';
+                    }
+                    if (h.aiInterpret) {
+                        html += '<div style="margin-top:6px;padding:8px 10px;background:#faf3ff;border:1px dashed #d8c6e8;border-radius:8px;color:#7a5a8a;line-height:1.6;word-break:break-all;">📜 <b>AI 解读</b><br>' + String(h.aiInterpret).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
                     }
                     html += '</div>';
                 });
