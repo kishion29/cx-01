@@ -2672,7 +2672,7 @@ function getMmSettings(contactId){
   var apiKey=(cSet&&cSet.apiKey)?cSet.apiKey:(s.apiKey||'');
   var baseUrl=(cSet&&cSet.baseUrl)?cSet.baseUrl:(s.baseUrl||'https://api.minimax.chat');
   var groupId=(cSet&&cSet.groupId)?cSet.groupId:(s.groupId||'');
-  var proxy=(cSet&&cSet.proxy)?cSet.proxy:(s.proxy||'https://corsproxy.io/?url=');
+  var proxy=(cSet&&cSet.proxy)?cSet.proxy:(s.proxy||'');
   // 兼容旧缓存变量（防刷新被 IndexedDB 覆盖导致"key 丢失"）
   if((!apiKey)&&window.mmSettingsCached&&window.mmSettingsCached.apiKey){
     apiKey=window.mmSettingsCached.apiKey;
@@ -2711,7 +2711,7 @@ function loadMmSettingsUI(){
   // ★ 音色 ID 输入框：始终显示（可手动粘贴）
   if($('mm-voice-id'))$('mm-voice-id').value=getContactVoiceId(curSel)||'';
   if($('mm-group-id'))$('mm-group-id').value=s.groupId||'';
-  if($('mm-proxy'))$('mm-proxy').value=s.proxy||'https://corsproxy.io/?url=';
+  if($('mm-proxy'))$('mm-proxy').value=s.proxy||'';
 }
 // ★ 手动输入/修改音色 ID 时立即保存到当前联系人
 function mmVoiceIdEdited(){
@@ -2886,6 +2886,7 @@ function mmOpenBalance(){
   toast('已打开 MiniMax 控制台，请在左侧「费用/账单」查看余额');
 }
 function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
+  window._mmLastHttpStatus=0;
   var tcid=contactId||(typeof cid!=='undefined'?cid:null);
   var s=getMmSettings(tcid);
   // ★ 优先用已保存的设置（输入框可能不在当前页面）
@@ -2916,7 +2917,7 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
       audio_setting:{sample_rate:32000,bitrate:128000,format:'mp3',channel:1},
       stream:false
     })
-  }).then(function(res){return res.json();})
+  }).then(function(res){window._mmLastHttpStatus=res.status;return res.json();})
   .then(function(data){
     var audioUrl=data&&data.data&&data.data.audio;
     if(!audioUrl){throw new Error((data&&data.base_resp&&data.base_resp.status_msg)||'合成失败');}
@@ -2950,12 +2951,10 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   }).catch(function(e){
     console.warn('mm tts failed:',e);
     var em=String((e&&e.message)||e);
-    if(/Failed to fetch|NetworkError|Network request failed|Load failed/i.test(em)){
-      if(mmProxy){toast('语音合成失败：代理 '+mmProxy+' 不可用或未生效，请换一个代理地址，或改用流量/WiFi 试试');}
-      else{toast('语音合成失败：手机浏览器跨域限制，请在 设置→API接口 填写「跨域代理地址」解决（电脑端不受影响）');}
-    }else{
-      toast('语音合成失败：'+em);
-    }
+    var en=String((e&&e.name)||'Error');
+    var detail=en+': '+em;
+    if(window._mmLastHttpStatus)detail='HTTP '+window._mmLastHttpStatus+' | '+detail;
+    toast('语音合成失败 ['+detail.slice(0,120)+']');
     _finish();
   });
 }
