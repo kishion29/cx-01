@@ -2223,6 +2223,7 @@ function openApiSettings(){
             var _ms=ls(MM_KEY)||{};
             _ms.apiKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
   s.groupId=$('mm-group-id')?$('mm-group-id').value.trim():'';
+  s.proxy=$('mm-proxy')?$('mm-proxy').value.trim():'';
             _ms.baseUrl=$('mm-base-url')?$('mm-base-url').value.trim():'https://api.minimax.chat';
             if(!_ms.baseUrl)_ms.baseUrl='https://api.minimax.chat';
             ls(MM_KEY,_ms);
@@ -2671,6 +2672,7 @@ function getMmSettings(contactId){
   var apiKey=(cSet&&cSet.apiKey)?cSet.apiKey:(s.apiKey||'');
   var baseUrl=(cSet&&cSet.baseUrl)?cSet.baseUrl:(s.baseUrl||'https://api.minimax.chat');
   var groupId=(cSet&&cSet.groupId)?cSet.groupId:(s.groupId||'');
+  var proxy=(cSet&&cSet.proxy)?cSet.proxy:(s.proxy||'https://corsproxy.io/?url=');
   // 兼容旧缓存变量（防刷新被 IndexedDB 覆盖导致"key 丢失"）
   if((!apiKey)&&window.mmSettingsCached&&window.mmSettingsCached.apiKey){
     apiKey=window.mmSettingsCached.apiKey;
@@ -2678,7 +2680,7 @@ function getMmSettings(contactId){
     if(window.mmSettingsCached.groupId)groupId=window.mmSettingsCached.groupId;
     if(window.mmSettingsCached.enabled!==undefined)enabled=window.mmSettingsCached.enabled;
   }
-  return {enabled:enabled,baseUrl:baseUrl,apiKey:apiKey,groupId:groupId};
+  return {enabled:enabled,baseUrl:baseUrl,apiKey:apiKey,groupId:groupId,proxy:proxy};
 }
 function getContactVoiceId(contactId){
   var v=ls('ml2_mm_voice')||{};
@@ -2709,6 +2711,7 @@ function loadMmSettingsUI(){
   // ★ 音色 ID 输入框：始终显示（可手动粘贴）
   if($('mm-voice-id'))$('mm-voice-id').value=getContactVoiceId(curSel)||'';
   if($('mm-group-id'))$('mm-group-id').value=s.groupId||'';
+  if($('mm-proxy'))$('mm-proxy').value=s.proxy||'https://corsproxy.io/?url=';
 }
 // ★ 手动输入/修改音色 ID 时立即保存到当前联系人
 function mmVoiceIdEdited(){
@@ -2899,7 +2902,11 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   if(!vid){toast('该梦角还没有音色，请先上传参考音频复刻');_finish();return;}
   var mmGroup=$('mm-group-id')?$('mm-group-id').value.trim():s.groupId;
   if(!mmGroup){toast('请先在 设置→API接口 填写 MiniMax Group ID（控制台可查）');_finish();return;}
-  fetch(mmBase.replace(/\/+$/,'')+'/v1/t2a_v2?GroupId='+encodeURIComponent(mmGroup),{
+  var mmProxy=$('mm-proxy')?$('mm-proxy').value.trim():s.proxy;
+  var realUrl=mmBase.replace(/\/+$/,'')+'/v1/t2a_v2?GroupId='+encodeURIComponent(mmGroup);
+  var reqUrl=realUrl;
+  if(mmProxy){reqUrl=mmProxy.replace(/\/+$/,'')+'?url='+encodeURIComponent(realUrl);}
+  fetch(reqUrl,{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+mmKey},
     body:JSON.stringify({
@@ -2943,8 +2950,9 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   }).catch(function(e){
     console.warn('mm tts failed:',e);
     var em=String((e&&e.message)||e);
-    if(/Failed to fetch|NetworkError|Network request failed/i.test(em)){
-      toast('语音合成失败：网络请求被拦截（浏览器跨域限制或 MiniMax 网络不通），请确认 API 地址可访问');
+    if(/Failed to fetch|NetworkError|Network request failed|Load failed/i.test(em)){
+      if(mmProxy){toast('语音合成失败：代理 '+mmProxy+' 不可用或未生效，请换一个代理地址，或改用流量/WiFi 试试');}
+      else{toast('语音合成失败：手机浏览器跨域限制，请在 设置→API接口 填写「跨域代理地址」解决（电脑端不受影响）');}
     }else{
       toast('语音合成失败：'+em);
     }
