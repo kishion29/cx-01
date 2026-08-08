@@ -562,6 +562,10 @@ function renderMyFavs(){
         var txt=fav.msgText||'';
         if(txt.length>40){txt=txt.substring(0,40)+'...'}
         previewHtml=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        // ★ 文字消息若已合成过语音，显示免费重播按钮
+        if(fav.msgData&&fav.msgData.mmAudioUrl){
+          previewHtml+='<button onclick="playFavVoice(\''+fav.id+'\')" style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;">▶ 播放语音（不消耗额度）</button>';
+        }
       }
       
       html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--c2);border-radius:8px;margin-bottom:6px;">';

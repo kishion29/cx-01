@@ -879,6 +879,11 @@ function addToTAFavorites(contactId,msg){
     msgId:msg.id,
     text:msg.t||'',
     image:msg.img?1:0,
+    isSticker:msg.isSticker?1:0,
+    isVoice:msg.voice?1:0,
+    isTouch:msg.isTouch?1:0,
+    isRedpacket:msg.isRedpacket?1:0,
+    isCall:msg.isCall?1:0,
     timestamp:Date.now(),
     msgTime:msg.ts,
     cid:contactId
@@ -916,47 +921,56 @@ function showTAFavorites(){
   var latestTime='';
   if(favorites.length>0 && favorites[0].msgTime){
     var ld=new Date(favorites[0].msgTime);
-    latestTime=(ld.getMonth()+1)+'/'+ld.getDate()+' '+('0'+ld.getHours()).slice(-2)+':'+('0'+ld.getMinutes()).slice(-2)+':'+('0'+ld.getSeconds()).slice(-2);
+    latestTime=(ld.getMonth()+1)+'/'+ld.getDate()+' '+('0'+ld.getHours()).slice(-2)+':'+('0'+ld.getMinutes()).slice(-2);
   }
   
   var avatarHtml=contact.avatar?'<img src="'+contact.avatar.replace(/"/g,'&quot;')+'" style="display:block;width:100%;height:100%;object-fit:cover;">':'✦';
   
   html+='<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);"><div style="width:36px;height:36px;border-radius:8px;background:var(--c3);overflow:hidden;flex-shrink:0;">'+avatarHtml+'</div><div style="font-size:14px;font-weight:600;color:var(--txt);">'+contact.name+'</div><div style="font-size:12px;color:var(--txt2);">('+favorites.length+'条收藏)</div>'+(latestTime?'<div style="font-size:11px;color:var(--txt3);margin-left:auto;">最新: '+latestTime+'</div>':'')+'</div>';
   
-  var now=new Date();
-  var todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  var yesterdayStart=new Date(todayStart.getTime()-86400000);
-  var dayOfWeek=now.getDay();var mondayOffset=dayOfWeek===0?-6:1-dayOfWeek;
-  var weekStart=new Date(todayStart.getTime()+mondayOffset*86400000);
-  function getDateGroup(d){
-    var t=d.getTime();
-    if(t>=todayStart.getTime())return'今天';
-    if(t>=yesterdayStart.getTime())return'昨天';
-    if(t>=weekStart.getTime())return'本周';
-    return'更早';
+  // ★ 时间只显示具体日期（月/日），不用 今天/昨天/本周 等
+  function fmtDay(t){
+    var d=new Date(t);
+    return (d.getMonth()+1)+'月'+d.getDate()+'日';
   }
   var lastGroup='';
   favorites.forEach(function(fav){
     var d=null;
     if(fav.msgTime){d=new Date(fav.msgTime);}
-    var group=d?getDateGroup(d):'';
+    var group=d?fmtDay(fav.msgTime):'';
     if(group&&group!==lastGroup){
       html+='<div style="text-align:center;margin:16px 0 8px;font-size:11px;color:var(--txt3);">'+group+'</div>';
       lastGroup=group;
     }
     var contentHtml='';
+    // ★ 表情包：优先渲染图片
+    if(fav.isSticker&&fav.image){
+      contentHtml+='<div class="ta-fav-img-placeholder" data-fav-id="'+fav.id+'" data-sticker="1" style="max-width:140px;max-height:140px;border-radius:8px;margin-top:8px;background:var(--c3);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--txt3);min-height:90px;">加载中...</div>';
+    }
     if(fav.text){
       contentHtml+='<div style="font-size:14px;color:var(--txt);line-height:1.5;">'+fav.text+'</div>';
     }
-    if(fav.image){
+    if(fav.image&&!fav.isSticker){
       contentHtml+='<div class="ta-fav-img-placeholder" data-fav-id="'+fav.id+'" style="max-width:120px;max-height:120px;border-radius:8px;margin-top:8px;background:var(--c3);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--txt3);min-height:80px;">加载中...</div>';
     }
+    if(fav.isVoice){
+      contentHtml+='<div style="font-size:13px;color:var(--txt2);margin-top:4px;display:flex;align-items:center;gap:6px;"><span>🎤</span><span>语音消息</span></div>';
+    }
+    if(fav.isTouch){
+      contentHtml+='<div style="font-size:13px;color:var(--txt2);margin-top:4px;">💫 '+ (fav.text||'一个触碰') +'</div>';
+    }
+    if(fav.isRedpacket){
+      contentHtml+='<div style="font-size:13px;color:var(--txt2);margin-top:4px;">🧧 红包消息</div>';
+    }
+    if(fav.isCall){
+      contentHtml+='<div style="font-size:13px;color:var(--txt2);margin-top:4px;">📞 通话消息</div>';
+    }
     
-    // ★ 每条收藏显示时间（精确到秒）
+    // ★ 每条收藏显示日期（月/日 时:分）
     var favTimeHtml='';
     if(fav.msgTime){
       var fd=new Date(fav.msgTime);
-      favTimeHtml='<div style="font-size:10px;color:var(--txt3);margin-bottom:4px;">'+('0'+fd.getHours()).slice(-2)+':'+('0'+fd.getMinutes()).slice(-2)+':'+('0'+fd.getSeconds()).slice(-2)+'</div>';
+      favTimeHtml='<div style="font-size:10px;color:var(--txt3);margin-bottom:4px;">'+(fd.getMonth()+1)+'/'+fd.getDate()+' '+('0'+fd.getHours()).slice(-2)+':'+('0'+fd.getMinutes()).slice(-2)+'</div>';
     }
     html+='<div style="padding:12px;background:var(--c2);border-radius:8px;margin-bottom:8px;">'+favTimeHtml+contentHtml+'</div>';
   });

@@ -2890,12 +2890,18 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   };
   if(!mmKey){toast('请先在 设置→API接口 填写 MiniMax Key');_finish();return;}
   if(!vid){toast('该梦角还没有音色，请先上传参考音频复刻');_finish();return;}
+  // ★ 朗读前过滤 emoji/颜文字/符号，避免被 TTS 读出
+  var _clean=String(text||'')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}\u{2190}-\u{21FF}\u{25A0}-\u{25FF}\u{FF00}-\u{FFEF}\u{3000}-\u{303F}\u{1F1E6}-\u{1F1FF}]/gu,'')
+    .replace(/[^\u4e00-\u9fa5a-zA-Z0-9，。！？、；：""''（）《》【】…—~·,.!?;:()<>\[\]{}'\"\s]/g,' ')
+    .replace(/\s+/g,' ').trim();
+  if(!_clean){_finish();return;}
   fetch(mmBase.replace(/\/+$/,'')+'/v1/t2a_v2',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+mmKey},
     body:JSON.stringify({
       model:'speech-02-hd',
-      text:String(text||'').slice(0,300),
+      text:_clean.slice(0,300),
       voice_setting:{voice_id:vid,speed:1.0,vol:1.0,pitch:0},
       audio_setting:{sample_rate:32000,bitrate:128000,format:'mp3',channel:1},
       stream:false,
@@ -2922,7 +2928,8 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
     if(msgId&&_mmAudioCache[msgId])_mmAudioCache[msgId].audio=au;
     // ★ 播放状态：按钮图标切换为"播放中"（动画），结束/出错恢复
     var _btn=msgId?document.querySelector('[data-mid="'+msgId+'"]'):null;
-    var _btnOld=_btn?_btn.innerHTML:null;
+    // ★ 恢复图标固定为播放按钮（不能用 _btn.innerHTML，它可能是"生成中"占位）
+    var _btnOld=_btn?'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>':null;
     var _setPlaying=function(playing){
       try{
         if(_btn){
@@ -2953,13 +2960,19 @@ function mmSpeakMsg(msgId,el){
   try{
     if(el){
       oldInner=el.innerHTML;
-      el.innerHTML='<span style="white-space:nowrap;font-size:11px;">生成中...</span>';
+      // ★ 保持原始尺寸（固定宽高），防止"生成中"改变布局导致矢量图错位
+      var _ow=el.offsetWidth||24,_oh=el.offsetHeight||24;
+      el.innerHTML='<span style="white-space:nowrap;font-size:11px;display:inline-block;">生成中...</span>';
       el.style.opacity='0.7';
-      el.style.minWidth='64px';
-      el.style.height='22px';
-      el.style.padding='0 8px';
+      el.style.width=_ow+'px';
+      el.style.height=_oh+'px';
+      el.style.padding='0';
       el.style.borderRadius='11px';
       el.style.background='rgba(0,0,0,0.06)';
+      el.style.display='flex';
+      el.style.alignItems='center';
+      el.style.justifyContent='center';
+      el.style.overflow='hidden';
     }
   }catch(e){}
   // 还原按钮的函数（播放成功/失败/超时兜底时调用）
@@ -2968,11 +2981,15 @@ function mmSpeakMsg(msgId,el){
       if(el){
         el.innerHTML=oldInner||'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
         el.style.opacity='';
-        el.style.minWidth='';
+        el.style.width='';
         el.style.height='';
         el.style.padding='';
         el.style.borderRadius='';
         el.style.background='';
+        el.style.display='';
+        el.style.alignItems='';
+        el.style.justifyContent='';
+        el.style.overflow='';
       }
     }catch(e2){}
   };
