@@ -211,7 +211,8 @@ function maybeAutoSend(onlyTargetId){
       var _asCount=_asMin+Math.floor(Math.random()*(_asMax-_asMin+1));
       if(_asCount<1)_asCount=1;
       var _asBaseId='m_'+Date.now();
-      // ★ 修复：主动发送多条也逐条延迟（间隔 1.2~2.8 秒）
+      // ★ 修复：主动发送多条也逐条延迟（间隔拟真：按长度+偶发停顿/快发），且同批去重
+      // 仅表情包图片允许 15% 小概率连发同一条；文字/emoji/颜文字/图片/语音同批内绝不重复
       function _sendAsBatch(ai){
         if(ai>=_asCount){
           savemsgs(targetId,m);
@@ -220,14 +221,73 @@ function maybeAutoSend(onlyTargetId){
           return;
         }
         var _curReply=reply,_curImg=imgSrc,_curVoice=voiceSrc,_curVoiceText=voiceText;
-        if(ai>0&&textCards&&textCards.length>0&&!imgSrc&&!voiceSrc){
-          _curReply=textCards[Math.floor(Math.random()*textCards.length)].content;
+        if(ai>0){
+          var _usedSt2=[],_usedIm2=[],_usedVo2=[],_usedTe2=[];
+          for(var _bi=0;_bi<m.length;_bi++){
+            var _bm=m[_bi];
+            if(!_bm)continue;
+            if(_bm.isSticker&&_bm.img)_usedSt2.push(_bm.img);
+            else if(_bm.img)_usedIm2.push(_bm.img);
+            if(_bm.voice)_usedVo2.push(_bm.voice);
+            if(_bm.t&&!_bm.voice)_usedTe2.push(_bm.t);
+          }
+          function _pickND2(_arr,_used){
+            var _fr2=[];
+            for(var _fi2=0;_fi2<_arr.length;_fi2++){
+              if(_used.indexOf(_arr[_fi2].content)<0)_fr2.push(_arr[_fi2]);
+            }
+            if(_fr2.length>0)return _fr2[Math.floor(Math.random()*_fr2.length)];
+            for(var _ti2=0;_ti2<12;_ti2++){
+              var _c2=_arr[Math.floor(Math.random()*_arr.length)];
+              if(_used.indexOf(_c2.content)<0)return _c2;
+            }
+            return _arr[Math.floor(Math.random()*_arr.length)];
+          }
+          if(Math.random()<0.15&&_isStickerType===true&&imgSrc&&stickerCards&&stickerCards.length>0){
+            // 保持 _curImg 不变（连发相同表情包图片，真人常见）——仅表情包图片允许 15% 重复
+          }else if(_isStickerType===true&&imgSrc&&stickerCards&&stickerCards.length>0){
+            var _rcB2=_pickND2(stickerCards,_usedSt2);
+            _curImg=_rcB2.content;
+          }else if(_isStickerType!==true&&imgSrc&&imageCards&&imageCards.length>0){
+            var _rcB3=_pickND2(imageCards,_usedIm2);
+            _curImg=_rcB3.content;
+          }else if(voiceSrc&&voiceCards&&voiceCards.length>0){
+            var _rcB4=_pickND2(voiceCards,_usedVo2);
+            _curVoice=_rcB4.content;
+            _curVoiceText=_rcB4.voiceText||'';
+          }else if(!imgSrc&&!voiceSrc&&emojiCards&&emojiCards.length>0&&reply){
+            // emoji 不允许重复，直接去重重抽
+            var _rcB6=_pickND2(emojiCards,_usedTe2);
+            _curReply=_rcB6.content;
+          }else if(!imgSrc&&!voiceSrc&&kaomojiCards&&kaomojiCards.length>0&&reply){
+            var _rcB7=_pickND2(kaomojiCards,_usedTe2);
+            _curReply=_rcB7.content;
+          }
+          // ★ 修复：文字型消息（含表情包+文字）绝不重复，每次去重重抽
+          if(textCards&&textCards.length>0&&_curReply&&(!imgSrc||_isStickerType===true||!voiceSrc)){
+            var _rcB5=_pickND2(textCards,_usedTe2);
+            _curReply=_rcB5.content;
+          }
         }
         m.push({id:_asBaseId+'_'+ai+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:(ai===0?moodCard:null),heartCard:(ai===0?heartCard:null),intentCard:(ai===0?intentCard:null),quote:(ai===0?quoteMsgId:null),isSticker:(_isStickerType===true),isVoice:_curVoice?true:false});
         savemsgs(targetId,m);
         if(cid===targetId){renderMsgs(m)}renderChatList();
         if(ai===0)playSound('recv',targetId);
-        setTimeout(function(){_sendAsBatch(ai+1);},1200+Math.random()*1600);
+        if(ai<_asCount-1){
+          // ★ 拟真间隔：按本条消息长度决定基础间隔，偶发停顿思考 / 偶发快速连发
+          var _mlen2=(_curReply||'').length+(imgSrc?10:0)+(voiceSrc?8:0);
+          var _mbase2=900;
+          if(_mlen2>60)_mbase2=2600;
+          else if(_mlen2>30)_mbase2=2000;
+          else if(_mlen2>15)_mbase2=1500;
+          else _mbase2=1000;
+          var _mturn2=Math.random();
+          if(_mturn2<0.08)_mbase2+=2500+Math.random()*2000;
+          else if(_mturn2>0.9)_mbase2=500+Math.random()*500;
+          setTimeout(function(){_sendAsBatch(ai+1);},_mbase2+Math.random()*800);
+        }else{
+          setTimeout(function(){_sendAsBatch(ai+1);},0);
+        }
       }
       _sendAsBatch(0);
 

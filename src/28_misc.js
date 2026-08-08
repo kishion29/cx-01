@@ -652,6 +652,13 @@ function escapeHtml(text) {
 /* ===== Update Notice System ===== */
 var UPDATE_NOTICES = [
   {
+    version: '1.7.2',
+    date: '2026-08-08',
+    title: '星言 1.7.2',
+    summary: 'AI 解读接入、TA与你的距离 / TA的触碰、消息回复拟真化、多项稳定性修复',
+    content: '<h4>🌙 0808 星言 1.7.2 版本更新公告</h4><h4>✨ 新增：AI 解读（API 接口）</h4><p>底部导航「设置」→「API 接口」可接入 AI 大模型（支持 DeepSeek / 通义 / GLM / OpenAI 等）。</p><p>接入后：聊天中长按字卡消息 → 📜 解读这条字卡想表达的意思；朋友圈动态、信箱的信也能一键解读。</p><p>每个联系人是独立的梦角：可分别设置 TA 是男朋友/女朋友、各自的完整人设（性格/背景/称呼/说话习惯），解读时按该梦角自己的设定来，不会混淆。</p><p>占卜抽牌后新增「AI 解读」，可按你设定的占卜师指令解读牌面。所有配置仅保存在本机，不会上传任何服务器。</p><h4>✨ 新增：TA与你的距离 / TA的触碰（梦角）</h4><p>梦角分类新增两个存在感功能：</p><p>📍 TA与你的距离：TA在哪里、离你多近（贴近/很近/近/稍远/远 + 方向 + 连接状态），有持续状态与变化记录。</p><p>💫 TA的触碰：TA对你做了什么（牵手/拥抱/摸头等 14 个部位动作），有动作持续与记录，可点击查看完整信息。</p><p>两个功能采用「持续存在感」机制：打开不一定刷新——TA可能还在做上一个动作，状态有持续时间，记录点击可看完整。</p><h4>🔧 修复与优化</h4><p>修复：联系人多条回复文字/图片/语音重复发送（现仅表情包允许小概率连发）</p><p>修复：主动发送多条消息也去重，间隔拟真化</p><p>修复：表情包与图片大小混淆（表情包小图、图片大图）</p><p>修复：回复设置「已读不回概率」调 0 仍触发；「应用到全部联系人」误报未选择</p><p>修复：iOS/安卓刷新后偶发丢失聊天记录、朋友圈、头像（双端合并取最完整）</p><p>回复/主动发送间隔拟真：短消息快回、长消息打字久、偶发停顿或快速连发</p><p>开屏右上角新增「最新版本部署时间」，方便确认是否为最新版本</p>'
+  },
+  {
     version: '1.7.1',
     date: '2026-08-06',
     title: '星言 1.7.1',
@@ -730,8 +737,8 @@ var UPDATE_NOTICES = [
   }
 ];
 
-var CURRENT_VERSION = '1.7.1';
-var DEPLOY_TIME = '2026-08-07 20:32';
+var CURRENT_VERSION = '1.7.2';
+var DEPLOY_TIME = '2026-08-08 15:44';
 
 function compareVersions(v1, v2) {
   var parts1 = v1.split('.').map(Number);
@@ -767,6 +774,8 @@ function showUpdateNotice(notice) {
   document.getElementById('update-notice-title').innerHTML = '✨ ' + notice.title;
   document.getElementById('update-notice-version').textContent = '版本 ' + notice.version;
   document.getElementById('update-notice-date').textContent = notice.date + ' · 部署 ' + (typeof DEPLOY_TIME!=='undefined'?DEPLOY_TIME:'-');
+  var deployEl=document.getElementById('update-notice-deploy');
+  if(deployEl)deployEl.textContent='部署 '+(typeof DEPLOY_TIME!=='undefined'?DEPLOY_TIME:'');
   document.getElementById('update-notice-body').innerHTML = notice.content;
   
   overlay.classList.add('show');

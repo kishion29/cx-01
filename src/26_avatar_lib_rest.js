@@ -1794,7 +1794,7 @@ function withTimeout(promise, ms, fallback){
 }
 
 // 强制迁移旧版默认设置到新版默认值（仅当用户未手动修改过时）
-var CURRENT_VERSION = '1.7.1';
+var CURRENT_VERSION = '1.7.2';
 function migrateSettings(){
   var migratedVersion = null;
   try { migratedVersion = localStorage.getItem('star_settings_migrated_version'); } catch(e) {}
@@ -6731,9 +6731,11 @@ sendMsg=function(){
                 <button class="d2-btn d2-btn-primary" id="d2-btnNext" style="display:none;">继续 →</button>
                 <button class="d2-btn d2-btn-outline" id="d2-btnCopyResult" style="display:none;">📋 复制结果</button>
                 <button class="d2-btn d2-btn-outline" id="d2-btnHistory" style="display:none;">📜 历史记录</button>
+                <button class="d2-btn d2-btn-outline" id="d2-btnAi" style="display:none;">⭐ AI 解读</button>
                 <button class="d2-btn-send-chat" id="d2-btnSendChat" style="display:none;" onclick="d2SendResultToChat()">💬 发送至聊天</button>
                 <label class="d2-send-setting" id="d2-sendSetting" style="display:none;" title="关闭后不再自动显示发送按钮"><input type="checkbox" id="d2-sendToggle" checked onchange="d2ToggleSendToChat()"> 发送至聊天</label>
             </div>
+            <div id="d2-ai-area" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:12px;background:var(--c3);border:1px dashed var(--border);box-sizing:border-box;"></div>
             <div class="d2-disclaimer" style="margin-top: 6px; padding-bottom: 8px;">
                 牌面图片仅用于抽牌结果展示，不可下载。
             </div>

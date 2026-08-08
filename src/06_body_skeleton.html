@@ -13,7 +13,7 @@
 <body>
 <!-- 即时加载动画：在页面解析期间显示，减少手机端白屏/卡顿感 -->
 <div id="early-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;">
-  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#9c8b7b;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-07 20:32</div>
+  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#9c8b7b;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-08 15:44</div>
   <div style="font-size:32px;color:#c9a96e;margin-bottom:24px;animation:splashPulse 1.5s ease-in-out infinite">✦</div>
   <div style="display:flex;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></span></div>
   <div style="font-size:13px;color:#9c8b7b;letter-spacing:2px;margin-top:20px;" id="splash-status">星言加载中...</div>
@@ -175,10 +175,11 @@ function showUsageNoticeFromSplash() {
 <!-- Update Notice Overlay -->
 <div id="update-notice-overlay">
   <div id="update-notice-modal">
-    <div id="update-notice-header">
+    <div id="update-notice-header" style="position:relative;">
       <div id="update-notice-title">✨ 星言字卡</div>
       <div id="update-notice-version"></div>
       <div id="update-notice-date"></div>
+      <div id="update-notice-deploy" style="position:absolute;top:10px;right:12px;font-size:11px;color:var(--txt3);letter-spacing:0.5px;"></div>
     </div>
     <div id="update-notice-body"></div>
     <div id="update-notice-footer">
@@ -1940,6 +1941,7 @@ function showUsageNoticeFromSplash() {
       <div class="my-row" id="custom-icons-btn"><span class="my-ico">🎨</span><span class="my-label">自定义图标</span></div>
       <div class="my-row" id="reply-settings-btn"><span class="my-ico">💬</span><span class="my-label">回复设置</span></div>
       <div class="my-row" id="dnd-settings-btn"><span class="my-ico">🌙</span><span class="my-label">免打扰模式</span></div>
+      <div class="my-row" id="api-settings-btn" style="cursor:pointer;-webkit-tap-highlight-color:transparent;"><span class="my-ico">🛰️</span><span class="my-label">API 接口</span></div>
       <div class="my-row" id="pwa-install-btn" style="display:none;"><span class="my-ico">📲</span><span class="my-label">安装到桌面</span></div>
       <div class="my-row" id="import-data-btn" style="cursor:pointer;-webkit-tap-highlight-color:transparent;"><span class="my-ico">📥</span><span class="my-label">导入数据</span></div>
       <div class="my-row" id="export-data-btn"><span class="my-ico">📤</span><span class="my-label">导出数据</span></div>
@@ -1991,6 +1993,75 @@ function showUsageNoticeFromSplash() {
       <button type="button" class="btn-outline" id="storage-release-memory-btn" style="width:100%;background:var(--c2);color:var(--txt);border-color:var(--border);">🧹 释放错误加载的内存</button>
       <button type="button" class="btn-outline" id="storage-clean-orphan-btn" style="width:100%;background:var(--c2);color:#c0392b;border-color:rgba(192,57,43,0.4);">🗑️ 清理孤儿图片/语音数据（释放空间）</button>
       <div id="storage-release-result" style="font-size:11px;color:var(--txt3);display:none;text-align:center;"></div>
+    </div>
+  </div>
+  <div class="tabs"></div>
+</div>
+
+<!-- API Settings Page -->
+<div class="page" id="pg-api-settings">
+  <div class="nav">
+    <div class="nl"><button class="btn-nav" id="api-settings-back">←</button></div>
+    <span class="tt">🔌 API 接口</span>
+    <div class="nr"></div>
+  </div>
+  <div id="api-settings-scroll" style="flex:1;overflow-y:auto;padding:16px;">
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:16px;padding:12px 14px;background:var(--c2);border-radius:10px;line-height:1.8;">
+      <div style="font-weight:600;color:var(--txt);margin-bottom:6px;">这个功能是做什么的？</div>
+      🛰️ 接入 AI 大模型（如 DeepSeek）后，你可以让 TA 帮你「解读」内容：<br>
+      · 聊天中长按字卡消息 → 📜 解读这条字卡想表达的意思<br>
+      · 朋友圈动态 → 📜 解读这条动态的含义<br>
+      · 信箱的信 → 📜 AI 解读这封信<br>
+      TA 会结合你们的关系设定（你设置的完整人设）来解释，让你更懂 TA 想说的话。<br>
+      <span style="color:var(--txt3);">所有配置仅保存在本机，不会上传到任何服务器。</span>
+    </div>
+    <div style="background:var(--c1);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:14px;font-weight:600;color:var(--txt);">启用 AI 解读</div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;">
+          <input type="checkbox" id="api-enable-toggle" style="opacity:0;width:0;height:0;">
+          <span id="api-enable-slider" style="position:absolute;top:0;left:0;right:0;bottom:0;background:var(--c3);border-radius:12px;transition:0.3s;cursor:pointer;"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="font-size:13px;color:var(--txt2);width:72px;flex-shrink:0;">TA 是</div>
+        <div style="display:flex;gap:8px;flex:1;">
+          <div id="api-gender-boy" onclick="setApiGender('boy')" style="flex:1;text-align:center;padding:8px 0;border-radius:10px;font-size:13px;cursor:pointer;background:var(--c3);color:var(--txt);">男朋友</div>
+          <div id="api-gender-girl" onclick="setApiGender('girl')" style="flex:1;text-align:center;padding:8px 0;border-radius:10px;font-size:13px;cursor:pointer;background:var(--c3);color:var(--txt);">女朋友</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">API 地址（OpenAI 兼容格式）</div>
+      <input type="text" id="api-base-url" placeholder="https://api.deepseek.com/v1" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">API Key</div>
+      <input type="password" id="api-key" placeholder="sk-..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">模型名称</div>
+      <input type="text" id="api-model" list="api-model-list" placeholder="deepseek-chat" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;">
+      <datalist id="api-model-list">
+        <option value="deepseek-chat">DeepSeek · deepseek-chat</option>
+        <option value="deepseek-reasoner">DeepSeek · deepseek-reasoner</option>
+        <option value="qwen-turbo">通义 · qwen-turbo</option>
+        <option value="qwen-plus">通义 · qwen-plus</option>
+        <option value="qwen-max">通义 · qwen-max</option>
+        <option value="glm-4-flash">GLM · glm-4-flash</option>
+        <option value="glm-4">GLM · glm-4</option>
+        <option value="gpt-4o-mini">OpenAI · gpt-4o-mini</option>
+        <option value="gpt-4o">OpenAI · gpt-4o</option>
+        <option value="moonshot-v1-8k">Moonshot · moonshot-v1-8k</option>
+      </datalist>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">人设应用到联系人（每个联系人独立人设）</div>
+      <select id="api-contact-select" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;"></select>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">TA 的完整人设（选填，可写性格、背景、称呼、说话习惯、你们的关系细节等）</div>
+      <textarea id="api-persona" rows="5" placeholder="例如：温柔但有点傲娇，说话简短偶尔逗你；你们相识于某个雨天，TA习惯叫你"笨蛋"；认定你是最重要的人……" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:14px;resize:vertical;"></textarea>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">AI 占卜师解读指令（占卜抽牌后用，可按你喜好设定解读风格；不填用默认）</div>
+      <textarea id="api-divine-instr" rows="4" placeholder="例如：你是一位温柔神秘的占卜师，用感性的语言解读牌面，联系我和TA的关系给出指引，语气温暖有诗意……" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:14px;resize:vertical;"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" onclick="saveApiSettings()" style="flex:1;">保存</button>
+        <button class="btn" id="api-test-btn" style="flex:1;background:var(--c2);color:var(--txt);border:1px solid var(--border);">测试连接</button>
+      </div>
+      <div id="api-test-result" style="font-size:12px;color:var(--txt3);margin-top:10px;display:none;"></div>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);line-height:1.7;padding:0 4px;">
+      支持任何 OpenAI 兼容的 API（DeepSeek / 通义 / GLM / OpenAI 等）。密钥仅保存在浏览器本地，不会上传到任何服务器。
     </div>
   </div>
   <div class="tabs"></div>
@@ -2437,6 +2508,82 @@ function showUsageNoticeFromSplash() {
     <div id="ta-favorites-list" style="max-height:60vh;overflow-y:auto;padding:16px;"></div>
     <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
       <button class="btn" onclick="hideOv('ov-ta-favorites')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Distance Modal（TA与你的距离） -->
+<div class="overlay" id="ov-ta-distance">
+  <div class="modal" style="width:90%;max-width:480px;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">📍 TA与你的距离</div>
+    </div>
+    <div id="ta-distance-body" style="max-height:64vh;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="hideOv('ov-ta-distance')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Touch Modal（TA的触碰） -->
+<div class="overlay" id="ov-ta-touch">
+  <div class="modal" style="width:90%;max-width:480px;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">💫 TA的触碰</div>
+    </div>
+    <div id="ta-touch-body" style="max-height:64vh;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="hideOv('ov-ta-touch')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Touch History Modal（触碰记录全屏） -->
+<div class="overlay" id="ov-ta-touch-history">
+  <div class="modal" style="width:94%;max-width:520px;height:86vh;display:flex;flex-direction:column;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">💫 触碰记录</div>
+    </div>
+    <div id="ta-touch-history-body" style="flex:1;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;">
+      <button class="btn" onclick="hideOv('ov-ta-touch-history')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- TA's Distance Detail Modal（距离记录详情） -->
+<div class="overlay" id="ov-ta-distance-detail">
+  <div class="modal" style="width:90%;max-width:480px;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">📍 距离记录详情</div>
+    </div>
+    <div id="ta-distance-detail-body" style="max-height:70vh;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="hideOv('ov-ta-distance-detail')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Touch Detail Modal（触碰记录详情） -->
+<div class="overlay" id="ov-ta-touch-detail">
+  <div class="modal" style="width:90%;max-width:480px;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">💫 触碰记录详情</div>
+    </div>
+    <div id="ta-touch-detail-body" style="max-height:70vh;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="hideOv('ov-ta-touch-detail')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-ta-distance-history">
+  <div class="modal" style="width:94%;max-width:520px;height:86vh;display:flex;flex-direction:column;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">📍 距离变化记录</div>
+    </div>
+    <div id="ta-distance-history-body" style="flex:1;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;">
+      <button class="btn" onclick="hideOv('ov-ta-distance-history')" style="flex:1;">关闭</button>
     </div>
   </div>
 </div>
@@ -3220,7 +3367,21 @@ function showUsageNoticeFromSplash() {
   <button id="msg-action-edit" style="border:none;background:none;padding:6px;font-size:16px;color:var(--txt);cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;width:36px;height:36px">✏️</button>
   <button id="msg-action-retract" style="border:none;background:none;padding:6px;font-size:16px;color:#ff9800;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;width:36px;height:36px">⤺</button>
   <button id="msg-action-copy" style="border:none;background:none;padding:6px;font-size:16px;color:var(--txt);cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;width:36px;height:36px">📋</button>
+  <button id="msg-action-ai" style="border:none;background:none;padding:6px;font-size:16px;color:var(--accent);cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;width:36px;height:36px" title="AI解读字卡">📜</button>
   <button id="msg-action-delete" style="border:none;background:none;padding:6px;font-size:16px;color:#ff4d4f;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;width:36px;height:36px">🗑</button>
+</div>
+
+<!-- AI Interpret Modal -->
+<div class="overlay" id="ov-ai-interpret">
+  <div class="modal" style="width:90%;max-width:480px;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">🔮 AI 解读字卡</div>
+    </div>
+    <div id="ai-interpret-body" style="max-height:60vh;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="hideOv('ov-ai-interpret')" style="flex:1;">关闭</button>
+    </div>
+  </div>
 </div>
 
 <!-- Emoji Panel -->

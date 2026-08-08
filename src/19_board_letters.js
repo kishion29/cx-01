@@ -279,19 +279,79 @@ function openLetterDetail(lid){
     html+=createLetterPaper('亲爱的，',renderLetterContent(l.ct),flt(l.tm),'我',true);
   }
   
+  // ★ AI 解读块：信件详情内显示解读（解读中/失败/结果收纳展开），保留在原信件下方
+  if(l.aiLoading){
+    html+='<div style="padding:12px 14px;border-radius:12px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:13px;color:var(--txt2);margin-bottom:12px;"><span style="display:inline-block;animation:aiPulse 1s ease-in-out infinite;">📜 TA正在解读这封信...</span></div>';
+  }else if(l.aiError){
+    html+='<div style="padding:12px 14px;border-radius:12px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:#ff4d4f;margin-bottom:12px;">📜 解读失败：'+String(l.aiError).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
+  }else if(l.aiInterpret){
+    var _aiEsc2=String(l.aiInterpret).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    html+='<div onclick="var _e=document.getElementById(\'aii_letter\');if(_e){var _o=_e.style.display!==\'none\';_e.style.display=_o?\'none\':\'block\';this.querySelector(\'.aii-lt\').textContent=_o?\'📜 查看解读\':\'📜 收起解读\';}" style="padding:10px 14px;border-radius:12px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:13px;color:var(--accent);cursor:pointer;margin-bottom:6px;user-select:none;-webkit-user-select:none;"><span class="aii-lt">📜 收起解读</span></div><div id="aii_letter" style="display:block;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,0.04);font-size:13px;color:var(--txt);line-height:1.7;word-break:break-all;margin-bottom:12px;">'+_aiEsc2+'</div>';
+  }
+  
   $('letter-detail-content').innerHTML=html;
   
   if(l.fid&&!l.myReply&&l.type==='received'){
-    $('letter-detail-footer').innerHTML='<button class="btn-outline" onclick="hideOv(\'ov-letter-detail\')" style="flex:1;">关闭</button><button class="btn" onclick="showReplyForm()" style="flex:1;background:#fdf8e8;color:#8b7355;border:1px solid #e8e0d0;">提笔回信</button>';
+    $('letter-detail-footer').innerHTML='<button class="btn-outline" onclick="hideOv(\'ov-letter-detail\')" style="flex:1;">关闭</button><button class="btn-outline" onclick="aiInterpretLetter(\''+l.id+'\')" style="flex:1;">📜 AI 解读</button><button class="btn" onclick="showReplyForm()" style="flex:1;background:#fdf8e8;color:#8b7355;border:1px solid #e8e0d0;">提笔回信</button>';
   }else{
-    $('letter-detail-footer').innerHTML='<button class="btn" onclick="hideOv(\'ov-letter-detail\')" style="width:100%;background:#fdf8e8;color:#8b7355;border:1px solid #e8e0d0;">关闭</button>';
+    $('letter-detail-footer').innerHTML='<button class="btn-outline" onclick="hideOv(\'ov-letter-detail\')" style="flex:1;">关闭</button><button class="btn-outline" onclick="aiInterpretLetter(\''+l.id+'\')" style="flex:1;">📜 AI 解读</button>';
   }
   
   showOv('ov-letter-detail');
 }
 
-function showReplyForm(){
-  if(!currentLetter)return;
+// ★ AI 解读信件：结果保留在信件详情内（不弹窗），存到信数据重新打开仍在
+function aiInterpretLetter(lid){
+  var ll=ls(LL)||[];
+  var l=ll.find(function(x){return x.id===lid});
+  if(!l){toast('信件不存在');return;}
+  var s=(typeof getApiSettings==='function')?getApiSettings():{enabled:false,apiKey:''};
+  if(!s.enabled||!s.apiKey){
+    var r=confirm('还没有接入 AI 接口，无法解读。\n\n请在 底部导航「设置」→「API 接口」中：\n1. 打开「启用 AI 解读」开关\n2. 填入 API 地址和 Key（如 DeepSeek）\n3. 保存后即可使用\n\n现在去配置吗？');
+    if(r&&typeof openApiSettings==='function')openApiSettings();
+    return;
+  }
+  var letterText=l.ct||'';
+  if(l.partnerReply&&l.partnerReply.content)letterText+='\n[TA的回信] '+l.partnerReply.content;
+  if(l.myReply&&l.myReply.content)letterText+='\n[我的信] '+l.myReply.content;
+  if(!letterText){toast('信件内容为空');return;}
+  // 标记解读中，保存并重渲染信件详情
+  l.aiLoading=true;l.aiInterpret='';l.aiError='';
+  ls(LL,ll);
+  if(window.localforage)window.localforage.setItem(LL,ll).catch(function(){});
+  openLetterDetail(lid);
+  var genderText=getContactGender(l.fid)==='girl'?'女朋友':'男朋友';
+  var personaText='';
+  var contactPersona=getContactPersona(l.fid);
+  if(contactPersona)personaText='\n【TA的完整人设】'+contactPersona;
+  var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
+  AI_BASE_SETTING+personaText+'\n'+
+  '【解读要求】用 100~200 字解读这段内容：字面意思 → 你真正想说的话 → 此刻的感受 → 给用户的一句话回应。用第二人称"你"对用户说话，第一人称"我"=你。';
+  var userPrompt='这是TA（或你们之间）的一封信：「'+letterText+'」。请以TA的身份解读它想传达的意思。';
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:[{role:'system',content:systemPrompt},{role:'user',content:userPrompt}],max_tokens:500})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text){throw new Error('返回为空');}
+    var ll2=ls(LL)||[];
+    var l2=ll2.find(function(x){return x.id===lid});
+    if(l2){l2.aiInterpret=text;l2.aiLoading=false;l2.aiError='';ls(LL,ll2);if(window.localforage)window.localforage.setItem(LL,ll2).catch(function(){});}
+    openLetterDetail(lid);
+  }).catch(function(e){
+    console.warn('AI letter interpret failed:',e);
+    var ll3=ls(LL)||[];
+    var l3=ll3.find(function(x){return x.id===lid});
+    if(l3){l3.aiLoading=false;l3.aiError=String(e.message||e);l3.aiInterpret='';ls(LL,ll3);if(window.localforage)window.localforage.setItem(LL,ll3).catch(function(){});}
+    openLetterDetail(lid);
+    toast('AI 解读失败，请检查 API 配置');
+  });
+}
+function showReplyForm(){  if(!currentLetter)return;
   var c=contacts.find(function(x){return x.id===currentLetter.fid});
   
   $('letter-detail-content').innerHTML='<div style="background:#f5efe0;border-radius:12px;border:1px solid #e8e0d0;overflow:hidden;">'+
@@ -766,6 +826,7 @@ function bindMyPageEvents(){
     ['mood-cards-settings-btn',openMoodCardsSettings],
     ['reply-settings-btn',openReplySettings],
     ['dnd-settings-btn',openDndSettings],
+    ['api-settings-btn',openApiSettings],
     ['sound-btn',openSoundSettings],
     ['export-data-btn',async function(){
       // ★ 导出确认：Via 等浏览器 customConfirm 动态弹窗可能不渲染，用原生 confirm 保证可靠

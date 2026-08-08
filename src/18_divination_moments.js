@@ -1091,7 +1091,7 @@ function _renderMomentsList(postsEl,postsList,savedInput){
     var likeIcon=likedBySelf?'<span style="color:#ff4d4f;">♥</span>':'<span>♡</span>';
     var likeText=likedBySelf?'<span style="color:#ff4d4f;">已赞</span>':'<span>点赞</span>';
     
-    return'<div class="moment" data-mid="'+post.id+'" style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;"><div class="mo-head" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div class="mo-av" style="width:40px;height:40px;border-radius:0;background:var(--c3);display:flex;align-items:center;justify-content:center;overflow:hidden;">'+(member.avatar?'<img src="'+member.avatar+'" style="display:block;width:100%;height:100%;object-fit:cover;">':'✦')+'</div><div><div class="mo-name" style="font-weight:500;color:var(--txt);font-size:15px;">'+member.nickname+'</div><div class="mo-time" style="font-size:12px;color:var(--txt3);margin-top:2px;">'+formatMomentsTime(post.timestamp)+'</div></div></div>'+(post.authorId==='self'?'<div style="position:absolute;top:10px;right:10px;display:flex;gap:4px;"><button onclick="editMoment(\''+post.id+'\')" style="width:24px;height:24px;border:none;background:none;color:var(--txt3);font-size:12px;cursor:pointer;opacity:0.35;display:flex;align-items:center;justify-content:center;border-radius:50%;" title="编辑">✎</button><button onclick="deleteMoment(\''+post.id+'\')" style="width:24px;height:24px;border:none;background:none;color:var(--txt3);font-size:12px;cursor:pointer;opacity:0.35;display:flex;align-items:center;justify-content:center;border-radius:50%;" title="删除">✕</button></div>':'')+'<div class="mo-body" style="font-size:14px;color:var(--txt);line-height:1.6;">'+contentHtml+'</div>'+metaHtml+imagesHtml+likesHtml+commentsHtml+'<div class="mo-footer" style="display:flex;justify-content:center;gap:40px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bg3);"><div class="mo-action '+(likedBySelf?'mo-like liked':'')+'" data-action="like" style="display:flex;align-items:center;gap:6px;color:'+(likedBySelf?'#ff4d4f':'var(--txt3)')+';font-size:14px;cursor:pointer;transition:color 0.2s;" onclick="toggleLike(\''+post.id+'\')">'+likeIcon+likeText+'</div><div class="mo-action" data-action="comment" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;transition:color 0.2s;" onclick="showMomentsCommentInput(\''+post.id+'\')"><span>💬</span><span>评论</span></div></div></div>';
+    return'<div class="moment" data-mid="'+post.id+'" style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;"><div class="mo-head" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div class="mo-av" style="width:40px;height:40px;border-radius:0;background:var(--c3);display:flex;align-items:center;justify-content:center;overflow:hidden;">'+(member.avatar?'<img src="'+member.avatar+'" style="display:block;width:100%;height:100%;object-fit:cover;">':'✦')+'</div><div><div class="mo-name" style="font-weight:500;color:var(--txt);font-size:15px;">'+member.nickname+'</div><div class="mo-time" style="font-size:12px;color:var(--txt3);margin-top:2px;">'+formatMomentsTime(post.timestamp)+'</div></div></div>'+(post.authorId==='self'?'<div style="position:absolute;top:10px;right:10px;display:flex;gap:4px;"><button onclick="editMoment(\''+post.id+'\')" style="width:24px;height:24px;border:none;background:none;color:var(--txt3);font-size:12px;cursor:pointer;opacity:0.35;display:flex;align-items:center;justify-content:center;border-radius:50%;" title="编辑">✎</button><button onclick="deleteMoment(\''+post.id+'\')" style="width:24px;height:24px;border:none;background:none;color:var(--txt3);font-size:12px;cursor:pointer;opacity:0.35;display:flex;align-items:center;justify-content:center;border-radius:50%;" title="删除">✕</button></div>':'')+'<div class="mo-body" style="font-size:14px;color:var(--txt);line-height:1.6;">'+contentHtml+'</div>'+(post.aiLoading?'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:var(--txt2);"><span style="display:inline-block;animation:aiPulse 1s ease-in-out infinite;">📜 TA正在解读...</span></div>':(post.aiError?'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:#ff4d4f;">📜 解读失败：'+String(post.aiError).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':(post.aiInterpret?'<div onclick="toggleMomentAI(\''+post.id+'\')" style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);cursor:pointer;font-size:12px;color:var(--accent);user-select:none;-webkit-user-select:none;"><span id="m-ai-t-'+post.id+'">📜 收起解读</span></div><div id="m-ai-'+post.id+'" style="display:block;margin-top:6px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,0.04);font-size:13px;color:var(--txt);line-height:1.7;word-break:break-all;">'+String(post.aiInterpret).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')+'</div>':'')))+metaHtml+imagesHtml+likesHtml+commentsHtml+'<div class="mo-footer" style="display:flex;justify-content:center;gap:40px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bg3);"><div class="mo-action '+(likedBySelf?'mo-like liked':'')+'" data-action="like" style="display:flex;align-items:center;gap:6px;color:'+(likedBySelf?'#ff4d4f':'var(--txt3)')+';font-size:14px;cursor:pointer;transition:color 0.2s;" onclick="toggleLike(\''+post.id+'\')">'+likeIcon+likeText+'</div><div class="mo-action" data-action="comment" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;transition:color 0.2s;" onclick="showMomentsCommentInput(\''+post.id+'\')"><span>💬</span><span>评论</span></div><div class="mo-action" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;transition:color 0.2s;" onclick="aiInterpretMoment(\''+post.id+'\')"><span>📜</span><span>解读</span></div></div></div>';
   }).join('');
   
   if(savedInput){
@@ -1139,6 +1139,65 @@ function toggleLike(mid){
   saveMomentsData();refreshMomentsView();
 }
 function isLikedBySelf(post){return post.likes&&post.likes.indexOf('self')>=0}
+// ★ AI 解读朋友圈动态：结果保留在动态下方（不弹窗），存到动态数据重新打开仍在
+function toggleMomentAI(postId){
+  var _body=document.getElementById('m-ai-'+postId);
+  var _tog=document.getElementById('m-ai-t-'+postId);
+  if(_body&&_tog){
+    var _open=_body.style.display!=='none';
+    _body.style.display=_open?'none':'block';
+    _tog.textContent=_open?'📜 查看解读':'📜 收起解读';
+  }
+}
+function aiInterpretMoment(postId){
+  var post=null;
+  var all=(typeof momentsPosts!=='undefined'&&momentsPosts)?momentsPosts:[];
+  for(var i=0;i<all.length;i++){if(all[i].id===postId){post=all[i];break;}}
+  if(!post){toast('动态不存在');return;}
+  var s=(typeof getApiSettings==='function')?getApiSettings():{enabled:false,apiKey:''};
+  if(!s.enabled||!s.apiKey){
+    var r=confirm('还没有接入 AI 接口，无法解读。\n\n请在 底部导航「设置」→「API 接口」中：\n1. 打开「启用 AI 解读」开关\n2. 填入 API 地址和 Key（如 DeepSeek）\n3. 保存后即可使用\n\n现在去配置吗？');
+    if(r&&typeof openApiSettings==='function')openApiSettings();
+    return;
+  }
+  var text=post.content||post.text||'';
+  if(!text){toast('动态内容为空');return;}
+  // 标记解读中，保存并重渲染朋友圈
+  post.aiLoading=true;post.aiInterpret='';post.aiError='';
+  saveMomentsData();
+  renderMoments();
+  var ownerId=(post.authorId&&post.authorId!=='self')?post.authorId:null;
+  var genderText=getContactGender(ownerId)==='girl'?'女朋友':'男朋友';
+  var personaText='';
+  var contactPersona=getContactPersona(ownerId);
+  if(contactPersona)personaText='\n【TA的完整人设】'+contactPersona;
+  var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
+  AI_BASE_SETTING+personaText+'\n'+
+  '【解读要求】用 100~200 字解读这段内容：字面意思 → 你真正想说的话 → 此刻的感受 → 给用户的一句话回应。用第二人称"你"对用户说话，第一人称"我"=你。';
+  var userPrompt='这是TA的一条朋友圈动态：「'+text+'」。请以TA的身份解读它想传达的意思。';
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:[{role:'system',content:systemPrompt},{role:'user',content:userPrompt}],max_tokens:500})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text2=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text2){throw new Error('返回为空');}
+    var all2=(typeof momentsPosts!=='undefined'&&momentsPosts)?momentsPosts:[];
+    for(var i2=0;i2<all2.length;i2++){if(all2[i2].id===postId){all2[i2].aiInterpret=text2;all2[i2].aiLoading=false;all2[i2].aiError='';break;}}
+    saveMomentsData();
+    renderMoments();
+  }).catch(function(e){
+    console.warn('AI moment interpret failed:',e);
+    var all3=(typeof momentsPosts!=='undefined'&&momentsPosts)?momentsPosts:[];
+    for(var i3=0;i3<all3.length;i3++){if(all3[i3].id===postId){all3[i3].aiLoading=false;all3[i3].aiError=String(e.message||e);all3[i3].aiInterpret='';break;}}
+    saveMomentsData();
+    renderMoments();
+    toast('AI 解读失败，请检查 API 配置');
+  });
+}
 function showMomentsCommentInput(postId){
   var existingInput=document.querySelector('.moments-comment-input-area');
   if(existingInput)existingInput.remove();
@@ -2460,7 +2519,7 @@ function renderMomentsPost(post,member){
     visText='公开';
   }
   extraInfoHtml+='<div style="font-size:11px;color:var(--txt4);margin-top:4px;">👁 '+visText+'</div>';
-  return'<div class="moment" data-mid="'+post.id+'" style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;"><div class="mo-head" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div class="mo-av" style="width:40px;height:40px;border-radius:0;background:var(--c3);display:flex;align-items:center;justify-content:center;overflow:hidden;">'+(member.avatar?'<img src="'+member.avatar+'" style="display:block;width:100%;height:100%;object-fit:cover;">':'✦')+'</div><div><div class="mo-name" style="font-weight:500;color:var(--txt);font-size:15px;">'+member.nickname+'</div><div class="mo-time" style="font-size:12px;color:var(--txt3);margin-top:2px;">'+formatMomentsTime(post.timestamp)+'</div></div></div>'+postActionsHtml+'<div class="mo-body" style="font-size:14px;color:var(--txt);line-height:1.6;">'+post.content+'</div>'+imagesHtml+extraInfoHtml+likesHtml+commentsHtml+'<div class="mo-footer" style="display:flex;justify-content:center;gap:40px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bg3);"><div class="mo-action" data-action="like" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;" onclick="toggleLike(\''+post.id+'\')"><span>♡</span><span>点赞</span></div><div class="mo-action" data-action="comment" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;" onclick="showMomentsCommentInput(\''+post.id+'\')"><span>💬</span><span>评论</span></div></div></div>';
+  return'<div class="moment" data-mid="'+post.id+'" style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;"><div class="mo-head" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div class="mo-av" style="width:40px;height:40px;border-radius:0;background:var(--c3);display:flex;align-items:center;justify-content:center;overflow:hidden;">'+(member.avatar?'<img src="'+member.avatar+'" style="display:block;width:100%;height:100%;object-fit:cover;">':'✦')+'</div><div><div class="mo-name" style="font-weight:500;color:var(--txt);font-size:15px;">'+member.nickname+'</div><div class="mo-time" style="font-size:12px;color:var(--txt3);margin-top:2px;">'+formatMomentsTime(post.timestamp)+'</div></div></div>'+postActionsHtml+'<div class="mo-body" style="font-size:14px;color:var(--txt);line-height:1.6;">'+post.content+'</div>'+(post.aiLoading?'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:var(--txt2);"><span style="display:inline-block;animation:aiPulse 1s ease-in-out infinite;">📜 TA正在解读...</span></div>':(post.aiError?'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:#ff4d4f;">📜 解读失败：'+String(post.aiError).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>':(post.aiInterpret?'<div onclick="toggleMomentAI(\''+post.id+'\')" style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);cursor:pointer;font-size:12px;color:var(--accent);user-select:none;-webkit-user-select:none;"><span id="m-ai-t-'+post.id+'">📜 收起解读</span></div><div id="m-ai-'+post.id+'" style="display:block;margin-top:6px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,0.04);font-size:13px;color:var(--txt);line-height:1.7;word-break:break-all;">'+String(post.aiInterpret).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')+'</div>':'')))+imagesHtml+extraInfoHtml+likesHtml+commentsHtml+'<div class="mo-footer" style="display:flex;justify-content:center;gap:40px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bg3);"><div class="mo-action" data-action="like" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;" onclick="toggleLike(\''+post.id+'\')"><span>♡</span><span>点赞</span></div><div class="mo-action" data-action="comment" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;" onclick="showMomentsCommentInput(\''+post.id+'\')"><span>💬</span><span>评论</span></div><div class="mo-action" style="display:flex;align-items:center;gap:6px;color:var(--txt3);font-size:14px;cursor:pointer;transition:color 0.2s;" onclick="aiInterpretMoment(\''+post.id+'\')"><span>📜</span><span>解读</span></div></div></div>';
 }
 
 // ---------- Message Board ----------

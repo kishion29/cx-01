@@ -1876,6 +1876,19 @@ function _doRenderMsgs(messages){
         contentHtml=_plainText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
       }
     
+    // ★ AI 解读块：解读附加在原消息上；解读中显示进度，完成后自动展开显示
+    if(x.aiInterpret!==undefined&&x.aiInterpret!==null){
+      if(x.aiLoading){
+        contentHtml+='<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:var(--txt2);"><span style="display:inline-block;animation:aiPulse 1s ease-in-out infinite;">📜 TA正在解读...</span></div>';
+      }else if(x.aiError){
+        contentHtml+='<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);font-size:12px;color:#ff4d4f;">📜 解读失败：'+String(x.aiError).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
+      }else if(x.aiInterpret){
+        var _aiEsc=String(x.aiInterpret).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        var _aiId='aii_'+x.id;
+        contentHtml+='<div onclick="var _e=document.getElementById(\''+_aiId+'\');if(_e){var _open=_e.style.display!==\'none\';_e.style.display=_open?\'none\':\'block\';this.querySelector(\'.aii-toggle\').textContent=_open?\'📜 查看解读\':\'📜 收起解读\';}" style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.05);border:1px dashed var(--border);cursor:pointer;font-size:12px;color:var(--accent);user-select:none;-webkit-user-select:none;"><span class="aii-toggle">📜 收起解读</span></div><div id="'+_aiId+'" style="display:block;margin-top:6px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,0.04);font-size:13px;color:var(--txt);line-height:1.7;word-break:break-all;">'+_aiEsc+'</div>';
+      }
+    }
+    
     var quoteHtml='';
     if(x.quote){
       var quoteMsg=m.find(function(q){return q.id===x.quote});
@@ -2657,6 +2670,7 @@ function showMsgActionMenu(x,y,msgId,isLiked,isNonInstant){
   var retractBtn=$('msg-action-retract');
   var copyBtn=$('msg-action-copy');
   var deleteBtn=$('msg-action-delete');
+  var aiBtn=$('msg-action-ai');
   
   var getMsgs=function(){return isNonInstant?nonInstantMsgs(nonInstantCid):msgs(cid)};
   var saveMsgs=function(id,m){return isNonInstant?saveNonInstantMsgs(id,m):savemsgs(id,m)};
@@ -2668,6 +2682,15 @@ function showMsgActionMenu(x,y,msgId,isLiked,isNonInstant){
   
   replyBtn.style.display='flex';
   deleteBtn.style.display='flex';
+  if(aiBtn)aiBtn.style.display='flex';
+  if(aiBtn){
+    var apiSet=(typeof getApiSettings==='function')?getApiSettings():{enabled:false};
+    aiBtn.style.display=apiSet.enabled?'flex':'none';
+  }
+  aiBtn.onclick=function(e){e.stopPropagation();
+    if(typeof aiInterpretCard==='function'){aiInterpretCard(msgId);}
+    else{hideMsgActionMenu();toast('AI 功能未加载');}
+  };
   
   if(isSelf){
     editBtn.style.display='flex';

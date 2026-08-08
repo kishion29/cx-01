@@ -1207,6 +1207,8 @@ function d2HidePage(pageId) {
         btnRedraw.addEventListener('click', d2RedrawCurrent);
         $('d2-btnCopyResult').addEventListener('click', d2CopyResult);
         $('d2-btnHistory').addEventListener('click', d2ShowHistory);
+        var d2AiBtn=$('d2-btnAi');
+        if(d2AiBtn)d2AiBtn.addEventListener('click', function(){ if(typeof d2AiInterpret==='function')d2AiInterpret(); });
 
         // d2GoHome() called from d2ShowDivination
         // 首页历史记录按钮
@@ -1578,6 +1580,8 @@ function d2QuickDrawShowAll() {
 function d2ShowResultButtons() {
   $('d2-btnCopyResult').style.display = '';
   $('d2-btnHistory').style.display = '';
+  var aiBtn=$('d2-btnAi');
+  if(aiBtn)aiBtn.style.display='';
   var sendBtn = $('d2-btnSendChat');
   var sendSetting = $('d2-sendSetting');
   var sendEnabled = localStorage.getItem('ml2_divine_send_to_chat') !== 'false';

@@ -657,6 +657,12 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
       }
       function _pickNoDup(_arr,_used,_maxTry){
         _maxTry=_maxTry||12;
+        // ★ 增强：先从池中剔除所有已用内容，再随机抽——卡池再小也绝不重复（除非池里全是已用的）
+        var _fresh=[];
+        for(var _fi=0;_fi<_arr.length;_fi++){
+          if(_used.indexOf(_arr[_fi].content)<0)_fresh.push(_arr[_fi]);
+        }
+        if(_fresh.length>0)return _fresh[Math.floor(Math.random()*_fresh.length)];
         for(var _t=0;_t<_maxTry;_t++){
           var _c=_arr[Math.floor(Math.random()*_arr.length)];
           if(_used.indexOf(_c.content)<0)return _c;
@@ -665,13 +671,13 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
       }
       if(Math.random()<0.15&&_firstType==='sticker'&&imgSrc&&isStickerImg&&stickerCards&&stickerCards.length>0){
         // 保持 _curImg 不变（连发相同表情包图片，真人常见）——仅表情包图片允许 15% 重复
-      }else if(imgSrc&&stickerCards&&stickerCards.length>0){
+      }else if(_firstType==='sticker'&&imgSrc&&stickerCards&&stickerCards.length>0){
         var _rc2=_pickNoDup(stickerCards,_usedSticker);
         _curImg=_rc2.content;
-      }else if(imgSrc&&imageCards&&imageCards.length>0){
+      }else if(_firstType==='image'&&imgSrc&&imageCards&&imageCards.length>0){
         var _rc3=_pickNoDup(imageCards,_usedImage);
         _curImg=_rc3.content;
-      }else if(voiceSrc&&voiceCards&&voiceCards.length>0){
+      }else if(_firstType==='voice'&&voiceSrc&&voiceCards&&voiceCards.length>0){
         var _rc4=_pickNoDup(voiceCards,_usedVoice);
         _curVoice=_rc4.content;
         _curVoiceText=_rc4.voiceText||'';
