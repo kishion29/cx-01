@@ -2227,6 +2227,16 @@ function initMsgActions(){
   }
   
   var clickHandler=function(e){
+    // ★ 语音播放按钮：事件委托兜底（仅匹配播放按钮 span[data-mid]，避免误触消息行）
+    var mmPlayBtn=e.target.closest('span[data-mid]');
+    if(mmPlayBtn&&typeof mmSpeakMsg==='function'){
+      var _mmId=mmPlayBtn.getAttribute('data-mid');
+      if(_mmId){
+        e.stopPropagation();
+        mmSpeakMsg(_mmId,mmPlayBtn);
+        return;
+      }
+    }
     var retractedEl=e.target.closest('.message-retracted');
     if(retractedEl){
       showRetractedContent(retractedEl);
@@ -2728,6 +2738,16 @@ function showMsgActionMenu(x,y,msgId,isLiked,isNonInstant){
     if(typeof aiInterpretCard==='function'){aiInterpretCard(msgId);}
     else{hideMsgActionMenu();toast('AI 功能未加载');}
   };
+  // ★ 收藏按钮：直接收藏这条消息到"我的收藏"
+  var favBtn=$('msg-action-fav');
+  if(favBtn){
+    favBtn.style.display='flex';
+    favBtn.onclick=function(e){e.stopPropagation();
+      hideMsgActionMenu();
+      if(typeof favMsgDirect==='function'){favMsgDirect(msgId,currentId);}
+      else{toast('收藏功能未加载');}
+    };
+  }
   // ★ 语音转文字按钮：仅语音消息显示
   if(sttBtn){
     var _isVoiceMsg=msg&&(msg.isVoice===true||msg.voice);

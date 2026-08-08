@@ -2927,7 +2927,7 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
     var au=new Audio(audioUrl);
     if(msgId&&_mmAudioCache[msgId])_mmAudioCache[msgId].audio=au;
     // ★ 播放状态：按钮图标切换为"播放中"（动画），结束/出错恢复
-    var _btn=msgId?document.querySelector('[data-mid="'+msgId+'"]'):null;
+    var _btn=msgId?document.querySelector('span[data-mid="'+msgId+'"]'):null;
     // ★ 恢复图标固定为播放按钮（不能用 _btn.innerHTML，它可能是"生成中"占位）
     var _btnOld=_btn?'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>':null;
     var _setPlaying=function(playing){
@@ -2944,7 +2944,7 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
     au.onpause=function(){_setPlaying(false);};
     au.onerror=function(){_setPlaying(false);};
     au.play().catch(function(){_setPlaying(false);});
-    toast('正在播放梦角的语音');
+    
     _finish();
   }).catch(function(e){
     console.warn('mm tts failed:',e);
@@ -2956,71 +2956,73 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
 var _mmAudioCache={};
 // ★ 从消息读取文本并播放梦角语音（已生成的语音缓存，可重复播放）
 function mmSpeakMsg(msgId,el){
-  var oldInner='';
-  try{
-    if(el){
-      oldInner=el.innerHTML;
-      // ★ 保持原始尺寸（固定宽高），防止"生成中"改变布局导致矢量图错位
-      var _ow=el.offsetWidth||24,_oh=el.offsetHeight||24;
-      el.innerHTML='<span style="white-space:nowrap;font-size:11px;display:inline-block;">生成中...</span>';
-      el.style.opacity='0.7';
-      el.style.width=_ow+'px';
-      el.style.height=_oh+'px';
-      el.style.padding='0';
-      el.style.borderRadius='11px';
-      el.style.background='rgba(0,0,0,0.06)';
-      el.style.display='flex';
-      el.style.alignItems='center';
-      el.style.justifyContent='center';
-      el.style.overflow='hidden';
-    }
-  }catch(e){}
-  // 还原按钮的函数（播放成功/失败/超时兜底时调用）
+  var _btn=el||document.querySelector('span[data-mid="'+msgId+'"]');
+  var _old=_btn?_btn.innerHTML:'';
   var _restore=function(){
     try{
-      if(el){
-        el.innerHTML=oldInner||'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-        el.style.opacity='';
-        el.style.width='';
-        el.style.height='';
-        el.style.padding='';
-        el.style.borderRadius='';
-        el.style.background='';
-        el.style.display='';
-        el.style.alignItems='';
-        el.style.justifyContent='';
-        el.style.overflow='';
+      if(_btn){
+        _btn.innerHTML=_old||'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+        _btn.style.opacity='';_btn.style.width='';_btn.style.height='';_btn.style.padding='';_btn.style.borderRadius='';_btn.style.background='';_btn.style.display='';_btn.style.alignItems='';_btn.style.justifyContent='';_btn.style.overflow='';_btn.style.verticalAlign='';
       }
-    }catch(e2){}
+    }catch(e){}
   };
-  // 兜底：最多 20 秒后强制还原
+  // ★ 播放/暂停状态：动画 span 加 pointer-events:none，确保点击穿透到按钮本体
+  var _setPlaying=function(playing){
+    try{
+      if(_btn){
+        _btn.innerHTML=playing
+          ?'<span style="display:inline-flex;align-items:flex-end;gap:2px;height:12px;pointer-events:none;"><span style="width:3px;background:currentColor;border-radius:2px;animation:voiceWave 0.8s ease-in-out infinite alternate;height:100%;"></span><span style="width:3px;background:currentColor;border-radius:2px;animation:voiceWave 0.8s ease-in-out infinite alternate;height:60%;animation-delay:0.15s;"></span><span style="width:3px;background:currentColor;border-radius:2px;animation:voiceWave 0.8s ease-in-out infinite alternate;height:30%;animation-delay:0.3s;"></span></span>'
+          :(_old||'<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>');
+      }
+    }catch(e){}
+  };
+  var _attach=function(au){
+    try{
+      if(au){
+        au.onplaying=function(){_setPlaying(true);};
+        au.onended=function(){_setPlaying(false);};
+        au.onpause=function(){_setPlaying(false);};
+        au.onerror=function(){_setPlaying(false);};
+      }
+    }catch(e){}
+  };
   var _fallback=setTimeout(_restore,20000);
-  // 已有缓存：直接播放（可重复）
+  var m=(typeof msgs==='function')?msgs(cid):[];
+  var msg=m&&m.find?m.find(function(x){return x.id===msgId}):null;
+  // 1) 内存缓存：播放中点击=暂停，否则播放（不重置按钮为"生成中"）
   if(_mmAudioCache[msgId]){
     clearTimeout(_fallback);
     var _c=_mmAudioCache[msgId];
-    if(_c.audio){_c.audio.currentTime=0;_c.audio.play();}
-    else if(_c.url){
-      try{_c.audio=new Audio(_c.url);_c.audio.play();}catch(e2){}
+    if(_c.audio){
+      _attach(_c.audio);
+      if(!_c.audio.paused){_c.audio.pause();_c.audio.currentTime=0;_setPlaying(false);}
+      else{_c.audio.currentTime=0;_c.audio.play();}
+    }else if(_c.url){
+      try{var _a1=new Audio(_c.url);_attach(_a1);_c.audio=_a1;_a1.play();}catch(e2){_restore();}
     }
-    _restore();
     return;
   }
-  var m=msgs(cid);
-  var msg=m.find(function(x){return x.id===msgId});
-  // ★ 消息对象上已保存合成 URL（刷新后）：直接播放，不调 MiniMax 不花钱
+  // 2) 消息已保存合成 URL：直接播放（不花钱）
   if(msg&&msg.mmAudioUrl){
     clearTimeout(_fallback);
     try{
       _mmAudioCache[msgId]={url:msg.mmAudioUrl,audio:null,ts:Date.now()};
-      var _au2=new Audio(msg.mmAudioUrl);
-      _mmAudioCache[msgId].audio=_au2;
-      _au2.play();
-    }catch(e2){}
-    _restore();
+      var _a2=new Audio(msg.mmAudioUrl);
+      _attach(_a2);
+      _mmAudioCache[msgId].audio=_a2;
+      _a2.play();
+    }catch(e2){_restore();}
     return;
   }
+  // 3) 需要真正合成：显示"生成中"（保持原始尺寸）
   if(!msg||!msg.t){toast('没有可播放的文字');_restore();return;}
+  try{
+    if(_btn){
+      var _ow=_btn.offsetWidth||24,_oh=_btn.offsetHeight||24;
+      _btn.innerHTML='<span style="white-space:nowrap;font-size:10px;display:inline-block;letter-spacing:1px;">···</span>';
+      _btn.style.opacity='0.7';_btn.style.width=_ow+'px';_btn.style.height=_oh+'px';_btn.style.padding='0';_btn.style.borderRadius='11px';_btn.style.background='rgba(0,0,0,0.06)';_btn.style.display='inline-flex';_btn.style.alignItems='center';_btn.style.justifyContent='center';_btn.style.overflow='hidden';_btn.style.verticalAlign='middle';
+    }
+  }catch(e){}
   mmSpeak(msg.t,cid,msgId,_restore,_fallback);
 }
 // ★ AI 解读字卡：长按消息菜单调用

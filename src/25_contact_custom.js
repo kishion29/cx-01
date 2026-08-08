@@ -501,6 +501,43 @@ function confirmFavMsgs(){
   cancelFavMsgMode();
 }
 
+// ★ 菜单直接收藏单条消息（气泡操作菜单 ⭐ 按钮）
+function favMsgDirect(msgId,ownerId){
+  var targetId=ownerId||(typeof cid!=='undefined'?cid:null);
+  if(!targetId){toast('请先打开聊天');return;}
+  var m=(typeof msgs==='function')?msgs(targetId):null;
+  if(!m||!m.find){toast('消息不存在');return;}
+  var msg=m.find(function(x){return x.id===msgId});
+  if(!msg){toast('消息不存在');return;}
+  if(!myFavs[targetId])myFavs[targetId]=[];
+  // 去重：同一消息不重复收藏
+  var dup=myFavs[targetId].some(function(f){return f.msgId===msgId});
+  if(dup){toast('这条消息已收藏');return;}
+  var c=contacts.find(function(x){return x.id===targetId})||groups.find(function(x){return x.id===targetId});
+  var myName='我',contactName=c?c.name:'对方';
+  var isSelf=msg.s===SELF;
+  var name=isSelf?myName:contactName;
+  var msgType='',msgText='';
+  if(msg.isTouch){msgType='touch';msgText=name+' '+(msg.touchAction||'触碰');}
+  else if(msg.img){msgType=msg.isSticker===true?'sticker':'image';msgText=msg.t||'[图片]';}
+  else if(msg.voice){msgType='voice';msgText=msg.voiceText||'语音消息';}
+  else{msgType='text';msgText=msg.t||'';}
+  var msgData={};
+  if(msg.t)msgData.t=msg.t;
+  if(msg.img)msgData.img=msg.img;
+  if(msg.isTouch)msgData.isTouch=true;
+  if(msg.touchAction)msgData.touchAction=msg.touchAction;
+  if(msg.touchTarget)msgData.touchTarget=msg.touchTarget;
+  if(msg.isSticker)msgData.isSticker=msg.isSticker;
+  if(msg.voice)msgData.voice=msg.voice;
+  if(msg.voiceText)msgData.voiceText=msg.voiceText;
+  if(msg.mmAudioUrl)msgData.mmAudioUrl=msg.mmAudioUrl;
+  msgData.s=msg.s;
+  myFavs[targetId].push({id:'fav_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),msgId:msgId,msgText:msgText,msgType:msgType,timestamp:msg.ts instanceof Date?msg.ts.getTime():(msg.ts||Date.now()),savedAt:Date.now(),msgData:msgData});
+  saveFavs();
+  toast('已收藏');
+}
+
 function showMyFavs(){
   renderMyFavs();
   showOv('ov-my-favs');
