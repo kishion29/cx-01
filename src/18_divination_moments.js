@@ -1048,7 +1048,7 @@ function _renderMomentsList(postsEl,postsList,savedInput){
           var commentImageHtml=c.image?'<img src="'+c.image+'" style="max-width:100px;max-height:100px;border-radius:6px;object-fit:cover;display:block;margin-top:4px;">':'';
           var contentHtml=c.content?(c.content.startsWith('data:image')?'<img src="'+c.content+'" style="max-width:100px;max-height:100px;border-radius:6px;object-fit:cover;">':renderMomentsContent(c.content)):'';
           var repliesHtml=c.replies&&c.replies.length>0?'<div class="moments-replies" style="margin-top:4px;padding-left:20px;">'+c.replies.map(function(r){var rm=getMomentsMember(r.authorId);var replyImageHtml=r.image?'<img src="'+r.image+'" style="max-width:60px;max-height:60px;border-radius:4px;object-fit:cover;display:block;margin-top:2px;">':'';var replyContent=r.content?(r.content.startsWith('data:image')?'<img src="'+r.content+'" style="max-width:60px;max-height:60px;border-radius:4px;object-fit:cover;">':renderMomentsContent(r.content)):'';return'<div class="moments-reply" style="font-size:13px;padding:4px 0;"><span style="color:var(--accent);font-weight:500;">'+rm.nickname+'</span>: '+replyContent+replyImageHtml+'</div>'}).join('')+'</div>':'';
-          return'<div class="moments-comment" data-cid="'+c.id+'" style="padding:10px 0;border-bottom:1px solid var(--border);last-child{border-bottom:none;}display:block;"><div style="display:flex;gap:10px;cursor:pointer;" onclick="showMomentsReplyInput(\''+post.id+'\',\''+c.id+'\',\''+cm.nickname+'\')"><div class="moments-comment-av" style="width:32px;height:32px;border-radius:0;background:var(--c3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">'+(cm.avatar?'<img src="'+cm.avatar+'" style="width:100%;height:100%;border-radius:0;object-fit:cover;">':'✦')+'</div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:14px;color:var(--accent);font-weight:500;">'+cm.nickname+'</span><span style="font-size:12px;color:var(--txt3);">'+formatMomentsTime(c.timestamp)+'</span></div><div style="font-size:14px;color:var(--txt);margin-top:4px;line-height:1.5;">'+contentHtml+'</div>'+repliesHtml+'</div></div><div class="moments-comment-reply-area" id="reply-area-'+c.id+'" style="width:100%;clear:both;margin-top:8px;padding-left:42px;"></div></div>';
+          return'<div class="moments-comment" data-cid="'+c.id+'" style="padding:10px 0;border-bottom:1px solid var(--border);last-child{border-bottom:none;}display:block;"><div style="display:flex;gap:10px;cursor:pointer;" onclick="showMomentsReplyInput(\''+post.id+'\',\''+c.id+'\',\''+cm.nickname+'\')"><div class="moments-comment-av" style="width:32px;height:32px;border-radius:0;background:var(--c3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">'+(cm.avatar?'<img src="'+cm.avatar+'" style="width:100%;height:100%;border-radius:0;object-fit:cover;">':'✦')+'</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:14px;color:var(--accent);font-weight:500;">'+cm.nickname+'</span><span style="font-size:12px;color:var(--txt3);">'+formatMomentsTime(c.timestamp)+'</span></div><div style="font-size:14px;color:var(--txt);margin-top:4px;line-height:1.5;">'+contentHtml+'</div>'+repliesHtml+'</div></div>'+'<div class="moments-comment-reply-area" id="reply-area-'+c.id+'" style="width:100%;clear:both;margin-top:8px;padding-left:42px;"></div></div>';
         }).join('')+'</div></div>';
     }
     var imagesHtml='';
@@ -1198,6 +1198,61 @@ function aiInterpretMoment(postId){
     toast('AI 解读失败，请检查 API 配置');
   });
 }
+// ★ AI 解读朋友圈评论（梦角评论）
+function aiInterpretMomentComment(postId,commentId){
+  var post=null;
+  var all=(typeof momentsPosts!=='undefined'&&momentsPosts)?momentsPosts:[];
+  for(var i=0;i<all.length;i++){if(all[i].id===postId){post=all[i];break;}}
+  if(!post){toast('动态不存在');return;}
+  var comment=null;
+  if(post.comments&&Array.isArray(post.comments)){
+    for(var j=0;j<post.comments.length;j++){if(post.comments[j].id===commentId){comment=post.comments[j];break;}}
+  }
+  if(!comment){toast('评论不存在');return;}
+  var text=comment.content||comment.text||'';
+  if(!text||text.startsWith('data:image')){toast('评论内容为空');return;}
+  // 绑定该动态所属联系人（作者）的人设
+  var ownerId=(post.authorId&&post.authorId!=='self'&&post.authorId!=='me')?post.authorId:null;
+  if(typeof aiInterpretText==='function'){
+    aiInterpretText('梦角在朋友圈的一条评论：「'+text+'」','AI 解读评论',ownerId);
+  }else{
+    toast('AI 功能未加载');
+  }
+}
+// ★ 评论区「解读」按钮：渲染后 DOM 统一追加（不依赖字符串拼接，杜绝布局破坏）
+function attachMomentsInterpretBtns(root){
+  if(!root)root=document;
+  var rows=root.querySelectorAll?root.querySelectorAll('.moments-comment'):[];
+  for(var i=0;i<rows.length;i++){
+    var row=rows[i];
+    if(row._aiAttached)continue;
+    row._aiAttached=true;
+    var cid=row.getAttribute('data-cid');
+    if(!cid||cid==='self'||cid==='me')continue;
+    if(row.querySelector&&row.querySelector('img'))continue; // 图片评论不加
+    var wrap=row.closest?row.closest('.moments-comments'):null;
+    if(!wrap)continue;
+    var pid=wrap.id?wrap.id.replace('moments-comments-',''):'';
+    if(!pid)continue;
+    var _pid=pid,_cid=cid;
+    var btn=document.createElement('div');
+    btn.style.cssText='display:block;white-space:nowrap;margin:6px 0 0 42px;padding:3px 10px;border-radius:8px;background:rgba(0,0,0,0.05);border:1px solid var(--border);font-size:11px;color:var(--accent);cursor:pointer;text-align:center;';
+    btn.textContent='📜 解读这条评论';
+    btn.onclick=function(e){e.stopPropagation();aiInterpretMomentComment(_pid,_cid);};
+    row.appendChild(btn);
+  }
+}
+function initMomentsInterpretObserver(){
+  if(window._momentsObsInit)return;
+  window._momentsObsInit=true;
+  var target=document.body||document.documentElement;
+  if(!target)return;
+  try{
+    new MutationObserver(function(){attachMomentsInterpretBtns(document);}).observe(target,{childList:true,subtree:true});
+    attachMomentsInterpretBtns(document);
+  }catch(e){}
+}
+try{initMomentsInterpretObserver();}catch(e){}
 function showMomentsCommentInput(postId){
   var existingInput=document.querySelector('.moments-comment-input-area');
   if(existingInput)existingInput.remove();
@@ -1326,7 +1381,7 @@ function showMomentsReplyInput(postId,commentId,nickname){
   
   var inputArea=document.createElement('div');
   inputArea.className='moments-comment-input-area';
-  inputArea.style.cssText='width:100%;display:flex;align-items:center;gap:6px;padding:6px;background:var(--bg2);border-radius:16px;';
+  inputArea.style.cssText='width:100%;max-width:100%;box-sizing:border-box;min-width:0;display:flex;align-items:center;gap:6px;padding:6px;background:var(--bg2);border-radius:16px;overflow:hidden;';
   var me=getMomentsMember('self')||{nickname:'我',avatar:''};
   inputArea.innerHTML='<div class="moments-comment-av" style="width:22px;height:22px;border-radius:0;">'+(me.avatar?'<img src="'+me.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:0;">':'✦')+'</div>'+'<button class="moments-emoji-btn" style="width:28px;height:28px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="选择表情">😊</button>'+'<button class="moments-img-btn" style="width:28px;height:28px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--txt3);flex-shrink:0;" title="发送图片">🖼️</button>'+'<input type="file" class="moments-img-input" accept="image/*" style="display:none;">'+'<input type="text" placeholder="回复 '+nickname+'..." style="flex:1;padding:4px 10px;border:none;border-radius:12px;background:transparent;color:var(--txt);font-size:12px;outline:none;">'+'<button class="moments-send-btn" style="padding:4px 12px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:12px;cursor:pointer;flex-shrink:0;">发送</button>';
   
@@ -1463,7 +1518,16 @@ function addComment(mid,authorId,content,image){
     if(Math.random()*100<replyProb){
       var replyDelay=getRandomDelay(momentsSettings.replySpeedMin||5,momentsSettings.replySpeedMax||30);
       setTimeout(function(){
+        try{
         var cardId=post.authorId;
+        // ★ 修复：authorId 可能是脏数据（如旧的评论/动态 id），通过朋友圈成员信息找回真实联系人
+        if(cardId&&(cardId.indexOf('c_')===0||cardId.indexOf('m_')===0)){
+          try{
+            var _mem=getMomentsMember(cardId);
+            if(_mem&&(_mem.contactId||_mem.bindContactId))cardId=_mem.contactId||_mem.bindContactId;
+          }catch(e){}
+        }
+        console.log('[moments] 梦角回复评论触发 cardId=',cardId,'replyProb=',replyProb);
         var allCards=getContactCards(cardId);
         var s=momentsSettings;
         var textCards=allCards.filter(function(c){return c.category==='custom'});
@@ -1511,6 +1575,7 @@ function addComment(mid,authorId,content,image){
             saveMomentsData();refreshMomentsView();
           }
         }
+        }catch(err){console.error('[moments] 梦角回复评论失败:',err);}
       },replyDelay);
     }
   }
@@ -2486,7 +2551,7 @@ function renderMomentsPost(post,member){
         if(!cm)cm={nickname:'某人',avatar:''};
         var contentHtml=c.content.startsWith('data:image')?'<img src="'+c.content+'" style="max-width:100px;max-height:100px;border-radius:6px;object-fit:cover;">':c.content;
         var repliesHtml=c.replies&&c.replies.length>0?'<div class="moments-replies" style="margin-top:4px;padding-left:20px;">'+c.replies.map(function(r){var rm=getMomentsMember(r.authorId);if(!rm)rm={nickname:'某人'};var replyContent=r.content.startsWith('data:image')?'<img src="'+r.content+'" style="max-width:60px;max-height:60px;border-radius:4px;object-fit:cover;">':r.content;return'<div class="moments-reply" style="font-size:13px;padding:4px 0;"><span style="color:var(--accent);font-weight:500;">'+rm.nickname+'</span>: '+replyContent+'</div>'}).join('')+'</div>':'';
-        return'<div class="moments-comment" data-cid="'+c.id+'" style="padding:10px 0;border-bottom:1px solid var(--border);display:block;"><div style="display:flex;gap:10px;cursor:pointer;" onclick="showMomentsReplyInput(\''+post.id+'\',\''+c.id+'\',\''+cm.nickname+'\')"><div class="moments-comment-av">'+(cm.avatar?'<img src="'+cm.avatar+'" style="width:100%;height:100%;object-fit:cover;">':'✦')+'</div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:14px;color:var(--accent);font-weight:500;">'+cm.nickname+'</span><span style="font-size:12px;color:var(--txt3);">'+formatMomentsTime(c.timestamp)+'</span></div><div style="font-size:14px;color:var(--txt);margin-top:4px;line-height:1.5;">'+contentHtml+'</div>'+repliesHtml+'</div></div><div class="moments-comment-reply-area" id="reply-area-'+c.id+'" style="width:100%;clear:both;margin-top:8px;padding-left:42px;"></div></div>';
+        return'<div class="moments-comment" data-cid="'+c.id+'" style="padding:10px 0;border-bottom:1px solid var(--border);display:block;"><div style="display:flex;gap:10px;cursor:pointer;" onclick="showMomentsReplyInput(\''+post.id+'\',\''+c.id+'\',\''+cm.nickname+'\')"><div class="moments-comment-av">'+(cm.avatar?'<img src="'+cm.avatar+'" style="width:100%;height:100%;object-fit:cover;">':'✦')+'</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:14px;color:var(--accent);font-weight:500;">'+cm.nickname+'</span><span style="font-size:12px;color:var(--txt3);">'+formatMomentsTime(c.timestamp)+'</span></div><div style="font-size:14px;color:var(--txt);margin-top:4px;line-height:1.5;">'+contentHtml+'</div>'+repliesHtml+'</div></div>'+'<div class="moments-comment-reply-area" id="reply-area-'+c.id+'" style="width:100%;clear:both;margin-top:8px;padding-left:42px;"></div></div>';
       }).join('')+'</div></div>';
   }
   var imagesHtml='';
