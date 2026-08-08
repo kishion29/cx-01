@@ -2222,6 +2222,7 @@ function openApiSettings(){
           _inp._saveTimer=setTimeout(function(){
             var _ms=ls(MM_KEY)||{};
             _ms.apiKey=$('mm-api-key')?$('mm-api-key').value.trim():'';
+  s.groupId=$('mm-group-id')?$('mm-group-id').value.trim():'';
             _ms.baseUrl=$('mm-base-url')?$('mm-base-url').value.trim():'https://api.minimax.chat';
             if(!_ms.baseUrl)_ms.baseUrl='https://api.minimax.chat';
             ls(MM_KEY,_ms);
@@ -2669,13 +2670,15 @@ function getMmSettings(contactId){
   var enabled=(cSet&&cSet.enabled!==undefined)?cSet.enabled:(s.enabled!==false);
   var apiKey=(cSet&&cSet.apiKey)?cSet.apiKey:(s.apiKey||'');
   var baseUrl=(cSet&&cSet.baseUrl)?cSet.baseUrl:(s.baseUrl||'https://api.minimax.chat');
+  var groupId=(cSet&&cSet.groupId)?cSet.groupId:(s.groupId||'');
   // 兼容旧缓存变量（防刷新被 IndexedDB 覆盖导致"key 丢失"）
   if((!apiKey)&&window.mmSettingsCached&&window.mmSettingsCached.apiKey){
     apiKey=window.mmSettingsCached.apiKey;
     baseUrl=window.mmSettingsCached.baseUrl||baseUrl;
+    if(window.mmSettingsCached.groupId)groupId=window.mmSettingsCached.groupId;
     if(window.mmSettingsCached.enabled!==undefined)enabled=window.mmSettingsCached.enabled;
   }
-  return {enabled:enabled,baseUrl:baseUrl,apiKey:apiKey};
+  return {enabled:enabled,baseUrl:baseUrl,apiKey:apiKey,groupId:groupId};
 }
 function getContactVoiceId(contactId){
   var v=ls('ml2_mm_voice')||{};
@@ -2705,6 +2708,7 @@ function loadMmSettingsUI(){
   if($('mm-api-key'))$('mm-api-key').value=s.apiKey;
   // ★ 音色 ID 输入框：始终显示（可手动粘贴）
   if($('mm-voice-id'))$('mm-voice-id').value=getContactVoiceId(curSel)||'';
+  if($('mm-group-id'))$('mm-group-id').value=s.groupId||'';
 }
 // ★ 手动输入/修改音色 ID 时立即保存到当前联系人
 function mmVoiceIdEdited(){
@@ -2893,7 +2897,9 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   };
   if(!mmKey){toast('请先在 设置→API接口 填写 MiniMax Key');_finish();return;}
   if(!vid){toast('该梦角还没有音色，请先上传参考音频复刻');_finish();return;}
-  fetch(mmBase.replace(/\/+$/,'')+'/v1/t2a_v2',{
+  var mmGroup=$('mm-group-id')?$('mm-group-id').value.trim():s.groupId;
+  if(!mmGroup){toast('请先在 设置→API接口 填写 MiniMax Group ID（控制台可查）');_finish();return;}
+  fetch(mmBase.replace(/\/+$/,'')+'/v1/t2a_v2?GroupId='+encodeURIComponent(mmGroup),{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+mmKey},
     body:JSON.stringify({
