@@ -1564,22 +1564,48 @@ var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_scre
 
 // ★ TA与你的距离：梦角存在感可视化（随机生成，非地图定位）
 var TA_DISTANCE_LEVELS=[
-  {key:'贴近',weight:10,desc:'TA几乎就在你身边。',acts:['坐在你旁边','靠近你','陪在你身侧']},
-  {key:'很近',weight:25,desc:'你能明显感觉到TA的存在。',acts:['在附近陪伴','靠近你的方向','可以感受到气息']},
-  {key:'近',weight:30,desc:'TA没有离开，只是在附近。',acts:['安静陪伴','偶尔回应你的感知']},
-  {key:'稍远',weight:20,desc:'TA仍然与你连接，只是不在你身边。',acts:['像隔着一点距离看着你','仍能感受到存在']},
-  {key:'远',weight:15,desc:'两个世界的距离变明显。',acts:['感知变弱','但连接仍然存在']}
+  {key:'贴近',weight:10,desc:'TA几乎就在你身边。',sense:'能明显感觉到TA的存在，像靠在你身旁，两个世界的距离变得很短。',acts:['坐在你旁边','靠近你','陪在你身侧']},
+  {key:'很近',weight:25,desc:'TA正在靠近你。',sense:'TA就在附近陪伴，很容易感受到TA。',acts:['在附近陪伴','靠近你的方向','可以感受到气息']},
+  {key:'近',weight:30,desc:'TA没有离开，只是在附近。',sense:'安静陪着你，保持着连接。',acts:['安静陪伴','偶尔回应你的感知']},
+  {key:'稍远',weight:20,desc:'TA仍然存在，只是距离感变明显。',sense:'需要注意才能感受到TA。',acts:['像隔着一点距离看着你','仍能感受到存在']},
+  {key:'远',weight:15,desc:'两个世界的距离暂时拉开。',sense:'感知变弱，但连接仍然存在。',acts:['感知变弱','但连接仍然存在']}
 ];
 var TA_DISTANCE_DIRS=['正前方','左前方','右前方','左侧','右侧','左后方','右后方','身后'];
-var TA_DISTANCE_STATES=[{key:'稳定',desc:'TA与你保持着连接。'},{key:'微弱',desc:'感知变淡，但连接没有消失。'},{key:'强烈',desc:'TA与你的距离非常近。'}];
+var TA_DISTANCE_SPECIAL=['坐在你身边','靠在你旁边','在你身后陪着','靠近你的肩侧','在你附近注视着你'];
+// 空间状态（分类）
 var TA_DISTANCE_POS=[
-  {key:'陪伴',desc:'TA坐在你旁边。'},
-  {key:'关注',desc:'TA在不远处看着你。'},
-  {key:'安静',desc:'TA没有靠近，只是在附近。'},
-  {key:'想靠近',desc:'TA正在向你靠近。'}
+  {key:'陪伴',desc:'TA坐在你旁边，静静待在你附近。'},
+  {key:'关注',desc:'TA看着你，注意着你的状态，等你回应。'},
+  {key:'靠近',desc:'TA正向你靠近，想缩短两个世界的距离。'},
+  {key:'安静',desc:'TA没有打扰你，保持着一点距离陪伴。'}
 ];
+// 连接状态 4 级
+var TA_DISTANCE_STATES=[
+  {key:'强',desc:'TA与你的联系很明显。'},
+  {key:'稳定',desc:'TA一直保持着连接。'},
+  {key:'微弱',desc:'今天感知比较轻。'},
+  {key:'波动',desc:'距离和感知正在变化。'}
+];
+// 感知强度
+var TA_DISTANCE_PERCEIVE=[
+  {key:'明显',desc:'你能清晰地感觉到TA的存在。'},
+  {key:'清晰',desc:'TA的气息就在身边。'},
+  {key:'温和',desc:'你能感觉到TA的存在。'},
+  {key:'微弱',desc:'要静下心才能感受到TA。'}
+];
+// 距离变化原因（故事化）
+var TA_DISTANCE_REASONS=['因为你刚刚想起TA','因为你和TA聊天','因为你表达了想念','因为你情绪变化','因为TA主动靠近','因为今天是特殊日期','没有特别原因，只是TA想陪着你'];
+// 特殊/隐藏状态（低概率）
+var TA_DISTANCE_HIDDEN=['TA一直在这里','TA刚刚回来','TA比平时更靠近','TA安静陪伴了很久','TA正在观察你'];
 var TA_DISTANCE_RECORDS=['TA靠近了一些。','TA陪在你身边。','TA离你很近。','TA暂时走远了些。','TA安静地待在你附近。','TA正在向你靠近。'];
-var TA_DISTANCE_REASONS=['聊天互动','你想起TA','特定日期','情绪变化'];
+function taPickWeighted(arr){
+  var total=0;
+  arr.forEach(function(x){total+=x.weight;});
+  var r=Math.random()*total;
+  var acc=0;
+  for(var i=0;i<arr.length;i++){acc+=arr[i].weight;if(r<acc)return arr[i];}
+  return arr[arr.length-1];
+}
 function taPickWeighted(arr){
   var total=0;
   arr.forEach(function(x){total+=x.weight;});
@@ -1594,12 +1620,12 @@ function showTADistance(){
   var data=ls('ml2_ta_distance')||{};
   if(!data.records)data.records={};
   if(!data.records[cid])data.records[cid]=[];
-  // ★ 持续状态机制：打开时先判定当前状态是否延续（梦角常驻，不是每次重新抽签）
+  // ★ 持续状态机制：梦角存在系统（打开时判定延续/变化）
   var nowTs=Date.now();
   var cur=data.current||null;
   var level=null,dir='',state=null,pos=null,act='',statusNote='',changed=false;
+  var perceive=null,trend='',reason='',sinceText='';
   var LEVELS_ARR=TA_DISTANCE_LEVELS;
-  // 距离等级持续时间（毫秒）：贴近30min~3h / 很近1~6h / 近2~12h / 稍远2h~1天 / 远1~3天
   function _distDur(lv){
     if(lv==='贴近')return 1800000+Math.random()*9000000;
     if(lv==='很近')return 3600000+Math.random()*18000000;
@@ -1611,20 +1637,22 @@ function showTADistance(){
   function _randState(){return TA_DISTANCE_STATES[Math.floor(Math.random()*TA_DISTANCE_STATES.length)];}
   function _randDir(){return TA_DISTANCE_DIRS[Math.floor(Math.random()*TA_DISTANCE_DIRS.length)];}
   function _randPos(){return TA_DISTANCE_POS[Math.floor(Math.random()*TA_DISTANCE_POS.length)];}
+  function _randPer(){return TA_DISTANCE_PERCEIVE[Math.floor(Math.random()*TA_DISTANCE_PERCEIVE.length)];}
+  function _randReason(){return TA_DISTANCE_REASONS[Math.floor(Math.random()*TA_DISTANCE_REASONS.length)];}
   function _randAct(lv){return lv.acts[Math.floor(Math.random()*lv.acts.length)];}
   var lastInteract=data.lastInteract||0;
-  var interacted=(nowTs-lastInteract)<2*3600000; // 最近 2 小时有互动（打开页面/聊天）
+  var interacted=(nowTs-lastInteract)<2*3600000;
   if(cur&&cur.level&&cur.expiresAt&&nowTs<cur.expiresAt){
-    // 状态仍在持续中 → 判定延续
     var r=Math.random();
     if(r<0.7){
-      // 70% 保持当前状态（不新增记录）
+      // 70% 保持当前状态
       var li0=_findLv(cur.level);
       level=LEVELS_ARR[li0>=0?li0:2];
       dir=cur.dir;state={key:cur.state,desc:cur.stateDesc};pos={key:cur.pos,desc:cur.posDesc};act=cur.act;
+      perceive={key:cur.perceive||'温和',desc:cur.perceiveDesc||'你能感觉到TA的存在。'};
       statusNote='TA还在原来的位置。';
     }else if(r<0.95){
-      // 25% 轻微变化：等级微移一位，方向/位置/动作变化
+      // 25% 小变化
       changed=true;
       var li=_findLv(cur.level);
       var moveNear=interacted||Math.random()<0.5;
@@ -1633,16 +1661,23 @@ function showTADistance(){
       if(ni<0)ni=0;if(ni>=LEVELS_ARR.length)ni=LEVELS_ARR.length-1;
       level=LEVELS_ARR[ni];
       dir=_randDir();state=_randState();pos=_randPos();act=_randAct(level);
-      statusNote=ni<li?'TA靠近了一些。':'TA稍微走远了些。';
+      perceive=_randPer();
+      reason=_randReason();
+      trend=ni<li?'正在靠近':'正在远离';
+      statusNote=ni<li?('TA靠近了一些。'+reason):('TA走远了些。'+reason);
     }else{
-      // 5% 完全刷新
+      // 5% 大变化（重新生成）
       changed=true;
+      var oldLv=_findLv(cur.level);
       level=taPickWeighted(LEVELS_ARR);
       dir=_randDir();state=_randState();pos=_randPos();act=_randAct(level);
-      statusNote='TA的位置变化了。';
+      perceive=_randPer();
+      reason=_randReason();
+      var li3=_findLv(level.key);
+      trend=li3<oldLv?'正在靠近':(li3>oldLv?'正在远离':'保持稳定');
+      statusNote='TA的位置变化了。'+reason;
     }
   }else if(cur&&cur.level){
-    // 状态已到期 → 自然演变（有互动倾向靠近，否则倾向稍远；长时间未打开→重新连接）
     changed=true;
     var longAway=(nowTs-(data.lastInteract||0))>24*3600000;
     var li2=_findLv(cur.level);
@@ -1651,34 +1686,91 @@ function showTADistance(){
     if(ni2===li2)ni2=moveNear2?0:LEVELS_ARR.length-1;
     level=LEVELS_ARR[ni2];
     dir=_randDir();state=_randState();pos=_randPos();act=_randAct(level);
-    if(longAway)statusNote='TA重新回到你的感知范围。';
-    else statusNote=ni2<li2?'TA靠得更近了。':'TA慢慢走远了一些。';
+    perceive=_randPer();
+    reason=_randReason();
+    trend=ni2<li2?'正在靠近':'正在远离';
+    if(longAway)statusNote='TA重新回到你的感知范围。'+reason;
+    else statusNote=(ni2<li2?'TA靠得更近了。':'TA慢慢走远了一些。')+reason;
   }else{
-    // 首次：全新状态
     changed=true;
     level=taPickWeighted(LEVELS_ARR);
     dir=_randDir();state=_randState();pos=_randPos();act=_randAct(level);
-    statusNote='TA第一次出现在你身边。';
+    perceive=_randPer();
+    reason=_randReason();
+    trend='保持稳定';
+    statusNote='TA第一次出现在你身边。'+reason;
   }
-  // 记录本次查看为互动，更新当前状态与过期时间
+  // 隐藏状态：低概率附加惊喜
+  var hiddenNote='';
+  if(Math.random()<0.12){
+    hiddenNote=TA_DISTANCE_HIDDEN[Math.floor(Math.random()*TA_DISTANCE_HIDDEN.length)];
+  }
+  // ★ 状态持续时长（不是倒计时）：记录"这个状态维持了多久"
+  var sinceBase=cur&&cur.ts?cur.ts:nowTs;
+  var sinceMs=nowTs-sinceBase;
+  var sinceDur='';
+  if(sinceMs>0&&sinceMs<48*3600000){
+    var _h=Math.floor(sinceMs/3600000),_m=Math.floor(sinceMs%3600000/60000);
+    sinceDur=_h>0?(_h+'小时'+(_m>0?_m+'分钟':'')):(_m+'分钟');
+  }else{
+    sinceDur='一直持续着';
+  }
+  sinceText='TA与你保持「'+level.key+'」的状态，已持续 '+sinceDur;
+  // ★ 停留稳定度：保持→稳定 / 小变化→波动 / 大变化或新状态→活跃
+  var stability='稳定';
+  if(changed){
+    var _stableIdx=_findLv(cur&&cur.level?cur.level:'近');
+    if(_stableIdx>=0){
+      var _nowIdx=_findLv(level.key);
+      if(_nowIdx!==_stableIdx)stability=Math.abs(_nowIdx-_stableIdx)<=1?'波动':'活跃';
+      else stability='波动';
+    }else{
+      stability='活跃';
+    }
+  }
+  // 特殊场景（夜晚/外出/独处由时间段粗判）
+  var _hr=new Date().getHours();
+  var sceneNote='';
+  if(_hr>=23||_hr<6)sceneNote='夜晚，TA陪在你身边。';
+  else if(Math.random()<0.15)sceneNote='TA跟随着你，与你保持着连接。';
   data.lastInteract=nowTs;
-  data.current={level:level.key,dir:dir,state:state.key,stateDesc:state.desc,pos:pos.key,posDesc:pos.desc,act:act,ts:nowTs,expiresAt:nowTs+_distDur(level.key)};
+  data.current={level:level.key,dir:dir,state:state.key,stateDesc:state.desc,pos:pos.key,posDesc:pos.desc,act:act,perceive:perceive?perceive.key:'温和',perceiveDesc:perceive?perceive.desc:'',ts:nowTs,expiresAt:nowTs+_distDur(level.key)};
   if(changed){
     var now=new Date();
     var rec={
       ts:now.getTime(),
       time:('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2),
       text:statusNote||TA_DISTANCE_RECORDS[Math.floor(Math.random()*TA_DISTANCE_RECORDS.length)],
-      reason:TA_DISTANCE_REASONS[Math.floor(Math.random()*TA_DISTANCE_REASONS.length)],
+      reason:reason||TA_DISTANCE_REASONS[Math.floor(Math.random()*TA_DISTANCE_REASONS.length)],
       level:level.key, levelDesc:level.desc, dir:dir, state:state.key, stateDesc:state.desc,
-      pos:pos.key, posDesc:pos.desc, act:act
+      pos:pos.key, posDesc:pos.desc, act:act, trend:trend
     };
     data.records[cid].push(rec);
     if(data.records[cid].length>30)data.records[cid]=data.records[cid].slice(-30);
   }
   ls('ml2_ta_distance',data);
   if(window.localforage)window.localforage.setItem('ml2_ta_distance',data).catch(function(){});
-  // 背景氛围随距离变化
+  // 最近一次靠近
+  var lastApproach='';
+  var recsAll=data.records[cid]||[];
+  for(var ri=recsAll.length-1;ri>=0;ri--){
+    if(recsAll[ri].trend==='正在靠近'||(recsAll[ri].text&&recsAll[ri].text.indexOf('靠近')>=0)){
+      var _rd=new Date(recsAll[ri].ts);
+      lastApproach=('0'+_rd.getHours()).slice(-2)+':'+('0'+_rd.getMinutes()).slice(-2)+' '+(recsAll[ri].text||'TA靠近了一些。');
+      break;
+    }
+  }
+  // ★ 最近变化：最近一条记录的相对时间 + 内容
+  var lastChange='';
+  if(recsAll.length>0){
+    var _lc=recsAll[recsAll.length-1];
+    var _lcMs=nowTs-(_lc.ts||nowTs);
+    var _lcTxt='';
+    if(_lcMs<3600000)_lcTxt=Math.max(1,Math.floor(_lcMs/60000))+'分钟前';
+    else if(_lcMs<86400000)_lcTxt=Math.floor(_lcMs/3600000)+'小时前';
+    else _lcTxt=Math.floor(_lcMs/86400000)+'天前';
+    lastChange=_lcTxt+'，'+( _lc.text||'TA的位置发生了变化。');
+  }
   var moodBg='';
   if(level.key==='贴近'||level.key==='很近')moodBg='linear-gradient(160deg,rgba(255,200,150,0.25),rgba(255,255,255,0))';
   else if(level.key==='稍远')moodBg='linear-gradient(160deg,rgba(150,170,200,0.18),rgba(255,255,255,0))';
@@ -1690,27 +1782,59 @@ function showTADistance(){
   if(statusNote){
     html+='<div style="border-radius:12px;padding:10px 14px;background:rgba(0,0,0,0.04);border:1px dashed var(--border);margin-bottom:12px;font-size:13px;color:var(--txt2);">'+statusNote+'</div>';
   }
+  // 当前感知描述（组合句）
   html+='<div style="border-radius:14px;padding:20px;background:'+moodBg+';border:1px solid var(--border);margin-bottom:14px;">';
-  html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前连接状态</div>';
-  html+='<div style="font-size:20px;font-weight:700;color:var(--accent);margin:6px 0 2px;">'+state.key+'</div>';
-  html+='<div style="font-size:13px;color:var(--txt2);">'+state.desc+'</div>';
+  html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前感知</div>';
+  html+='<div style="font-size:18px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.5;">'+level.key+' · '+dir+'</div>';
+  html+='<div style="font-size:13px;color:var(--txt2);">'+pos.desc+' '+level.sense+'</div>';
   html+='</div>';
+  // 距离 / 方向 两卡
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
-  html+='<div style="font-size:12px;color:var(--txt3);">TA距离你</div>';
+  html+='<div style="font-size:12px;color:var(--txt3);">当前距离</div>';
   html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+level.key+'</div>';
   html+='<div style="font-size:12px;color:var(--txt2);">'+level.desc+'</div>';
   html+='</div>';
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
   html+='<div style="font-size:12px;color:var(--txt3);">TA所在方向</div>';
   html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+dir+'</div>';
-  html+='<div style="font-size:12px;color:var(--txt2);">TA在你的'+dir+'陪伴。</div>';
+  html+='<div style="font-size:12px;color:var(--txt2);">'+act+'</div>';
   html+='</div>';
   html+='</div>';
+  // 空间状态 / 连接状态
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
+  html+='<div style="font-size:12px;color:var(--txt3);">空间状态</div>';
+  html+='<div style="font-size:20px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+pos.key+'</div>';
+  html+='<div style="font-size:12px;color:var(--txt2);">'+pos.desc+'</div>';
+  html+='</div>';
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
+  html+='<div style="font-size:12px;color:var(--txt3);">连接状态</div>';
+  html+='<div style="font-size:20px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+state.key+'</div>';
+  html+='<div style="font-size:12px;color:var(--txt2);">'+state.desc+'</div>';
+  html+='</div>';
+  html+='</div>';
+  // 感知强度 / 距离趋势 / 停留时间 / 变化原因
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);margin-bottom:14px;">';
-  html+='<div style="font-size:12px;color:var(--txt3);">TA的位置 · '+pos.key+'</div>';
-  html+='<div style="font-size:15px;color:var(--txt);margin-top:6px;line-height:1.6;">'+pos.desc+'<br><span style="color:var(--txt2);font-size:13px;">'+act+'</span></div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">感知强度</div><div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;">'+(perceive?perceive.key:'温和')+'</div><div style="font-size:11px;color:var(--txt2);">'+(perceive?perceive.desc:'')+'</div></div>';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">距离趋势</div><div style="font-size:18px;font-weight:700;color:var(--txt);margin-top:4px;">'+(trend==='正在靠近'?'↑ 正在靠近':(trend==='正在远离'?'↓ 正在远离':'→ 保持稳定'))+'</div><div style="font-size:11px;color:var(--txt2);">'+(trend||'')+'</div></div>';
   html+='</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">状态持续</div><div style="font-size:14px;font-weight:700;color:var(--txt);margin-top:4px;line-height:1.5;">'+sinceText+'</div></div>';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">停留稳定度</div><div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;">'+stability+'</div><div style="font-size:11px;color:var(--txt2);">'+(stability==='稳定'?'TA目前保持着这个状态。':(stability==='波动'?'TA的距离正在轻微变化。':'TA可能会改变位置。'))+'</div></div>';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">变化原因</div><div style="font-size:13px;color:var(--txt2);margin-top:4px;line-height:1.5;">'+reason+'</div></div>';
+  html+='</div>';
+  html+='</div>';
+  // 最近一次靠近 / 特殊状态
+  if(lastChange||lastApproach||hiddenNote||sceneNote){
+    html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);margin-bottom:14px;">';
+    if(lastChange)html+='<div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">最近变化</div><div style="font-size:13px;color:var(--txt);margin-bottom:10px;">'+lastChange+'</div>';
+    if(lastApproach)html+='<div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">最近一次靠近</div><div style="font-size:13px;color:var(--txt);margin-bottom:10px;">'+lastApproach+'</div>';
+    if(hiddenNote)html+='<div style="font-size:13px;color:var(--accent);font-weight:600;">✦ '+hiddenNote+'</div>';
+    if(sceneNote)html+='<div style="font-size:12px;color:var(--txt2);margin-top:4px;">'+sceneNote+'</div>';
+    html+='</div>';
+  }
   // 距离变化记录
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;">';
   html+='<div style="font-size:13px;font-weight:600;color:var(--txt);">距离变化记录</div>';
@@ -1736,7 +1860,6 @@ function showTADistance(){
   if(body)body.innerHTML=html;
   showOv('ov-ta-distance');
 }
-// ★ TA与你的距离：查看全部变化记录（全屏，按日期分组，完整显示可滚动）
 function showTADistanceHistory(){
   if(!cid){toast('请先进入聊天');return;}
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
@@ -1817,125 +1940,115 @@ function showTADistanceDetail(ts){
 }
 
 // ★ TA的触碰：梦角身体感知（随机生成，情侣向完整动作库）
-var TA_TOUCH_GROUPS=[
-  {pos:'头发',acts:['轻轻摸你的头发','慢慢顺着你的头发','揉乱你的头发','把你的头发整理好','低头靠近你的头发','轻轻蹭你的头发']},
-  {pos:'头顶',acts:['摸摸你的头','轻轻揉你的头','宠溺地拍拍你的头','把手放在你的头顶停留一会儿']},
-  {pos:'额头',acts:['轻轻碰你的额头','靠着你的额头','亲吻你的额头','用额头贴着你确认你的存在']},
-  {pos:'脸颊',acts:['轻轻碰你的脸','捏捏你的脸','抚摸你的脸颊','用手托住你的脸','轻轻戳你的脸']},
-  {pos:'耳边',acts:['靠近你的耳边','轻轻碰你的耳侧','把头靠近你','轻声陪着你']},
-  {pos:'手背',acts:['轻轻碰你的手背','抚摸你的手背','握住你的手']},
-  {pos:'手心',acts:['牵住你的手','在你的手心轻轻划过','把你的手包在掌心','捏捏你的手']},
-  {pos:'手指',acts:['十指相扣','轻轻握住你的手指','玩你的手指','勾住你的手指','不舍得松开你的手']},
-  {pos:'手腕',acts:['轻轻握住你的手腕','拉住你不让你走','轻轻触碰你的手腕']},
-  {pos:'肩膀',acts:['靠在你的肩上','轻轻拍你的肩','揉揉你的肩膀','把手搭在你的肩上']},
-  {pos:'后背',acts:['轻轻拍你的背','抚摸你的后背','抱着你时轻轻安抚你','手掌停留在你的背上']},
-  {pos:'怀里',acts:['把你抱进怀里','抱着你不松手','靠在你的怀里','把你圈在怀里','静静抱着你陪你']},
-  {pos:'身后',acts:['从身后抱住你','环住你的腰','靠在你身后陪着你','把你拉近一点']},
-  {pos:'腰',acts:['轻轻环住你的腰','抱住你的腰','拉近你和TA的距离','靠近你不想离开']}
+var TA_TOUCH_POSITIONS=[
+  {g:'头部',items:['头发','头顶','额头','后脑','脸颊','耳边']},
+  {g:'手部',items:['手心','手背','手指','手腕']},
+  {g:'肩颈',items:['肩膀','后颈']},
+  {g:'身体',items:['背部','腰侧','怀里','身旁']}
 ];
-var TA_TOUCH_FEELS=['温暖','轻柔','安心','踏实','酥麻','温柔','宠溺'];
-var TA_TOUCH_DESCS=[
-  '像是在确认你还在。',
-  '没有说话，只是在陪你。',
-  '想让你安心一点。',
-  '舍不得松开。',
-  '像平时一样安抚你。',
-  '安静陪着你待了一会儿。',
-  '只想离你再近一点。',
-  '把温度留在你身上。'
-];
+// 部位 → 动作池（保证句子通顺）
+var TA_TOUCH_ACTS={
+  '头发':['轻轻摸了摸你的头发','慢慢顺着你的头发','揉了揉你的头发','低头靠近你的发间','轻轻蹭了蹭你的头发'],
+  '头顶':['轻轻揉了揉你的头顶','把手放在你头顶停留了一会儿','低头轻蹭你的头顶'],
+  '额头':['轻轻碰了碰你的额头','用额头贴着你','在你的额头落下一个轻吻'],
+  '后脑':['轻轻抚过你的后脑','手指缓缓穿过你的发丝','把手轻轻搭在你的后脑'],
+  '脸颊':['轻轻碰了碰你的脸颊','捏了捏你的脸','用手托住你的脸','指尖轻轻划过你的脸颊'],
+  '耳边':['靠近你的耳边','轻轻碰了碰你的耳侧','在耳边轻声说了句话'],
+  '手心':['牵住你的手','把你的手包在掌心里','在你的手心轻轻划过','捏了捏你的手心'],
+  '手背':['轻轻碰了碰你的手背','握住你的手背','指腹抚过你的手背'],
+  '手指':['和你十指相扣','轻轻握住你的手指','勾住你的手指','一根根摩挲着你的手指'],
+  '手腕':['轻轻握住你的手腕','轻轻碰了碰你的手腕','用指腹按了按你的手腕'],
+  '肩膀':['轻轻拍了拍你的肩膀','靠在你的肩上','揉了揉你的肩膀','把手搭在你的肩上'],
+  '后颈':['轻轻碰了碰你的后颈','手指划过你的后颈','把手拢在你的后颈'],
+  '背部':['轻轻拍了拍你的背','手掌停留在你的背上','安抚地抚过你的背'],
+  '腰侧':['轻轻环住你的腰','把手搭在你的腰侧','从身后环住你的腰'],
+  '怀里':['把你抱进怀里','静静抱着你','把头靠在你怀里','把你圈在怀里'],
+  '身旁':['靠在你身边','在你身边安静停留','把肩膀借给你靠']
+};
+// 类型（状态标签）→ 感知句 + 描述句
+var TA_TOUCH_TYPES={
+  '陪伴类':{perceive:['TA正在安静地陪着你。','TA在你身边停留着。','TA静静地待在你身边。'],desc:['只是安静地陪着你。','不打扰，让陪伴本身说话。','安静地陪你待了一会儿。']},
+  '安慰类':{perceive:['TA在轻轻安抚你。','TA想让你安心一点。','TA在给你安全感。'],desc:['像是在告诉你不用一个人承担。','想让你知道TA一直在。','把温柔轻轻放在你肩上。']},
+  '宠溺类':{perceive:['TA正宠溺地陪着你。','TA满眼都是你。','TA把你当小孩一样宠着。'],desc:['温柔、轻缓，像是在确认你还在身边。','眼里都是你，舍不得移开。','把你放在心尖上宠着。']},
+  '亲密类':{perceive:['TA正靠近着你。','TA想离你再近一点。','TA紧紧靠着你。'],desc:['只想和你靠得更近。','舍不得留一点距离。','呼吸都变得温柔。']},
+  '撒娇类':{perceive:['TA正轻轻赖着你。','TA在等你回应。','TA舍不得离开你身边。'],desc:['带着一点点依赖。','像小猫一样轻轻蹭着你。','想被你注意到。']}
+};
+// 感觉：温度 / 力度 / 情绪
+var TA_TOUCH_TEMP=['温暖','微凉','熟悉的温度','安静的感觉'];
+var TA_TOUCH_FORCE=['轻柔','轻轻触碰','温柔抱住','稍微用力'];
+var TA_TOUCH_MOOD=['宠溺','安心','想念','依恋','安慰'];
+// 触发原因
 var TA_TOUCH_REASONS=['聊天互动','你想起TA','特定日期','情绪变化'];
-var TA_TOUCH_TYPES=['陪伴类','安慰类','亲密类','撒娇类','想念类'];
 function showTATouch(){
   if(!cid){toast('请先进入聊天');return;}
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
   var data=ls('ml2_ta_touch')||{};
   if(!data.records)data.records={};
   if(!data.records[cid])data.records[cid]=[];
-  // ★ 持续状态机制：触碰也可能延续（TA可能还在做上一个动作），不每次重新抽
+  // ★ 持续状态机制：一次触碰=一个完整状态对象（位置+类型+动作+感觉+感知）
   var nowTs=Date.now();
   var tcur=data.current||null;
-  var grp=null,act='',feel='',desc='',ttype='',tNote='',tChanged=false;
-  // 动作持续时间：短（碰/捏/摸头，几分钟~30分钟）、中（牵/靠/抚，30分钟~数小时）、长（抱/陪/靠，数小时）
+  var pos='',posGroup='',ttype='',act='',desc='',perceive='',temp='',force='',mood='',tNote='',tChanged=false;
+  function _pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  function _randPos(){var g=_pick(TA_TOUCH_POSITIONS);return {g:g.g,pos:_pick(g.items)};}
+  function _randType(){var ks=Object.keys(TA_TOUCH_TYPES);return _pick(ks);}
+  function _buildState(){
+    var p=_randPos();
+    var tp=_randType();
+    var acts=TA_TOUCH_ACTS[p.pos]||TA_TOUCH_ACTS['身旁'];
+    return {
+      pos:p.pos, posGroup:p.g, type:tp,
+      act:_pick(acts),
+      perceive:_pick(TA_TOUCH_TYPES[tp].perceive),
+      desc:_pick(TA_TOUCH_TYPES[tp].desc),
+      temp:_pick(TA_TOUCH_TEMP), force:_pick(TA_TOUCH_FORCE), mood:_pick(TA_TOUCH_MOOD)
+    };
+  }
   function _touchDur(a){
-    if(/抱|拥|环|圈|陪|靠/.test(a))return 10800000+Math.random()*18000000;   // 3~8 小时
-    if(/牵|握|抚|顺|拍|揉|搭|碰/.test(a))return 1800000+Math.random()*9000000; // 30分钟~3小时
-    return 300000+Math.random()*1500000;                                       // 5~30分钟
+    if(/抱|拥|环|圈|陪|靠|停/.test(a))return 10800000+Math.random()*18000000;
+    if(/牵|握|抚|顺|拍|揉|搭|碰|蹭/.test(a))return 1800000+Math.random()*9000000;
+    return 300000+Math.random()*1500000;
   }
-  function _randTouchGrp(){
-    return TA_TOUCH_GROUPS[Math.floor(Math.random()*TA_TOUCH_GROUPS.length)];
-  }
-  function _randTouch(tg){
-    var a=tg.acts[Math.floor(Math.random()*tg.acts.length)];
-    return a;
-  }
-  // 自然结束时的过渡动作（动作链的"收尾"）
-  var TA_TOUCH_ENDINGS=['手轻轻放下，仍然陪在你身边。','动作慢慢停了下来，安静待在你身边。','温柔地收回手，安静地陪着你。'];
+  var st=null;
   if(tcur&&tcur.act&&tcur.expiresAt&&nowTs<tcur.expiresAt){
     var tr=Math.random();
     if(tr<0.6){
-      // 60% 继续当前动作（不新增记录）
-      grp=TA_TOUCH_GROUPS[Math.floor(Math.random()*TA_TOUCH_GROUPS.length)];
-      var keepIdx=-1;
-      for(var ki=0;ki<TA_TOUCH_GROUPS.length;ki++){if(TA_TOUCH_GROUPS[ki].pos===tcur.pos){keepIdx=ki;break;}}
-      grp=keepIdx>=0?TA_TOUCH_GROUPS[keepIdx]:_randTouchGrp();
-      act=tcur.act;feel=tcur.feel;desc=tcur.desc;ttype=tcur.type;
+      // 60% 延续当前触碰（不新增记录）
+      st={pos:tcur.pos,posGroup:tcur.posGroup||'',type:tcur.type||'陪伴类',act:tcur.act,perceive:tcur.perceive||'TA正在安静地陪着你。',desc:tcur.desc||'',temp:tcur.temp||'温暖',force:tcur.force||'轻柔',mood:tcur.mood||'安心'};
       tNote='TA还在'+(tcur.act||'陪着你')+'。';
     }else if(tr<0.9){
-      // 30% 动作自然结束（收尾动作）
+      // 30% 动作自然结束 → 收尾为陪伴
       tChanged=true;
-      grp=_randTouchGrp();
-      act='安静地陪着你';
-      feel=TA_TOUCH_FEELS[Math.floor(Math.random()*TA_TOUCH_FEELS.length)];
-      desc=TA_TOUCH_ENDINGS[Math.floor(Math.random()*TA_TOUCH_ENDINGS.length)];
-      ttype='陪伴类';
-      tNote='TA的动作停了下来。';
+      st={pos:tcur.pos||'身旁',posGroup:tcur.posGroup||'身体',type:'陪伴类',act:'安静地陪着你',perceive:'TA的动作停了下来，安静待在你身边。',desc:'手轻轻放下，仍然陪着你。',temp:'熟悉的温度',force:'轻柔',mood:'安心'};
+      tNote='TA的动作慢慢停了下来。';
     }else{
-      // 10% 新触碰（动作链延续：同位置换个动作，或换相邻位置）
+      // 10% 换新触碰（同位置新动作或新位置）
       tChanged=true;
-      var baseIdx=-1;
-      for(var bi=0;bi<TA_TOUCH_GROUPS.length;bi++){if(TA_TOUCH_GROUPS[bi].pos===tcur.pos){baseIdx=bi;break;}}
-      if(baseIdx>=0&&TA_TOUCH_GROUPS[baseIdx].acts.length>1){
-        grp=TA_TOUCH_GROUPS[baseIdx];
-        var na=grp.acts[Math.floor(Math.random()*grp.acts.length)];
-        act=na;
-      }else{
-        grp=_randTouchGrp();
-        act=_randTouch(grp);
+      st=_buildState();
+      if(tcur.pos&&TA_TOUCH_ACTS[tcur.pos]&&Math.random()<0.5){
+        st.pos=tcur.pos;st.posGroup=tcur.posGroup||'';
       }
-      feel=TA_TOUCH_FEELS[Math.floor(Math.random()*TA_TOUCH_FEELS.length)];
-      desc=TA_TOUCH_DESCS[Math.floor(Math.random()*TA_TOUCH_DESCS.length)];
-      ttype=TA_TOUCH_TYPES[Math.floor(Math.random()*TA_TOUCH_TYPES.length)];
-      tNote='TA换了新的动作。';
+      tNote='TA换了一个新的动作。';
     }
   }else if(tcur&&tcur.act){
-    // 上次动作已结束 → 自然过渡到新动作（不跳变）
     tChanged=true;
-    grp=_randTouchGrp();
-    act=_randTouch(grp);
-    feel=TA_TOUCH_FEELS[Math.floor(Math.random()*TA_TOUCH_FEELS.length)];
-    desc=TA_TOUCH_DESCS[Math.floor(Math.random()*TA_TOUCH_DESCS.length)];
-    ttype=TA_TOUCH_TYPES[Math.floor(Math.random()*TA_TOUCH_TYPES.length)];
+    st=_buildState();
     tNote='TA轻轻换了个姿势。';
   }else{
-    // 首次：全新触碰
     tChanged=true;
-    grp=_randTouchGrp();
-    act=_randTouch(grp);
-    feel=TA_TOUCH_FEELS[Math.floor(Math.random()*TA_TOUCH_FEELS.length)];
-    desc=TA_TOUCH_DESCS[Math.floor(Math.random()*TA_TOUCH_DESCS.length)];
-    ttype=TA_TOUCH_TYPES[Math.floor(Math.random()*TA_TOUCH_TYPES.length)];
+    st=_buildState();
     tNote='TA第一次轻轻触碰了你。';
   }
-  // 更新当前触碰状态与过期时间
-  data.current={pos:grp.pos,act:act,feel:feel,desc:desc,type:ttype,ts:nowTs,expiresAt:nowTs+_touchDur(act)};
+  pos=st.pos;posGroup=st.posGroup;ttype=st.type;act=st.act;perceive=st.perceive;desc=st.desc;temp=st.temp;force=st.force;mood=st.mood;
+  // 更新当前状态
+  data.current={pos:pos,posGroup:posGroup,type:ttype,act:act,perceive:perceive,desc:desc,temp:temp,force:force,mood:mood,ts:nowTs,expiresAt:nowTs+_touchDur(act)};
   if(tChanged){
     var now=new Date();
     var rec={
       ts:now.getTime(),
       time:('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2),
-      pos:grp.pos, act:act, feel:feel, desc:desc, type:ttype,
-      text:'位置：'+grp.pos+' · 动作：'+act+' · 描述：'+desc,
+      pos:pos, type:ttype, act:act, feel:temp+'、'+force, desc:desc,
+      text:'位置：'+pos+' · 动作：'+act+' · 描述：'+desc,
       reason:TA_TOUCH_REASONS[Math.floor(Math.random()*TA_TOUCH_REASONS.length)]
     };
     data.records[cid].push(rec);
@@ -1949,27 +2062,37 @@ function showTATouch(){
   if(tNote){
     html+='<div style="border-radius:12px;padding:10px 14px;background:rgba(0,0,0,0.04);border:1px dashed var(--border);margin-bottom:12px;font-size:13px;color:var(--txt2);">'+tNote+'</div>';
   }
+  // 当前感知：整体状态句 + 副描述
   html+='<div style="border-radius:14px;padding:20px;background:linear-gradient(160deg,rgba(255,190,200,0.22),rgba(255,255,255,0));border:1px solid var(--border);margin-bottom:14px;">';
   html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前感知</div>';
-  html+='<div style="font-size:20px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.4;">TA正在'+act+'。</div>';
+  html+='<div style="font-size:20px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.4;">'+perceive+'</div>';
   html+='<div style="font-size:13px;color:var(--txt2);">'+desc+'</div>';
   html+='</div>';
+  // 位置 / 类型 两卡
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
-  html+='<div style="font-size:12px;color:var(--txt3);">触碰位置</div>';
-  html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+grp.pos+'</div>';
-  html+='<div style="font-size:12px;color:var(--txt2);">感觉：'+feel+'、轻柔</div>';
+  html+='<div style="font-size:12px;color:var(--txt3);">触碰位置 · '+posGroup+'</div>';
+  html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+pos+'</div>';
   html+='</div>';
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
   html+='<div style="font-size:12px;color:var(--txt3);">触碰类型</div>';
-  html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+ttype+'</div>';
-  html+='<div style="font-size:12px;color:var(--txt2);">'+act+'</div>';
+  html+='<div style="font-size:22px;font-weight:700;color:var(--accent);margin:6px 0 2px;">'+ttype+'</div>';
   html+='</div>';
   html+='</div>';
+  // 当前动作：标题 + 描述
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);margin-bottom:14px;">';
   html+='<div style="font-size:12px;color:var(--txt3);">当前动作</div>';
-  html+='<div style="font-size:15px;color:var(--txt);margin-top:6px;line-height:1.6;">TA'+act+'。<br><span style="color:var(--txt2);font-size:13px;">'+desc+'</span></div>';
+  html+='<div style="font-size:16px;font-weight:600;color:var(--txt);margin-top:6px;line-height:1.6;">TA正在'+act+'。</div>';
+  html+='<div style="font-size:13px;color:var(--txt2);margin-top:4px;">'+desc+'</div>';
   html+='</div>';
+  // 感觉：温度 / 力度 / 情绪
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);margin-bottom:14px;">';
+  html+='<div style="font-size:12px;color:var(--txt3);margin-bottom:10px;">感觉</div>';
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  html+='<span style="font-size:12px;color:var(--txt);background:rgba(0,0,0,0.04);padding:4px 10px;border-radius:12px;">温度 · '+temp+'</span>';
+  html+='<span style="font-size:12px;color:var(--txt);background:rgba(0,0,0,0.04);padding:4px 10px;border-radius:12px;">力度 · '+force+'</span>';
+  html+='<span style="font-size:12px;color:var(--txt);background:rgba(0,0,0,0.04);padding:4px 10px;border-radius:12px;">情绪 · '+mood+'</span>';
+  html+='</div></div>';
   // 触碰记录
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;">';
   html+='<div style="font-size:13px;font-weight:600;color:var(--txt);">触碰记录</div>';
@@ -1985,8 +2108,8 @@ function showTATouch(){
     if(g!==lastGroup){html+='<div style="text-align:center;margin:10px 0 6px;font-size:11px;color:var(--txt3);">'+g+'</div>';lastGroup=g;}
     html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--c3);margin-bottom:6px;">';
     html+='<div style="font-size:11px;color:var(--txt3);width:40px;flex-shrink:0;">'+r.time+'</div>';
-    html+='<div style="font-size:13px;color:var(--txt);flex:1;word-break:break-all;">'+r.act+'</div>';
-    html+='<div style="font-size:11px;color:var(--txt3);background:rgba(0,0,0,0.04);padding:2px 8px;border-radius:8px;flex-shrink:0;">'+r.reason+'</div>';
+    html+='<div style="font-size:13px;color:var(--txt);flex:1;word-break:break-all;">'+(r.act||'')+'</div>';
+    html+='<div style="font-size:11px;color:var(--txt3);background:rgba(0,0,0,0.04);padding:2px 8px;border-radius:8px;flex-shrink:0;">'+(r.type||r.reason||'')+'</div>';
     html+='</div>';
   });
   if(data.records[cid].length>5)html+='<div style="text-align:center;padding:8px 0;font-size:12px;color:var(--txt3);">还有 '+(data.records[cid].length-5)+' 条记录，点"查看全部"浏览</div>';
@@ -1995,7 +2118,6 @@ function showTATouch(){
   if(body)body.innerHTML=html;
   showOv('ov-ta-touch');
 }
-// ★ TA的触碰：查看全部记录（今日/本周/全部筛选，完整显示可滚动）
 function showTATouchHistory(range){
   if(!cid){toast('请先进入聊天');return;}
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
@@ -2891,8 +3013,10 @@ function mmSpeak(text,contactId,msgId,onDone,onFailTimer){
   if(!mmKey){toast('请先在 设置→API接口 填写 MiniMax Key');_finish();return;}
   if(!vid){toast('该梦角还没有音色，请先上传参考音频复刻');_finish();return;}
   // ★ 朗读前过滤 emoji/颜文字/符号，避免被 TTS 读出
+  // 1) 删所有 UTF-16 代理对（任何 emoji 主体）2) 删变体/ZWJ/组合符 3) 白名单清洗
   var _clean=String(text||'')
-    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}\u{2190}-\u{21FF}\u{25A0}-\u{25FF}\u{FF00}-\u{FFEF}\u{3000}-\u{303F}\u{1F1E6}-\u{1F1FF}]/gu,'')
+    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g,'')
+    .replace(/[\uFE00-\uFE0F\u200D\u20E3\u2700-\u27BF\u2B00-\u2BFF\u2190-\u21FF\u25A0-\u25FF\u2600-\u26FF]/g,'')
     .replace(/[^\u4e00-\u9fa5a-zA-Z0-9，。！？、；：""''（）《》【】…—~·,.!?;:()<>\[\]{}'\"\s]/g,' ')
     .replace(/\s+/g,' ').trim();
   if(!_clean){_finish();return;}
@@ -3141,13 +3265,16 @@ function renderChatMorePanel(){
     var c=contacts.find(function(x){return x.id===cid});
     if(c&&c.chatbarEnabled&&Array.isArray(c.chatbarEnabled)){
       // 合并：确保新功能也出现在联系人定制列表中
-      var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary'];
+      var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch'];
       var merged=c.chatbarEnabled.slice();
       defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
       enabledItems=merged;
     }
     if(c&&c.chatbarOrder&&Array.isArray(c.chatbarOrder)){
-      displayOrder=c.chatbarOrder;
+      // ★ 补新功能：旧数据 order 没有 ta_distance/ta_touch 等，导入后要补上
+      displayOrder=c.chatbarOrder.slice();
+      var _newIds=['ta_distance','ta_touch','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library'];
+      _newIds.forEach(function(_nid){if(displayOrder.indexOf(_nid)===-1)displayOrder.push(_nid);});
     }
   }
 
