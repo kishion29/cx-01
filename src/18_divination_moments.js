@@ -1187,6 +1187,12 @@ function aiInterpretMoment(postId){
     if(!text2){throw new Error('返回为空');}
     var all2=(typeof momentsPosts!=='undefined'&&momentsPosts)?momentsPosts:[];
     for(var i2=0;i2<all2.length;i2++){if(all2[i2].id===postId){all2[i2].aiInterpret=text2;all2[i2].aiLoading=false;all2[i2].aiError='';break;}}
+    window._aiFixCtxs=window._aiFixCtxs||{};
+    window._aiFixCtxs['mom_'+postId]={systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:text2,onDone:function(t){
+      var all=(typeof momentsPosts!=='undefined'&&momentsPosts)?momentsPosts:[];
+      for(var i=0;i<all.length;i++){if(all[i].id===postId){all[i].aiInterpret=t;all[i].aiLoading=false;all[i].aiError='';break;}}
+      saveMomentsData();renderMoments();
+    }};
     saveMomentsData();
     renderMoments();
   }).catch(function(e){

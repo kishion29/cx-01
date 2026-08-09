@@ -2423,7 +2423,7 @@ setTimeout(async function(){
     }, 2000);}catch(e){}
     try{setTimeout(function(){try{maybeAutoSend();}catch(e){console.warn('maybeAutoSend init error:',e);}},5000);}catch(e){}
     // ★ 修复：主动发消息改为精确间隔链式调度（无固定轮询），启动即排
-    try{setTimeout(function(){try{initAutoSendSchedule();}catch(e){console.warn('initAutoSendSchedule error:',e);}},8000);}catch(e){}
+    try{try{initAutoSendSchedule();}catch(e){console.warn('initAutoSendSchedule direct error:',e);}setTimeout(function(){try{initAutoSendSchedule();}catch(e){console.warn('initAutoSendSchedule error:',e);}},8000);}catch(e){}
     // 朋友圈动态：即使前面的初始化失败，也要确保定时任务启动
     try{setTimeout(scheduleFriendMoments,60000);}catch(e){console.warn('scheduleFriendMoments init failed:',e)}
     // 兜底：5秒后再启动一次，防止第一次因数据未就绪而失败

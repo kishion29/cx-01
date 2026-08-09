@@ -1543,6 +1543,7 @@ var chatbarItems=[
   {id:'period',name:'经期记录',icon:'🌸',category:'更多',fixed:false},
   {id:'pomodoro',name:'番茄钟',icon:'🍅',category:'更多',fixed:false},
   {id:'mood_cards_library',name:'聊天情绪系统',icon:'💭',category:'字卡库',fixed:false},
+  {id:'read_cards',name:'一起看字卡库',icon:'📚',category:'字卡库',fixed:false},
   {id:'contact-profile',name:'梦角主页',icon:'🏠',category:'梦角',fixed:false},
   {id:'favorites',name:'TA的收藏夹',icon:'⭐',fixed:false,category:'梦角'},
   {id:'ta_highlights',name:'TA想说的重点',icon:'💬',fixed:false,category:'梦角'},
@@ -1550,6 +1551,8 @@ var chatbarItems=[
   {id:'star_cal',name:'星言日历',icon:'✨',fixed:false,category:'梦角'},
   {id:'ta_distance',name:'TA与你的距离',icon:'📍',fixed:false,category:'梦角'},
   {id:'ta_touch',name:'TA的触碰',icon:'💫',fixed:false,category:'梦角'},
+  {id:'read_together',name:'一起阅读',icon:'📖',fixed:false,category:'更多'},
+  {id:'read_video',name:'一起看视频',icon:'🎬',fixed:false,category:'更多'},
   {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
   
   {id:'add',name:'添加好友',icon:'+',fixed:false,category:'其他'},
@@ -2219,7 +2222,19 @@ var AI_BASE_SETTING='【网站概念】星言：星，是你。言，是TA。连
 '【关系基调】不要把语言写得全是危机、问题、纠错。要记得你们的关系本来是甜蜜的、安稳的、亲密的。';
 function getApiSettings(){
   var s=ls(API_SETTINGS_KEY)||{};
-  return {enabled:s.enabled===true,gender:s.gender||'boy',baseUrl:s.baseUrl||'https://api.deepseek.com/v1',apiKey:s.apiKey||'',model:s.model||'deepseek-chat',divineInstr:s.divineInstr||''};
+  return {enabled:s.enabled===true,gender:s.gender||'boy',baseUrl:s.baseUrl||'https://api.deepseek.com/v1',apiKey:s.apiKey||'',model:s.model||'deepseek-chat',divineInstr:s.divineInstr||'',worldviewMode:s.worldviewMode||'default',worldviewCustom:s.worldviewCustom||''};
+}
+// ★ 世界观：默认设定 or 自定义（供各 AI 解读入口使用）
+function aiWorldview(ss){
+  var s=ss||getApiSettings();
+  if(s.worldviewMode==='custom'&&s.worldviewCustom&&s.worldviewCustom.trim())return s.worldviewCustom;
+  return AI_BASE_SETTING;
+}
+function updateApiWorldviewUI(){
+  var mode=document.querySelector('input[name="api-worldview-mode"]:checked');
+  var isCustom=mode&&mode.value==='custom';
+  var area=$('api-worldview-custom');
+  if(area)area.style.display=isCustom?'block':'none';
 }
 // ★ 启用开关视觉：开启=深灰底+浅色圆点右移，关闭=浅灰底+圆点左移
 function updateApiToggleVisual(checked){
@@ -2261,6 +2276,11 @@ function openApiSettings(){
   if($('api-key'))$('api-key').value=s.apiKey;
   if($('api-model'))$('api-model').value=s.model;
   if($('api-divine-instr'))$('api-divine-instr').value=s.divineInstr||'';
+  var wvMode=(s.worldviewMode==='custom')?'custom':'default';
+  var wvDef=document.querySelector('input[name="api-worldview-mode"][value="'+wvMode+'"]');
+  if(wvDef)wvDef.checked=true;
+  if($('api-worldview-custom'))$('api-worldview-custom').value=s.worldviewCustom||'';
+  updateApiWorldviewUI();
   // 联系人下拉：默认选中当前聊天联系人
   var sel=$('api-contact-select');
   if(sel){
@@ -2403,6 +2423,9 @@ function saveApiSettings(){
   s.apiKey=$('api-key')?$('api-key').value.trim():'';
   s.model=$('api-model')?$('api-model').value.trim():'';
   s.divineInstr=$('api-divine-instr')?$('api-divine-instr').value.trim():'';
+  var wvMode=document.querySelector('input[name="api-worldview-mode"]:checked');
+  s.worldviewMode=wvMode?wvMode.value:'default';
+  s.worldviewCustom=$('api-worldview-custom')?$('api-worldview-custom').value:'';
   // 人设保存到选中的联系人（每个联系人独立）
   var personaSel=$('api-contact-select');
   if(personaSel&&personaSel.value){
@@ -2434,9 +2457,11 @@ function aiInterpretText(text,title,contactId){
   var contactPersona=getContactPersona(targetCid);
   if(contactPersona)personaText='\n【TA的完整人设】'+contactPersona;
   var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
-  AI_BASE_SETTING+personaText+'\n'+
+  aiWorldview(s)+personaText+'\n'+
   '【解读要求】用 100~200 字解读这段内容：字面意思 → 你真正想说的话 → 此刻的感受 → 给用户的一句话回应。用第二人称"你"对用户说话，第一人称"我"=你。';
   var userPrompt='这是TA（或你们之间）的一段内容：「'+text+'」。请以TA的身份解读它想传达的意思。';
+  // ★ 保存上下文供纠错重写
+  window._aiInterpretCtx={text:text,title:title,contactId:targetCid,systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:''};
   var body=$('ai-interpret-body');
   if(body)body.innerHTML='<div style="text-align:center;padding:40px;color:var(--txt3);"><div style="font-size:28px;margin-bottom:10px;">🌙</div><div style="font-size:13px;">TA正在解读...</div></div>';
   var titleEl=document.querySelector('#ov-ai-interpret .modal-title');
@@ -2453,12 +2478,216 @@ function aiInterpretText(text,title,contactId){
     var text2=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
     if(!text2){throw new Error('返回为空');}
     var esc=text2.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-    if(body)body.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">'+esc+'</div>';
+    if(body){window._aiInterpretCtx.lastReply=text2;renderAiInterpretResult(body,esc);}
   }).catch(function(e){
     console.warn('AI interpret failed:',e);
     if(body)body.innerHTML='<div style="text-align:center;padding:30px;color:#ff4d4f;font-size:13px;line-height:1.8;">AI 解读失败：'+String(e.message||e).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'<br><span style="color:var(--txt3);font-size:12px;">请检查 API 地址 / Key / 模型配置，或网络是否可用</span></div>';
   });
 }
+
+// ★ AI 解读纠错重写：对结果不满意可填写意见重新生成
+function renderAiInterpretResult(body,esc){
+  var fixUI='<div style="margin-top:14px;border-top:1px dashed var(--border);padding-top:12px;">'
+    +'<div style="font-size:12px;color:var(--txt3);margin-bottom:8px;">对解读不满意？告诉TA哪里不对，重新生成：</div>'
+    +'<textarea id="ai-interpret-fix" style="width:100%;box-sizing:border-box;height:64px;border-radius:8px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:12px;padding:8px;" placeholder="例如：语气太官方，要更甜一点；不要用我称呼TA；多写点具体回应"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:8px;">'
+    +'<button id="ai-interpret-fix-btn" style="flex:1;padding:9px 0;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">🔄 按意见重新生成</button>'
+    +'</div></div>';
+  body.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">'+esc+'</div>'+fixUI;
+  var btn=body.querySelector('#ai-interpret-fix-btn');
+  if(btn)btn.onclick=function(){
+    var inp=body.querySelector('#ai-interpret-fix');
+    var v=inp?inp.value.trim():'';
+    if(!v){toast('请先填写纠错意见');return;}
+    aiInterpretRetry(v);
+  };
+}
+function aiInterpretRetry(correction){
+  var ctx=window._aiInterpretCtx;
+  if(!ctx||!ctx.lastReply){toast('没有可纠错的解读结果');return;}
+  var s=getApiSettings();
+  if(!s.enabled||!s.apiKey){toast('AI 未配置');return;}
+  var body=$('ai-interpret-body');
+  if(body)body.innerHTML='<div style="text-align:center;padding:40px;color:var(--txt3);"><div style="font-size:28px;margin-bottom:10px;">🌙</div><div style="font-size:13px;">根据你的意见重新解读中...</div></div>';
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:[
+      {role:'system',content:ctx.systemPrompt},
+      {role:'user',content:ctx.userPrompt},
+      {role:'assistant',content:ctx.lastReply},
+      {role:'user',content:'我对你刚才的解读不满意，请按以下意见修正后重新解读（保持同样的身份人设与语气，重新组织内容，不要提及修正过程本身）：\n'+correction}
+    ],max_tokens:500})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text2=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text2){throw new Error('返回为空');}
+    var esc=text2.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    if(body){window._aiInterpretCtx.lastReply=text2;renderAiInterpretResult(body,esc);}
+  }).catch(function(e){
+    console.warn('AI interpret retry failed:',e);
+    if(body)body.innerHTML='<div style="text-align:center;padding:30px;color:#ff4d4f;font-size:13px;line-height:1.8;">重新生成失败：'+String(e.message||e).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'<br><span style="color:var(--txt3);font-size:12px;">请检查网络或 API 配置</span></div>';
+  });
+}
+
+// ================= 通用 AI 解读纠错重写（供朋友圈帖子/字卡/信件/占卜解读复用） =================
+var _aiFixCtxs={}; // key -> {systemPrompt,userPrompt,lastReply,onDone}
+function aiFixOpen(key){
+  var ctx=_aiFixCtxs[key];
+  if(!ctx||!ctx.lastReply){toast('没有可纠错的解读结果');return;}
+  if(!ctx.history||!ctx.history.length)ctx.history=[ctx.lastReply];
+  var s=getApiSettings();
+  if(!s.enabled||!s.apiKey){toast('AI 未配置');return;}
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='width:86%;max-width:380px;background:var(--c1);border-radius:16px;padding:18px;box-sizing:border-box;box-shadow:0 8px 30px rgba(0,0,0,0.3);';
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+    +'<div style="font-size:15px;font-weight:600;color:var(--txt);">✏️ 纠错重写解读</div>'
+    +'<div id="ai-fix-his-btn" style="font-size:12px;color:var(--accent);cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;">📜 历史版本(<span id="ai-fix-his-cnt">'+ctx.history.length+'</span>)</div>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--txt3);margin-bottom:10px;line-height:1.6;">告诉TA哪里不对，会按你的意见重新生成解读；所有版本都会保留可随时查看。</div>'
+    +'<div id="ai-fix-history" style="display:none;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px;margin-bottom:10px;background:var(--c2);box-sizing:border-box;"></div>'
+    +'<textarea id="ai-fix-inp" placeholder="例如：语气太官方，要更甜一点；别用&#39;我&#39;称呼TA；多写点具体回应" style="width:100%;box-sizing:border-box;height:84px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:10px;"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:12px;">'
+    +'<button id="ai-fix-cancel" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">取消</button>'
+    +'<button id="ai-fix-go" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">🔄 重新生成</button>'
+    +'</div>';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  var inp=box.querySelector('#ai-fix-inp');
+  var cancel=box.querySelector('#ai-fix-cancel');
+  var go=box.querySelector('#ai-fix-go');
+  var hisBtn=box.querySelector('#ai-fix-his-btn');
+  var hisBox=box.querySelector('#ai-fix-history');
+  function close(){if(ov.parentNode)ov.parentNode.removeChild(ov);}
+  ov.addEventListener('click',function(e){if(e.target===ov)close();});
+  cancel.onclick=close;
+  // ★ 历史版本：倒序列出所有解读，可展开全文/采用
+  hisBtn.onclick=function(){
+    if(hisBox.style.display==='block'){hisBox.style.display='none';return;}
+    hisBox.style.display='block';
+    hisBox.innerHTML='';
+    var h=ctx.history||[ctx.lastReply];
+    for(var i=h.length-1;i>=0;i--){
+      (function(idx,txt){
+        var item=document.createElement('div');
+        item.style.cssText='border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;background:var(--c1);';
+        var head=document.createElement('div');
+        head.style.cssText='display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--txt2);margin-bottom:4px;';
+        head.appendChild(document.createTextNode('版本 '+(idx+1)+(idx===h.length-1?'（当前）':'')));
+        var use=document.createElement('span');
+        use.textContent='采用此版本';
+        use.style.cssText='color:var(--accent);cursor:pointer;font-size:11px;';
+        use.onclick=function(){
+          ctx.lastReply=txt;
+          if(ctx.onDone){try{ctx.onDone(txt);}catch(e){console.warn(e);}}
+          close();
+          toast('已采用版本 '+(idx+1));
+          attachAiFixBtns(document);
+        };
+        head.appendChild(use);
+        var body=document.createElement('div');
+        body.style.cssText='font-size:12px;color:var(--txt);line-height:1.6;word-break:break-all;max-height:100px;overflow-y:auto;white-space:pre-wrap;';
+        body.textContent=txt;
+        item.appendChild(head);
+        item.appendChild(body);
+        hisBox.appendChild(item);
+      })(i,h[i]);
+    }
+  };
+  go.onclick=function(){
+    var v=inp.value.trim();
+    if(!v){toast('请先填写纠错意见');return;}
+    go.disabled=true;go.textContent='生成中...';
+    aiFixRun(key,v,function(text){
+      var cnt=box.querySelector('#ai-fix-his-cnt');
+      if(cnt)cnt.textContent=String((ctx.history||[]).length);
+      hisBox.style.display='none';
+      close();
+      toast('已重新生成，可点历史版本查看');
+      if(ctx.onDone){try{ctx.onDone(text);}catch(e){console.warn(e);}}
+      attachAiFixBtns(document);
+    },function(msg){
+      go.disabled=false;go.textContent='🔄 重新生成';
+      toast(msg||'生成失败');
+    });
+  };
+  setTimeout(function(){try{inp.focus();}catch(e){}},100);
+}
+function aiFixRun(key,correction,onOk,onErr){
+  var ctx=_aiFixCtxs[key];
+  if(!ctx){if(onErr)onErr('没有解读上下文');return;}
+  var s=getApiSettings();
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:[
+      {role:'system',content:ctx.systemPrompt},
+      {role:'user',content:ctx.userPrompt},
+      {role:'assistant',content:ctx.lastReply},
+      {role:'user',content:'我对你刚才的解读不满意，请按以下意见修正后重新解读（保持同样的身份人设与语气，重新组织内容，不要提及修正过程本身）：\n'+correction}
+    ],max_tokens:500})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text){throw new Error('返回为空');}
+    ctx.lastReply=text;
+    if(!ctx.history)ctx.history=[];
+    ctx.history.push(text);
+    if(onOk)onOk(text);
+  }).catch(function(e){
+    console.warn('AI fix run failed:',e);
+    if(onErr)onErr('生成失败：'+(e.message||e));
+  });
+}
+// ★ 给所有解读结果容器挂纠错按钮（防重）
+function attachAiFixBtns(root){
+  if(!root)root=document;
+  var boxes=root.querySelectorAll?root.querySelectorAll('[id^="aii_"], [id^="m-ai-"], #aii_letter, #d2-ai-area'):[];
+  for(var i=0;i<boxes.length;i++){
+    var box=boxes[i];
+    if(!box)continue;
+    var key=null;
+    var id=box.id||'';
+    if(id.indexOf('aii_')===0)key='msg_'+id.slice(4);
+    else if(id.indexOf('m-ai-')===0)key='mom_'+id.slice(5);
+    else if(id==='aii_letter')key='letter';
+    else if(id==='d2-ai-area')key='d2';
+    if(!key)continue;
+    var ctx=_aiFixCtxs[key];
+    if(!ctx||!ctx.lastReply)continue;
+    if(id==='d2-ai-area'){if(box.querySelector('.ai-fix-btn'))continue;}
+    else{if(box._aiFixAttached)continue;}
+    box._aiFixAttached=true;
+    var btn=document.createElement('div');
+    btn.className='ai-fix-btn';
+    btn.textContent='✏️ 解读不满意？纠错重写';
+    btn.style.cssText='margin-top:8px;padding:7px 10px;border-radius:8px;background:rgba(0,0,0,0.05);border:1px solid var(--border);font-size:11px;color:var(--accent);cursor:pointer;text-align:center;';
+    btn.onclick=(function(k){return function(){aiFixOpen(k);};})(key);
+    box.appendChild(btn);
+  }
+}
+var _aiFixTimer=null;
+function _scheduleAiFixAttach(){
+  if(_aiFixTimer)return;
+  _aiFixTimer=setTimeout(function(){_aiFixTimer=null;try{attachAiFixBtns(document);}catch(e){}},150);
+}
+function initAiFixObserver(){
+  if(window._aiFixObsInit)return;
+  window._aiFixObsInit=true;
+  var target=document.body||document.documentElement;
+  if(!target)return;
+  try{
+    new MutationObserver(function(){_scheduleAiFixAttach();}).observe(target,{childList:true,subtree:true});
+    attachAiFixBtns(document);
+  }catch(e){}
+}
+try{initAiFixObserver();}catch(e){}
 
 // ★ 占卜抽牌后的 AI 解读：基础设定 + 梦角人设 + 占卜师指令
 function d2AiInterpret(){  var s=getApiSettings();
@@ -2497,7 +2726,7 @@ function d2AiInterpret(){  var s=getApiSettings();
   if(contactPersona)personaText='\n【TA的完整人设】'+contactPersona;
   var divineInstr=s.divineInstr||'你是一位温柔而神秘的占卜师，用感性、温暖、有诗意的语言解读牌面，联系用户与其梦角（恋人）的关系给出指引，语气亲密安稳，不要写满危机与纠错。';
   var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
-  AI_BASE_SETTING+personaText+'\n'+
+  aiWorldview(s)+personaText+'\n'+
   '【AI占卜师指令】'+divineInstr+'\n'+
   '【解读要求·必须逐张解牌】严格按以下结构解读，每一张牌都必须单独分析，不许跳过、不许只谈感受：\n'+
   '1. 【牌面】列出抽到的每张牌（含正/逆位），逐个说明这张牌的含义；\n'+
@@ -2509,6 +2738,10 @@ function d2AiInterpret(){  var s=getApiSettings();
   var area=$('d2-ai-area');
   if(area){
     area.style.display='block';
+    // ★ 修复：解读区限高可滚动，避免撑开弹窗把牌面挤出可视区
+    area.style.maxHeight='38vh';
+    area.style.overflowY='auto';
+    area.style.marginTop='8px';
     area.innerHTML='<div style="text-align:center;padding:20px;color:var(--txt3);"><span style="display:inline-block;animation:aiPulse 1s ease-in-out infinite;">📜 TA正在解读牌面...</span></div>';
     area.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
@@ -2524,6 +2757,12 @@ function d2AiInterpret(){  var s=getApiSettings();
     if(!text){throw new Error('返回为空');}
     var esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     if(area)area.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">📜 <b>AI 占卜解读</b><br><br>'+esc+'</div>';
+    window._aiFixCtxs=window._aiFixCtxs||{};
+    window._aiFixCtxs['d2']={systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:text,onDone:function(t){
+      var a=$('d2-ai-area');
+      if(a){var esc2=String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');a.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">📜 <b>AI 占卜解读</b><br><br>'+esc2+'</div>';}
+      attachAiFixBtns(document);
+    }};
     // ★ 存入占卜历史 + 同步聊天记录
     if(typeof window.d2SaveAiInterpret==='function'){
       try{window.d2SaveAiInterpret(text);}catch(e){console.warn('save ai interpret failed:',e);}
@@ -3181,7 +3420,7 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
   var contactPersona=getContactPersona(cid);
   if(contactPersona)personaText='\n【TA的完整人设】'+contactPersona;
   var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
-  AI_BASE_SETTING+personaText+'\n'+
+  aiWorldview(s)+personaText+'\n'+
   '【解读要求】下面的字卡是"你（TA）"发给用户的话，不是用户说的。请以"你（TA）"第一人称，用 100~200 字解读这张字卡：字面意思 → 你真正想对用户说的话 → 你此刻的感受 → 给用户的一句话回应。用第二人称"你"称呼用户，第一人称"我"=你（TA）。';
   var userPrompt='你（TA）发给用户一张字卡：「'+cardText+'」'+cardExtra+'。请以你（TA）的身份，解读这张字卡想对用户传达的意思。';
   // ★ 不弹窗：直接在消息下方显示「解读中...」，完成后原地替换为解读内容
@@ -3223,6 +3462,11 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
     var target=mm2.find(function(x){return x.id===msgId;});
     if(target){
       target.aiInterpret=text;
+      window._aiFixCtxs=window._aiFixCtxs||{};
+      window._aiFixCtxs['msg_'+msgId]={systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:text,onDone:function(t){
+        var mm=msgs(cid);var tg=mm.find(function(x){return x.id===msgId});
+        if(tg){tg.aiInterpret=t;tg.aiLoading=false;tg.aiError='';savemsgs(cid,mm);if(cid===window.currentCid){renderMsgs(mm);_renderKeepScroll();}}
+      }};
       target.aiLoading=false;
       savemsgs(cid,mm2);
       if(cid===window.currentCid){renderMsgs(mm2);_renderKeepScroll();}
@@ -3258,14 +3502,19 @@ function renderChatMorePanel(){
 
   var enabledItems=customChatbarEnabled;
   if(!enabledItems||!Array.isArray(enabledItems)||enabledItems.length===0){
-    enabledItems=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','star_cal','diary'];
+    enabledItems=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
+  }else{
+    // ★ 铁证：无论 customChatbarEnabled 来自哪里（旧存档/未合并），渲染时都强制补全新功能
+    ['ta_distance','ta_touch','read_together','read_cards','read_video'].forEach(function(_i){
+      if(enabledItems.indexOf(_i)===-1)enabledItems.push(_i);
+    });
   }
   var displayOrder=chatbarItems.map(function(item){return item.id});
   if(cid){
     var c=contacts.find(function(x){return x.id===cid});
     if(c&&c.chatbarEnabled&&Array.isArray(c.chatbarEnabled)){
       // 合并：确保新功能也出现在联系人定制列表中
-      var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch'];
+      var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
       var merged=c.chatbarEnabled.slice();
       defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
       enabledItems=merged;
@@ -3273,7 +3522,7 @@ function renderChatMorePanel(){
     if(c&&c.chatbarOrder&&Array.isArray(c.chatbarOrder)){
       // ★ 补新功能：旧数据 order 没有 ta_distance/ta_touch 等，导入后要补上
       displayOrder=c.chatbarOrder.slice();
-      var _newIds=['ta_distance','ta_touch','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library'];
+      var _newIds=['ta_distance','ta_touch','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library','read_together','read_cards','read_video'];
       _newIds.forEach(function(_nid){if(displayOrder.indexOf(_nid)===-1)displayOrder.push(_nid);});
     }
   }
@@ -3443,6 +3692,15 @@ function handleChatMoreAction(action){
       case 'favorites':
         showTAFavorites();
         break;
+      case 'read_together':
+        if(typeof showReadTogether==='function')showReadTogether();
+        break;
+      case 'read_cards':
+        if(typeof showReadCards==='function')showReadCards();
+        break;
+      case 'read_video':
+        if(typeof showReadVideo==='function')showReadVideo();
+        break;
       case 'copy_msg':
         showCopyMsg();
         break;
@@ -3542,11 +3800,11 @@ function handleChatMoreAction(action){
 }
 
 function loadChatbarSettings(){
-  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary'];
+  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
   var saved=ls('ml2_custom_chatbar');
   if(saved&&Array.isArray(saved)&&saved.length>0){
     // 合并：把新增的默认功能添加到已保存的配置中
-    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary'];
+    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
     var merged=saved.slice();
     defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
     customChatbarEnabled=merged;
@@ -3559,7 +3817,7 @@ async function loadChatbarSettingsAsync(){
     try{
       var saved=await window.localforage.getItem('ml2_custom_chatbar');
       if(saved&&Array.isArray(saved)&&saved.length>0){
-        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary'];
+        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
         var merged=saved.slice();
         defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
         customChatbarEnabled=merged;

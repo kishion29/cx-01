@@ -13,7 +13,7 @@
 <body>
 <!-- 即时加载动画：在页面解析期间显示，减少手机端白屏/卡顿感 -->
 <div id="early-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;">
-  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#9c8b7b;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-09 17:16</div>
+  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#9c8b7b;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-09 21:39</div>
   <div style="font-size:32px;color:#c9a96e;margin-bottom:24px;animation:splashPulse 1.5s ease-in-out infinite">✦</div>
   <div style="display:flex;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></span></div>
   <div style="font-size:13px;color:#9c8b7b;letter-spacing:2px;margin-top:20px;" id="splash-status">星言加载中...</div>
@@ -2058,6 +2058,12 @@ function showUsageNoticeFromSplash() {
       <textarea id="api-persona" rows="5" placeholder="例如：温柔但有点傲娇，说话简短偶尔逗你；你们相识于某个雨天，TA习惯叫你"笨蛋"；认定你是最重要的人……" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:14px;resize:vertical;"></textarea>
       <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">AI 占卜师解读指令（占卜抽牌后用，可按你喜好设定解读风格；不填用默认）</div>
       <textarea id="api-divine-instr" rows="4" placeholder="例如：你是一位温柔神秘的占卜师，用感性的语言解读牌面，联系我和TA的关系给出指引，语气温暖有诗意……" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:14px;resize:vertical;"></textarea>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">世界观设定（AI 解读时 TA 的背景认知；默认使用星言官方设定，也可换成你自己的）</div>
+      <div style="display:flex;gap:14px;margin-bottom:8px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--txt);cursor:pointer;"><input type="radio" name="api-worldview-mode" value="default" checked onchange="updateApiWorldviewUI()"> 使用默认世界观</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--txt);cursor:pointer;"><input type="radio" name="api-worldview-mode" value="custom" onchange="updateApiWorldviewUI()"> 自定义世界观</label>
+      </div>
+      <textarea id="api-worldview-custom" rows="8" placeholder="在这里写你的世界观设定：TA 是什么存在、你们的关系背景、世界的规则等。留空则回退到默认世界观。" style="display:none;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:14px;resize:vertical;"></textarea>
       <div style="display:flex;gap:8px;">
         <button class="btn" onclick="saveApiSettings()" style="flex:1;">保存</button>
         <button class="btn" id="api-test-btn" style="flex:1;background:var(--c2);color:var(--txt);border:1px solid var(--border);">测试连接</button>
@@ -2104,6 +2110,90 @@ function showUsageNoticeFromSplash() {
     </div>
   </div>
   <div class="tabs"></div>
+</div>
+
+<!-- 一起阅读 Modal -->
+<div class="overlay" id="ov-read-together">
+  <div class="sheet" style="max-width:440px;">
+    <div class="sh"><h3>📖 一起阅读</h3><button class="btn-close" onclick="hideOv('ov-read-together')">✕</button></div>
+    <div class="sb" style="padding:16px;max-height:75vh;overflow-y:auto;">
+      <div id="read-upload-area">
+        <div style="font-size:13px;color:var(--txt3);margin-bottom:10px;line-height:1.6;">上传一本电子书（TXT 文本），和 TA 一起读。翻页时 TA 有概率回应你。</div>
+        <label style="display:block;text-align:center;padding:24px 12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;background:var(--c2);">
+          <div style="font-size:28px;">📚</div>
+          <div style="font-size:14px;color:var(--accent);margin-top:6px;">点击选择 TXT 电子书</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:4px;">支持 .txt，UTF-8 编码</div>
+          <input type="file" id="read-book-file" accept=".txt,text/plain" style="display:none;" onchange="readUploadBook(this)">
+        </label>
+      </div>
+      <div id="read-book-area" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;font-size:15px;font-weight:600;color:var(--txt);" id="read-book-title"></div>
+          <button onclick="readRemoveBook()" style="border:none;background:none;color:#ff4d4f;font-size:14px;cursor:pointer;padding:4px 8px;">🗑 移除</button>
+        </div>
+        <div style="font-size:12px;color:var(--txt3);margin-bottom:8px;" id="read-book-progress"></div>
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--c2);min-height:200px;max-height:46vh;overflow-y:auto;font-size:14px;line-height:1.9;color:var(--txt);white-space:pre-wrap;" id="read-book-content"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="readPrevPage()" style="flex:1;padding:9px 0;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">← 上一页</button>
+          <button onclick="readNextPage()" style="flex:1;padding:9px 0;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">下一页 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 一起看字卡库 Modal -->
+<div class="overlay" id="ov-read-cards">
+  <div class="sheet" style="max-width:440px;">
+    <div class="sh"><h3>📚 一起看字卡库</h3><button class="btn-close" onclick="hideOv('ov-read-cards')">✕</button></div>
+    <div class="sb" style="padding:16px;max-height:75vh;overflow-y:auto;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;line-height:1.6;">使用「一起阅读」时，TA 会从这里挑字卡回应你。公用字卡对所有联系人生效，专享字卡只对该联系人。</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="read-cards-tab-public" onclick="readCardsTab('public')" style="flex:1;padding:8px 0;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">公用字卡</button>
+        <button id="read-cards-tab-private" onclick="readCardsTab('private')" style="flex:1;padding:8px 0;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">专享字卡</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button onclick="readCardsCat('主字卡')" id="read-cat-主字卡" style="padding:5px 12px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;">主字卡</button>
+        <button onclick="readCardsCat('颜文字')" id="read-cat-颜文字" style="padding:5px 12px;border:1px solid var(--border);border-radius:14px;background:var(--c2);color:var(--txt);font-size:12px;cursor:pointer;">颜文字</button>
+        <button onclick="readCardsCat('emoji')" id="read-cat-emoji" style="padding:5px 12px;border:1px solid var(--border);border-radius:14px;background:var(--c2);color:var(--txt);font-size:12px;cursor:pointer;">emoji</button>
+      </div>
+      <div id="read-cards-list"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <input type="text" id="read-cards-input" placeholder="输入字卡内容，回车添加" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">
+        <button onclick="readCardsAdd()" style="padding:9px 18px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">添加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 一起看视频 Modal -->
+<div class="overlay" id="ov-read-video">
+  <div class="sheet" style="max-width:440px;">
+    <div class="sh"><h3>🎬 一起看视频</h3><button class="btn-close" onclick="hideOv('ov-read-video')">✕</button></div>
+    <div class="sb" style="padding:16px;max-height:78vh;overflow-y:auto;">
+      <div id="read-video-setup">
+        <div style="font-size:13px;color:var(--txt3);margin-bottom:10px;line-height:1.6;">上传一个本地视频，或粘贴哔哩哔哩链接，和 TA 一起看。播放时 TA 有概率回应你。</div>
+        <label style="display:block;text-align:center;padding:20px 12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;background:var(--c2);margin-bottom:10px;">
+          <div style="font-size:26px;">🎞️</div>
+          <div style="font-size:14px;color:var(--accent);margin-top:4px;">点击上传本地视频</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:4px;">mp4 / webm / m3u8 等浏览器可播放格式</div>
+          <input type="file" id="read-video-file" accept="video/*" style="display:none;" onchange="readUploadVideo(this)">
+        </label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="read-bili-url" placeholder="粘贴哔哩哔哩链接，如 https://www.bilibili.com/video/BVxxxx" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:12px;box-sizing:border-box;">
+          <button onclick="readSetBili()" style="padding:9px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;flex-shrink:0;">载入</button>
+        </div>
+      </div>
+      <div id="read-video-play" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;font-size:14px;font-weight:600;color:var(--txt);word-break:break-all;" id="read-video-title"></div>
+          <button onclick="readRemoveVideo()" style="border:none;background:none;color:#ff4d4f;font-size:14px;cursor:pointer;padding:4px 8px;">🗑 移除</button>
+        </div>
+        <div id="read-video-player" style="border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:13px;">加载中...</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:8px;text-align:center;">播放/暂停时，TA 有可能冒出来说两句 📖</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Usage Guide Page -->
@@ -3326,6 +3416,9 @@ function showUsageNoticeFromSplash() {
 <div class="overlay" id="ov-my-favs">
   <div class="sheet" style="max-width:420px;">
     <div class="sh"><h3>📁 我的聊天收藏</h3><button class="btn-close" onclick="hideOv('ov-my-favs')">✕</button></div>
+    <div style="padding:8px 16px 0;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="exportFavVoicesZip()" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:12px;cursor:pointer;">🎵 导出全部语音(ZIP)</button>
+    </div>
     <div class="sb" style="padding:16px;max-height:70vh;overflow-y:auto;">
       <div id="my-favs-list"></div>
     </div>

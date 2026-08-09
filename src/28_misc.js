@@ -738,7 +738,7 @@ var UPDATE_NOTICES = [
 ];
 
 var CURRENT_VERSION = '1.7.2';
-var DEPLOY_TIME = '2026-08-09 17:16';
+var DEPLOY_TIME = '2026-08-09 21:39';
 
 function compareVersions(v1, v2) {
   var parts1 = v1.split('.').map(Number);
@@ -949,6 +949,345 @@ if (document.readyState === 'loading') {
 } else {
   initUpdateNotice();
 }
+
+
+// ============ 一起阅读 + 一起看字卡库 ============
+var readBook={name:'',content:'',pages:[],page:0,perPage:8};
+var readCards={public:[],private:{}};
+var readCardsTabNow='public';
+var readCardsCatNow='主字卡';
+var READ_DEFAULT_CARDS=[
+  {cat:'主字卡',content:'这本书读起来有种熟悉的感觉。'},
+  {cat:'主字卡',content:'这一页，让我想到了你。'},
+  {cat:'主字卡',content:'读到这段的时候，我忍不住想和你分享。'},
+  {cat:'主字卡',content:'想和你一起把这本书读完。'},
+  {cat:'颜文字',content:'(´｡• ᵕ •｡`) ♡'},
+  {cat:'颜文字',content:'(๑•̀ㅂ•́)و✧'},
+  {cat:'颜文字',content:'(｡･ω･｡)ﾉ♡'},
+  {cat:'emoji',content:'📖✨'},
+  {cat:'emoji',content:'💫🌙'},
+  {cat:'emoji',content:'🥰💞'}
+];
+function loadReadCards(){
+  var saved=ls('ml2_read_cards');
+  if(saved&&typeof saved==='object'){
+    readCards.public=saved.public||[];
+    readCards.private=saved.private||{};
+  }else{
+    readCards.public=READ_DEFAULT_CARDS.slice();
+    readCards.private={};
+    saveReadCards();
+  }
+}
+function saveReadCards(){ls('ml2_read_cards',readCards);}
+function loadReadBook(){
+  var saved=ls('ml2_read_book');
+  if(saved&&saved.name){
+    readBook.name=saved.name;
+    readBook.content=saved.content||'';
+    readBook.pages=readSplitPages(readBook.content);
+    readBook.page=0;
+  }
+  // ★ IndexedDB 优先（大文件）
+  if(window.localforage){
+    window.localforage.getItem('ml2_read_book').then(function(big){
+      if(big&&big.name&&(!saved||!saved.name)){
+        readBook.name=big.name;
+        readBook.content=big.content||'';
+        readBook.pages=readSplitPages(readBook.content);
+        readBook.page=0;
+        var up=$('read-upload-area'),bk=$('read-book-area');
+        if(up&&bk&&up.style.display!=='none'){up.style.display='none';bk.style.display='block';$('read-book-title').textContent=readBook.name;readRenderPage();}
+      }
+    }).catch(function(){});
+  }
+}
+function readSplitPages(content){
+  var paras=String(content||'').split(/\n+/).map(function(x){return x.trim();}).filter(Boolean);
+  var pages=[];
+  for(var i=0;i<paras.length;i+=readBook.perPage){
+    pages.push(paras.slice(i,i+readBook.perPage).join('\n\n'));
+  }
+  if(pages.length===0)pages=['（空）'];
+  return pages;
+}
+function showReadTogether(){
+  loadReadBook();
+  loadReadCards();
+  var up=$('read-upload-area'),bk=$('read-book-area');
+  if(readBook.name){
+    up.style.display='none';bk.style.display='block';
+    $('read-book-title').textContent=readBook.name;
+    readRenderPage();
+  }else{
+    up.style.display='block';bk.style.display='none';
+  }
+  showOv('ov-read-together');
+}
+function readUploadBook(inp){
+  var file=inp&&inp.files&&inp.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var txt=String(ev.target.result||'');
+    readBook.name=file.name.replace(/\.txt$/i,'');
+    readBook.content=txt;
+    readBook.pages=readSplitPages(txt);
+    readBook.page=0;
+    // ★ 大文件存 IndexedDB（localStorage 5MB 上限装不下）；小文件双写
+    var bookData={name:readBook.name,content:txt};
+    if(window.localforage){
+      window.localforage.setItem('ml2_read_book',bookData).then(function(){
+        if(txt.length<3000000){try{ls('ml2_read_book',bookData);}catch(e){}}
+      }).catch(function(){
+        try{ls('ml2_read_book',bookData);}catch(e2){toast('文件较大，仅保存在本浏览器（IndexedDB）');}
+      });
+    }else{
+      try{ls('ml2_read_book',bookData);}catch(e3){toast('浏览器存储不足，无法保存这么大文件');}
+    }
+    var up=$('read-upload-area'),bk=$('read-book-area');
+    up.style.display='none';bk.style.display='block';
+    $('read-book-title').textContent=readBook.name;
+    readRenderPage();
+    toast('已载入《'+readBook.name+'》');
+    inp.value='';
+  };
+  reader.readAsText(file,'utf-8');
+}
+function readRemoveBook(){
+  if(!confirm('移除这本电子书？'))return;
+  readBook={name:'',content:'',pages:[],page:0,perPage:8};
+  try{ls('ml2_read_book','');}catch(e){}
+  if(window.localforage)window.localforage.removeItem('ml2_read_book').catch(function(){});
+  $('read-upload-area').style.display='block';
+  $('read-book-area').style.display='none';
+  toast('已移除');
+}
+function readRenderPage(){
+  if(!readBook.pages.length)return;
+  var content=$('read-book-content');
+  if(content)content.textContent=readBook.pages[readBook.page]||'';
+  var pg=$('read-book-progress');
+  if(pg)pg.textContent='第 '+(readBook.page+1)+' / '+readBook.pages.length+' 页';
+}
+function readNextPage(){
+  if(!readBook.pages.length)return;
+  if(readBook.page<readBook.pages.length-1){
+    readBook.page++;
+    readRenderPage();
+    // ★ 翻页概率触发梦角回应（从一起看字卡库抽）
+    if(Math.random()<0.35){
+      setTimeout(function(){readTriggerTA();},600+Math.random()*1200);
+    }
+  }else{
+    toast('已经读到最后一页啦');
+  }
+}
+function readPrevPage(){
+  if(readBook.page>0){readBook.page--;readRenderPage();}
+}
+// 梦角回应：弹窗显示字卡内容，可选发送到聊天
+function readTriggerTA(){
+  var card=readPickCard();
+  if(!card){toast('字卡库还没有字卡，去「一起看字卡库」添加吧');return;}
+  var c=contacts.find(function(x){return x.id===cid})||{name:'TA'};
+  var r=confirm('『'+c.name+'』合上了书，轻轻说：\n\n「'+card.content+'」\n\n要发送到聊天里吗？');
+  if(r&&cid&&typeof msgs==='function'){
+    try{
+      var m=msgs(cid);
+      m.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:card.content,ts:new Date(),pc:false,isAuto:true,isInitiative:false,read:(cid===window.currentCid),isReadReply:true});
+      savemsgs(cid,m);
+      if(cid===window.currentCid&&typeof renderMsgs==='function')renderMsgs(m);
+      if(typeof renderChatList==='function')renderChatList();
+      toast('TA 的话已发到聊天');
+    }catch(e){}
+  }
+}
+function readPickCard(){
+  loadReadCards();
+  var pool=[];
+  if(readCardsTabNow==='private'&&cid&&readCards.private[cid]){
+    var pc=readCards.private[cid].filter(function(x){return x.cat===readCardsCatNow;});
+    pool=pool.concat(pc);
+  }
+  var pub=readCards.public.filter(function(x){return x.cat===readCardsCatNow;});
+  pool=pool.concat(pub);
+  if(!pool.length)pool=readCards.public;
+  if(!pool.length)return null;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function showReadCards(){
+  loadReadCards();
+  readCardsTab('public');
+  readCardsCat('主字卡');
+  showOv('ov-read-cards');
+}
+function readCardsTab(tab){
+  readCardsTabNow=tab;
+  var pb=$('read-cards-tab-public'),pv=$('read-cards-tab-private');
+  if(tab==='public'){pb.style.background='var(--accent)';pb.style.color='#fff';pv.style.background='var(--c2)';pv.style.color='var(--txt)';}
+  else{pv.style.background='var(--accent)';pv.style.color='#fff';pb.style.background='var(--c2)';pb.style.color='var(--txt)';}
+  readCardsRenderList();
+}
+function readCardsCat(cat){
+  readCardsCatNow=cat;
+  ['主字卡','颜文字','emoji'].forEach(function(c2){
+    var b=$('read-cat-'+c2);
+    if(b){
+      if(c2===cat){b.style.background='var(--accent)';b.style.color='#fff';}
+      else{b.style.background='var(--c2)';b.style.color='var(--txt)';}
+    }
+  });
+  readCardsRenderList();
+}
+function readCardsRenderList(){
+  loadReadCards();
+  var list=$('read-cards-list');
+  if(!list)return;
+  var pool=[];
+  if(readCardsTabNow==='private'){
+    pool=(cid&&readCards.private[cid])?readCards.private[cid].filter(function(x){return x.cat===readCardsCatNow;}):[];
+  }else{
+    pool=readCards.public.filter(function(x){return x.cat===readCardsCatNow;});
+  }
+  if(!pool.length){list.innerHTML='<div style="text-align:center;padding:24px;color:var(--txt3);font-size:13px;">还没有字卡，在下面添加吧</div>';return;}
+  var html='';
+  pool.forEach(function(card,idx){
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--c2);border-radius:8px;margin-bottom:6px;">';
+    html+='<div style="flex:1;font-size:13px;color:var(--txt);word-break:break-all;">'+card.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
+    html+='<button onclick="readCardsDel('+idx+')" style="border:none;background:none;color:#ff4d4f;cursor:pointer;font-size:14px;padding:4px;">✕</button>';
+    html+='</div>';
+  });
+  list.innerHTML=html;
+}
+function readCardsAdd(){
+  var inp=$('read-cards-input');
+  var val=inp?inp.value.trim():'';
+  if(!val){toast('请输入字卡内容');return;}
+  loadReadCards();
+  if(readCardsTabNow==='private'){
+    if(!readCards.private[cid])readCards.private[cid]=[];
+    readCards.private[cid].push({cat:readCardsCatNow,content:val});
+  }else{
+    readCards.public.push({cat:readCardsCatNow,content:val});
+  }
+  saveReadCards();
+  if(inp)inp.value='';
+  readCardsRenderList();
+  toast('已添加');
+}
+function readCardsDel(idx){
+  loadReadCards();
+  var pool=null;
+  if(readCardsTabNow==='private'){
+    if(cid&&readCards.private[cid])pool=readCards.private[cid].filter(function(x){return x.cat===readCardsCatNow;});
+  }else{
+    pool=readCards.public.filter(function(x){return x.cat===readCardsCatNow;});
+  }
+  if(!pool||idx<0||idx>=pool.length)return;
+  var target=pool[idx];
+  if(readCardsTabNow==='private'){
+    readCards.private[cid]=readCards.private[cid].filter(function(x){return !(x.cat===target.cat&&x.content===target.content);});
+  }else{
+    readCards.public=readCards.public.filter(function(x){return !(x.cat===target.cat&&x.content===target.content);});
+  }
+  saveReadCards();
+  readCardsRenderList();
+}
+try{loadReadCards();}catch(e){}
+
+// ============ 一起看视频 ============
+var readVideo=null; // {type:'local'|'bili', name, dataUrl?, url?}
+function showReadVideo(){
+  var saved=null;
+  try{var lv=ls('ml2_read_video');if(lv&&lv.type)saved=lv;}catch(e){}
+  if(window.localforage&&!saved){
+    window.localforage.getItem('ml2_read_video').then(function(big){
+      if(big&&big.type){saved=big;readVideo=saved;readVideoRender();}
+    }).catch(function(){});
+  }
+  if(saved){readVideo=saved;readVideoRender();}
+  else{
+    readVideo=null;
+    $('read-video-setup').style.display='block';
+    $('read-video-play').style.display='none';
+  }
+  showOv('ov-read-video');
+}
+function readVideoRender(){
+  var setup=$('read-video-setup'),play=$('read-video-play');
+  if(!readVideo){setup.style.display='block';play.style.display='none';return;}
+  setup.style.display='none';play.style.display='block';
+  $('read-video-title').textContent=readVideo.name||'视频';
+  var player=$('read-video-player');
+  if(readVideo.type==='local'){
+    player.innerHTML='<video controls playsinline webkit-playsinline="true" x5-playsinline="true" style="width:100%;height:100%;object-fit:contain;" src="'+readVideo.dataUrl+'"></video>';
+    // ★ 全屏按钮（controls 全屏被某些环境禁用时的兜底）
+    var _fsBtn=document.createElement('div');
+    _fsBtn.textContent='⛶ 全屏';
+    _fsBtn.style.cssText='position:absolute;right:8px;bottom:8px;z-index:5;padding:4px 12px;border-radius:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;cursor:pointer;';
+    _fsBtn.onclick=function(e){e.stopPropagation();var vv=player.querySelector('video');if(!vv)return;if(vv.requestFullscreen){vv.requestFullscreen().catch(function(){});}else if(vv.webkitRequestFullscreen){vv.webkitRequestFullscreen();}};
+    if(player.style.position!=='relative')player.style.position='relative';
+    player.appendChild(_fsBtn);
+  }else{
+    var bvid=readVideo.bvid||'';
+    if(bvid){
+      player.innerHTML='<iframe src="https://player.bilibili.com/player.html?bvid='+bvid+'&page=1&high_quality=1&danmaku=1" style="width:100%;height:100%;border:none;" scrolling="no" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="fullscreen; autoplay; encrypted-media; picture-in-picture"></iframe>';
+    }else{
+      player.innerHTML='<div style="font-size:13px;color:var(--txt3);">链接解析失败</div>';
+    }
+  }
+  // ★ 播放/暂停时概率触发梦角回应
+  var v=player.querySelector('video');
+  if(v&&!v._readBound){
+    v._readBound=true;
+    var _lastTrig=0;
+    v.addEventListener('play',function(){
+      var now=Date.now();
+      if(now-_lastTrig>15000&&Math.random()<0.4){
+        _lastTrig=now;
+        setTimeout(function(){if(typeof readTriggerTA==='function')readTriggerTA();},800+Math.random()*1500);
+      }
+    });
+  }
+}
+function readUploadVideo(inp){
+  var file=inp&&inp.files&&inp.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    readVideo={type:'local',name:file.name,dataUrl:ev.target.result};
+    try{ls('ml2_read_video',readVideo);}catch(e){}
+    if(window.localforage)window.localforage.setItem('ml2_read_video',readVideo).catch(function(){});
+    readVideoRender();
+    toast('已载入《'+file.name+'》');
+    inp.value='';
+  };
+  reader.readAsDataURL(file);
+}
+function readSetBili(){
+  var inp=$('read-bili-url');
+  var url=inp?inp.value.trim():'';
+  if(!url){toast('请粘贴哔哩哔哩链接');return;}
+  var bvid='';
+  var m1=url.match(/[Bb][Vv][0-9A-Za-z]{8,10}/);
+  if(m1)bvid=m1[0];
+  if(!bvid){toast('没识别到 BV 号，请确认是哔哩哔哩视频链接');return;}
+  readVideo={type:'bili',name:'哔哩哔哩视频',url:url,bvid:bvid};
+  try{ls('ml2_read_video',readVideo);}catch(e){}
+  if(window.localforage)window.localforage.setItem('ml2_read_video',readVideo).catch(function(){});
+  readVideoRender();
+  toast('已载入哔哩哔哩视频');
+  if(inp)inp.value='';
+}
+function readRemoveVideo(){
+  if(!confirm('移除这个视频？'))return;
+  readVideo=null;
+  try{ls('ml2_read_video','');}catch(e){}
+  if(window.localforage)window.localforage.removeItem('ml2_read_video').catch(function(){});
+  $('read-video-setup').style.display='block';
+  $('read-video-play').style.display='none';
+  toast('已移除');
+}
+
 </script>
-
-

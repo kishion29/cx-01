@@ -637,6 +637,95 @@ function playFavVoice(favId){
   }
 }
 
+// ===== 语音导出 ZIP（纯前端生成，无压缩 STORE）=====
+function zipCRC32(u8){
+  var t=[];
+  for(var i=0;i<256;i++){var c=i;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[i]=c>>>0;}
+  var crc=0xFFFFFFFF;
+  for(var j=0;j<u8.length;j++)crc=(crc>>>8)^t[(crc^u8[j])&0xFF];
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function buildZip(files){
+  var enc=new TextEncoder();
+  var chunks=[],offset=0,central=[];
+  files.forEach(function(f){
+    var nameBytes=enc.encode(f.name);
+    var crc=zipCRC32(f.u8);
+    var lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);
+    lh.setUint16(8,0,true);lh.setUint16(10,0,true);lh.setUint16(12,0,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,f.u8.length,true);lh.setUint32(22,f.u8.length,true);
+    lh.setUint16(26,nameBytes.length,true);lh.setUint16(28,0,true);
+    chunks.push(new Uint8Array(lh.buffer),nameBytes,f.u8);
+    central.push({nameBytes:nameBytes,crc:crc,size:f.u8.length,offset:offset});
+    offset+=30+nameBytes.length+f.u8.length;
+  });
+  var cdStart=offset,cdChunks=[];
+  central.forEach(function(c){
+    var cd=new DataView(new ArrayBuffer(46));
+    cd.setUint32(0,0x02014b50,true);cd.setUint16(4,20,true);cd.setUint16(6,20,true);cd.setUint16(8,0x0800,true);
+    cd.setUint16(10,0,true);cd.setUint16(12,0,true);cd.setUint16(14,0,true);cd.setUint16(16,0,true);
+    cd.setUint32(18,c.crc,true);cd.setUint32(22,c.size,true);cd.setUint32(26,c.size,true);
+    cd.setUint16(30,c.nameBytes.length,true);cd.setUint16(32,0,true);cd.setUint16(34,0,true);cd.setUint16(36,0,true);cd.setUint16(38,0,true);cd.setUint32(40,0,true);cd.setUint32(44,c.offset,true);
+    cdChunks.push(new Uint8Array(cd.buffer),c.nameBytes);
+  });
+  var cdSize=0;cdChunks.forEach(function(c){cdSize+=c.length;});
+  var eocd=new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0,0x06054b50,true);eocd.setUint16(4,0,true);eocd.setUint16(6,0,true);
+  eocd.setUint16(8,central.length,true);eocd.setUint16(10,central.length,true);
+  eocd.setUint32(12,cdSize,true);eocd.setUint32(16,cdStart,true);eocd.setUint16(20,0,true);
+  var all=chunks.concat(cdChunks,[new Uint8Array(eocd.buffer)]);
+  var total=0;all.forEach(function(c){total+=c.length;});
+  var out=new Uint8Array(total),pos=0;
+  all.forEach(function(c){out.set(c,pos);pos+=c.length;});
+  return out;
+}
+function dataUrlToU8(dataUrl){
+  var b64=(dataUrl||'').split(',')[1]||'';
+  var bin=atob(b64);
+  var u=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  return u;
+}
+function exportFavVoicesZip(){
+  if(typeof myFavs==='undefined'||!myFavs){toast('暂无收藏');return;}
+  var entries=[];
+  Object.keys(myFavs).forEach(function(cid2){
+    var c=contacts.find(function(x){return x.id===cid2})||groups.find(function(x){return x.id===cid2});
+    var cname=c?c.name:'未知';
+    (myFavs[cid2]||[]).forEach(function(f,idx){
+      if(!f.msgData)return;
+      if(f.msgData.mmAudioUrl){
+        entries.push({name:cname+'_'+String(f.msgText||('语音'+idx)).slice(0,12)+'.mp3',url:f.msgData.mmAudioUrl});
+      }else if(f.msgData.voice){
+        entries.push({name:cname+'_'+String(f.msgText||('语音'+idx)).slice(0,12)+'.webm',data:f.msgData.voice});
+      }
+    });
+  });
+  if(!entries.length){toast('没有可导出的语音（需先播放过）');return;}
+  toast('正在打包 '+entries.length+' 条语音...');
+  Promise.all(entries.map(function(e){
+    if(e.data){
+      try{return {name:e.name,u8:dataUrlToU8(e.data)};}catch(err){return null;}
+    }
+    if(e.url.indexOf('data:')===0){
+      try{return {name:e.name,u8:dataUrlToU8(e.url)};}catch(err){return null;}
+    }
+    return fetch(e.url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then(function(ab){return {name:e.name,u8:new Uint8Array(ab)};}).catch(function(){return null;});
+  })).then(function(results){
+    var files=results.filter(Boolean);
+    if(!files.length){toast('导出失败：语音文件获取不到');return;}
+    var zip=buildZip(files);
+    var blob=new Blob([zip],{type:'application/zip'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='星言语音导出_'+Date.now()+'.zip';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
+    toast('已导出 '+files.length+' 条语音(ZIP)');
+  }).catch(function(e){console.warn('export zip failed:',e);toast('导出失败');});
+}
+
 function deleteFav(contactId,favId){
   if(!myFavs[contactId])return;
   myFavs[contactId]=myFavs[contactId].filter(function(f){return f.id!==favId});

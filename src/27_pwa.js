@@ -402,6 +402,12 @@ function d2HidePage(pageId) {
                 var mm = msgs(cid);
                 if (!mm || !Array.isArray(mm)) mm = [];
                 var aiMsg = {id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9), s:OTHER, t:'📜 占卜解读：\n'+text, ts:new Date(), pc:false, isAuto:true, isInitiative:false, quote:null, isSticker:false, isVoice:false, senderName:'TA', senderId:cid, read:(cid===window.currentCid), isAiInterpret:true};
+                // ★ 修复：自动发送的消息包含完整占卜结果（牌面）+ AI 解读，不再只有解读
+                try{
+                  var _fullText='';
+                  if(typeof d2BuildResultText==='function'){_fullText=d2BuildResultText();}
+                  if(_fullText){aiMsg.t=_fullText+'\n\n📜 占卜解读：\n'+text;}
+                }catch(e5){}
                 mm.push(aiMsg);
                 savemsgs(cid, mm);
                 if (cid === window.currentCid && typeof renderMsgs === 'function') renderMsgs(mm);

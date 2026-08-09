@@ -341,6 +341,12 @@ function aiInterpretLetter(lid){
     var ll2=ls(LL)||[];
     var l2=ll2.find(function(x){return x.id===lid});
     if(l2){l2.aiInterpret=text;l2.aiLoading=false;l2.aiError='';ls(LL,ll2);if(window.localforage)window.localforage.setItem(LL,ll2).catch(function(){});}
+    window._aiFixCtxs=window._aiFixCtxs||{};
+    window._aiFixCtxs['letter']={systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:text,onDone:function(t){
+      var ll=ls(LL)||[];var lx=ll.find(function(x){return x.id===lid});
+      if(lx){lx.aiInterpret=t;lx.aiLoading=false;lx.aiError='';ls(LL,ll);if(window.localforage)window.localforage.setItem(LL,ll).catch(function(){});}
+      openLetterDetail(lid);
+    }};
     openLetterDetail(lid);
   }).catch(function(e){
     console.warn('AI letter interpret failed:',e);
