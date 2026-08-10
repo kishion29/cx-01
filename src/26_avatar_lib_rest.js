@@ -306,8 +306,18 @@ if($('contact-sound-btn'))$('contact-sound-btn').addEventListener('click',functi
 async function openBeautify(){
   if(!cid)return;
   // ★ 置顶显示（可能从 AI 页面等全屏层打开）
+  // #phone 带 transform 会形成层叠上下文，弹窗在 #phone 内时 z-index 再高也会被 body 下的
+  // AI 全屏页(9997)盖住，所以先把它移到 body 顶层再设置 z-index
   var _bov=document.getElementById('ov-beautify');
-  if(_bov){try{_bov.style.setProperty('z-index','99998','important');}catch(e){_bov.style.zIndex='99998';}}
+  if(_bov){
+    try{
+      if(_bov.parentNode&&_bov.parentNode!==document.body){document.body.appendChild(_bov);}
+      _bov.style.setProperty('z-index','99998','important');
+    }catch(e){
+      try{if(_bov.parentNode&&_bov.parentNode!==document.body){document.body.appendChild(_bov);}}catch(e2){}
+      _bov.style.zIndex='99998';
+    }
+  }
   var entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
   if(!entity)return;
   var defaults=getDefaultChatSettings();
@@ -366,7 +376,7 @@ async function openBeautify(){
     opt.classList.toggle('sel',opt.dataset.value===currentTimeline);
   });
   
-  try{await renderChatBgList(entity)}catch(e){console.error('renderChatBgList error:',e)}
+  try{renderChatBgList(entity).catch(function(){})}catch(e){console.error('renderChatBgList error:',e)}
   try{renderBeautifyPreview(settings)}catch(e){console.error('renderBeautifyPreview error:',e)}
   
   showOv('ov-beautify');

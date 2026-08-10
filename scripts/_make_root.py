@@ -18,4 +18,3 @@ for f in ['AGENTS.md', 'README.md', '.gitignore', 'LICENSE']:
 m1 = hashlib.md5(open('app/index.html', 'rb').read()).hexdigest()
 m2 = hashlib.md5(open(os.path.join(dst, 'index.html'), 'rb').read()).hexdigest()
 print('md5 一致:', m1 == m2, m1[:12], m2[:12])
-print('打包完成:', dst)

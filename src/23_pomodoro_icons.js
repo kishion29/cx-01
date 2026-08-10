@@ -2945,17 +2945,19 @@ function openAiChat(){
     }).catch(function(){});
   }
   var ov=document.getElementById('ai-chat-page');
-  if(ov){ov.style.display='flex';renderAiChatMsgs();return;}
+  if(ov&&ov.getAttribute('data-v')==='2'){ov.style.display='flex';renderAiChatMsgs();return;}
+  if(ov){try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(e){}}
   ov=document.createElement('div');
   ov.id='ai-chat-page';
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  ov.setAttribute('data-v','2');
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
   head.innerHTML='<div id="ai-chat-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="flex:1;"></div>'
-    +'<div id="ai-chat-new" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
-    +'<div id="ai-chat-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
-    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
-    +'<div id="ai-chat-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div id="ai-chat-new" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-chat-sess" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-chat-set" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
     +'<div style="width:8px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
@@ -2968,10 +2970,10 @@ function openAiChat(){
   inp.id='ai-chat-inp';
   inp.rows=1;
   inp.placeholder='和 TA 聊聊这个 if 线里的故事…';
-  inp.style.cssText='flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:14px;padding:9px 12px;resize:none;box-sizing:border-box;max-height:120px;';
+  inp.style.cssText='flex:1;border:1px solid #e0e0e0;border-radius:12px;background:#f7f7f7;color:#1a1a1a;font-size:14px;padding:10px 13px;resize:none;box-sizing:border-box;max-height:120px;';
   var send=document.createElement('button');
   send.textContent='➤';
-  send.style.cssText='width:40px;height:38px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
+  send.style.cssText='width:40px;height:38px;border:none;border-radius:12px;background:#1a1a1a;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
   foot.appendChild(inp);foot.appendChild(send);
   ov.appendChild(foot);
   document.body.appendChild(ov);
@@ -3005,7 +3007,7 @@ function renderAiChatMsgs(){
   }
   box.innerHTML='';
   if(!aiChatMsgs.length){
-    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--txt3);margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#999;font-size:13px;line-height:2.2;"><div style="color:#bbb;margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
     return;
   }
   var _taAva=_beauty.taAvatar
@@ -3278,17 +3280,19 @@ function openAiChat(){
     }).catch(function(){});
   }
   var ov=document.getElementById('ai-chat-page');
-  if(ov){ov.style.display='flex';renderAiChatMsgs();return;}
+  if(ov&&ov.getAttribute('data-v')==='2'){ov.style.display='flex';renderAiChatMsgs();return;}
+  if(ov){try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(e){}}
   ov=document.createElement('div');
   ov.id='ai-chat-page';
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  ov.setAttribute('data-v','2');
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
   head.innerHTML='<div id="ai-chat-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="flex:1;"></div>'
-    +'<div id="ai-chat-new" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
-    +'<div id="ai-chat-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
-    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
-    +'<div id="ai-chat-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div id="ai-chat-new" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-chat-sess" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-chat-set" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
     +'<div style="width:8px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
@@ -3301,10 +3305,10 @@ function openAiChat(){
   inp.id='ai-chat-inp';
   inp.rows=1;
   inp.placeholder='和 TA 聊聊这个 if 线里的故事…';
-  inp.style.cssText='flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:14px;padding:9px 12px;resize:none;box-sizing:border-box;max-height:120px;';
+  inp.style.cssText='flex:1;border:1px solid #e0e0e0;border-radius:12px;background:#f7f7f7;color:#1a1a1a;font-size:14px;padding:10px 13px;resize:none;box-sizing:border-box;max-height:120px;';
   var send=document.createElement('button');
   send.textContent='➤';
-  send.style.cssText='width:40px;height:38px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
+  send.style.cssText='width:40px;height:38px;border:none;border-radius:12px;background:#1a1a1a;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
   foot.appendChild(inp);foot.appendChild(send);
   ov.appendChild(foot);
   document.body.appendChild(ov);
@@ -3338,7 +3342,7 @@ function renderAiChatMsgs(){
   }
   box.innerHTML='';
   if(!aiChatMsgs.length){
-    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--txt3);margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#999;font-size:13px;line-height:2.2;"><div style="color:#bbb;margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
     return;
   }
   var _taAva=_beauty.taAvatar
@@ -3611,21 +3615,23 @@ function openAiDiviner(){
     }).catch(function(){});
   }
   var ov=document.getElementById('ai-diviner-page');
-  if(ov){ov.style.display='flex';renderAiDivinerMsgs();return;}
+  if(ov&&ov.getAttribute('data-v')==='2'){ov.style.display='flex';renderAiDivinerMsgs();return;}
+  if(ov){try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(e){}}
   ov=document.createElement('div');
   ov.id='ai-diviner-page';
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  ov.setAttribute('data-v','2');
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
-  head.style.background='linear-gradient(135deg,rgba(0,0,0,0.04),rgba(255,255,255,0))';
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
+  head.style.background='#fafafa';
   head.innerHTML='<div id="ai-diviner-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="display:flex;align-items:center;gap:6px;flex:1;">'
     +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="13" r="7"/><path d="M9 2.5h6"/><path d="M12 2.5v3.5"/><path d="M4.5 5.5l-1.5 2.5"/><path d="M19.5 5.5l1.5 2.5"/><path d="M12 13l2.5 2.5"/></svg>'
     +'<div style="flex:1;"></div>'
     +'</div>'
-    +'<div id="ai-diviner-new" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
-    +'<div id="ai-diviner-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
-    +'<div id="ai-diviner-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
-    +'<div id="ai-diviner-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div id="ai-diviner-new" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-diviner-sess" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-diviner-beauty" title="美化聊天页面" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-diviner-set" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
     +'<div style="width:8px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
@@ -3638,21 +3644,21 @@ function openAiDiviner(){
   inp.id='ai-diviner-inp';
   inp.rows=1;
   inp.placeholder='发给占卜师：占卜问题 / 抽出的牌面 / 指令...';
-  inp.style.cssText='flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:14px;padding:9px 12px;resize:none;box-sizing:border-box;max-height:120px;';
+  inp.style.cssText='flex:1;border:1px solid #e0e0e0;border-radius:12px;background:#f7f7f7;color:#1a1a1a;font-size:14px;padding:10px 13px;resize:none;box-sizing:border-box;max-height:120px;';
   var send=document.createElement('button');
   send.innerHTML='<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5l7 7-7 7\"/></svg>';
-  send.style.cssText='width:40px;height:38px;border:none;border-radius:10px;background:#B3976A;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
+  send.style.cssText='width:40px;height:38px;border:none;border-radius:12px;background:#1a1a1a;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
   foot.appendChild(inp);foot.appendChild(send);
   ov.appendChild(foot);
   document.body.appendChild(ov);
   head.querySelector('#ai-diviner-new').onclick=function(){
-    // ★ 归档当前对话为历史会话，再开新对话
-    aiDivinerArchiveCurrent();
+    // ★ 归档当前对话为历史会话，再开新对话（每步隔离异常，确保按钮始终有反应）
+    try{aiDivinerArchiveCurrent();}catch(e){}
     aiDivinerCurSessionId=null;
     aiDivinerMsgs=[];
     try{ls('ml2_ai_diviner_msgs',[]);}catch(e){}
-    renderAiDivinerMsgs();
-    toast('🔮 已开始新对话（旧对话可在 📋 会话中查看）');
+    try{renderAiDivinerMsgs();}catch(e){}
+    try{toast('🔮 已开始新对话（旧对话可在 📋 会话中查看）');}catch(e){}
   };
   head.querySelector('#ai-diviner-sess').onclick=function(){aiDivinerShowSessions();};
   head.querySelector('#ai-diviner-set').onclick=function(){openAiDivinerSettings();};
@@ -3674,7 +3680,7 @@ function renderAiDivinerMsgs(){
   if(!box)return;
   box.innerHTML='';
   if(!aiDivinerMsgs.length){
-    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--accent);margin-bottom:10px;">'+"<svg width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;color:#B3976A;\"><circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M9 2.5h6\"/><path d=\"M12 2.5v3.5\"/><path d=\"M4.5 5.5l-1.5 2.5\"/><path d=\"M19.5 5.5l1.5 2.5\"/><path d=\"M12 13l2.5 2.5\"/></svg>"+'</div>占卜师已就位<br>直接发占卜问题，或把你抽出的牌发给我解牌<br>点击右上角设定解读指令 / 世界观 / 关联梦角人设</div>';
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#999;font-size:13px;line-height:2.2;"><div style="color:#bbb;margin-bottom:10px;">'+"<svg width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;color:#B3976A;\"><circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M9 2.5h6\"/><path d=\"M12 2.5v3.5\"/><path d=\"M4.5 5.5l-1.5 2.5\"/><path d=\"M19.5 5.5l1.5 2.5\"/><path d=\"M12 13l2.5 2.5\"/></svg>"+'</div>占卜师已就位<br>直接发占卜问题，或把你抽出的牌发给我解牌<br>点击右上角设定解读指令 / 世界观 / 关联梦角人设</div>';
     return;
   }
   var _lastTs2=0;
@@ -3867,9 +3873,9 @@ function openAiCardMemory(){
   if(ov){ov.style.display='flex';renderAiCardMemory();return;}
   ov=document.createElement('div');
   ov.id='ai-memory-page';
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
   head.innerHTML='<div style="font-size:16px;font-weight:600;color:var(--txt);flex:1;">📔 AI解读记忆库</div>'
     +'<div id="ai-memory-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
   ov.appendChild(head);
@@ -3927,9 +3933,9 @@ function openAiCardRecords(){
   if(ov){ov.style.display='flex';renderAiCardRecords();return;}
   ov=document.createElement('div');
   ov.id='ai-records-page';
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
   head.innerHTML='<div style="font-size:16px;font-weight:600;color:var(--txt);flex:1;">📚 AI解读字卡记录</div>'
     +'<div id="ai-records-clear" style="font-size:12px;color:#ff4d4f;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;">🗑 清空</div>'
     +'<div id="ai-records-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
@@ -5878,3 +5884,10 @@ function mealPushMsg(contactId,text){
   }catch(e){}
 }
 try{setInterval(mealRemindTick,60000);mealRemindTick();}catch(e){}
+
+function closeAiChat(){
+  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  var ov=document.getElementById('ai-chat-page');
+  if(ov)ov.style.display='none';
+  try{hideOv('ov-chat-more');}catch(e){}
+}
