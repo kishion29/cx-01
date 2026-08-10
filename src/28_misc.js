@@ -1192,8 +1192,9 @@ function readTriggerTA(){
 function readPickCard(){
   loadReadCards();
   var pool=[];
-  if(readCardsTabNow==='private'&&cid&&readCards.private[cid]){
-    var pc=readCards.private[cid].filter(function(x){return x.cat===readCardsCatNow;});
+  var _rpcid=readCardsContactId||cid;
+  if(readCardsTabNow==='private'&&_rpcid&&readCards.private[_rpcid]){
+    var pc=readCards.private[_rpcid].filter(function(x){return x.cat===readCardsCatNow;});
     pool=pool.concat(pc);
   }
   var pub=readCards.public.filter(function(x){return x.cat===readCardsCatNow;});
@@ -1228,11 +1229,13 @@ function readCardsCat(cat){
 }
 function readCardsRenderList(){
   loadReadCards();
+  readCardsContactSelect();
   var list=$('read-cards-list');
   if(!list)return;
   var pool=[];
   if(readCardsTabNow==='private'){
-    pool=(cid&&readCards.private[cid])?readCards.private[cid].filter(function(x){return x.cat===readCardsCatNow;}):[];
+    var _cid=readCardsContactId||cid;
+    pool=(_cid&&readCards.private[_cid])?readCards.private[_cid].filter(function(x){return x.cat===readCardsCatNow;}):[];
   }else{
     pool=readCards.public.filter(function(x){return x.cat===readCardsCatNow;});
   }
@@ -1387,7 +1390,8 @@ function readDanmakuText(){
   return fallback[Math.floor(Math.random()*fallback.length)];
 }
 function readDanmaku(text){
-  var host=$('read-video-player');
+  var host=$('read-book-danmaku-layer');
+  if(!host||host.offsetParent===null)host=$('read-video-player');
   if(!host||host.offsetParent===null)host=$('read-book-content');
   if(!host)return;
   if(host.style.position!=='absolute'&&host.style.position!=='relative')host.style.position='relative';
@@ -1740,7 +1744,7 @@ function readShowBookmarks(){
   if(!readBook)return;
   var bm=ls('ml2_read_bookmarks')||{};
   var arr=bm[readBook.id]||[];
-  var html='<div class="sh"><h3>🔖 书签</h3><button class="btn-close" onclick="hideOv(\'ov-read-bookmarks\')">✕</button></div><div class="sb" style="padding:10px 0;max-height:55vh;overflow-y:auto;">';
+  var html='';
   if(!arr.length)html+='<div style="padding:24px 14px;text-align:center;color:var(--txt3);font-size:13px;">还没有书签<br>阅读时点「🔖 书签」添加</div>';
   arr.slice().reverse().forEach(function(b,i){
     var idx=arr.length-1-i;
@@ -1748,8 +1752,8 @@ function readShowBookmarks(){
       +'<div style="font-size:13px;color:var(--txt);">第 '+(b.page+1)+' 段 · '+b.text+'</div>'
       +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+new Date(b.ts).toLocaleString()+'</div></div>';
   });
-  html+='</div>';
-  $('ov-read-bookmarks').innerHTML=html;
+  var _lst=$('read-bookmark-list');
+  if(_lst)_lst.innerHTML=html;
   showOv('ov-read-bookmarks');
 }
 function readGotoBookmark(idx){
@@ -1995,6 +1999,9 @@ function readOpenBook(idx){
   if(sp)sp.style.display='none';
   if(bp){bp.style.display='flex';var tt=$('read-book-title');if(tt)tt.textContent=readBook.name;}
   readRenderPage();
+  readBindSwipe();
+  var cpb=$('read-company-pick-btn');
+  if(cpb){var cc=contacts.find(function(x){return x.id===readCompanyContactId;});cpb.innerHTML=cc?(cc.avatar||'💫'):'👥';}
   if(b.finished)toast('本书已读完，重新从上次位置打开');
 }
 
@@ -2055,6 +2062,103 @@ function readShowReadCards(){
   loadReadCards();
   readCardsRenderList();
   showOv('ov-read-cards');
+}
+
+
+// ============ 阅读器交互增强 ============
+var readCompanyContactId='';  // 一起看的梦角联系人
+var readCardsContactId='';    // 字卡库绑定的联系人
+// 左右滑动翻页（分页模式）+ 点击切换底栏
+function readBindSwipe(){
+  var content=$('read-book-content');
+  if(!content||content._readSwipeBound)return;
+  content._readSwipeBound=true;
+  var sx=0,sy=0,st=0;
+  content.addEventListener('touchstart',function(e){
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+  },{passive:true});
+  content.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-sx;
+    var dy=e.changedTouches[0].clientY-sy;
+    if(Date.now()-st>1200)return;
+    if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.5){
+      if(readBookSettings.mode==='page'){
+        if(dx<0)readNextPage();else readPrevPage();
+      }
+    }
+  },{passive:true});
+  content.addEventListener('click',function(){
+    var bottom=$('read-book-bottom');
+    if(bottom)bottom.style.display=bottom.style.display==='none'?'block':'none';
+  });
+}
+function readShowCompanyPick(){
+  var arr=contacts.filter(function(c){return c.id!==SELF&&c.type!=='group';});
+  var html='';
+  if(!arr.length)html='<div style="padding:20px;text-align:center;color:var(--txt3);font-size:13px;">还没有联系人</div>';
+  arr.forEach(function(c){
+    var sel=c.id===readCompanyContactId;
+    html+='<div onclick="readPickCompany(\''+c.id+'\')" style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:8px;">'
+      +'<div style="width:30px;height:30px;border-radius:50%;background:var(--c2);display:flex;align-items:center;justify-content:center;font-size:14px;">'+(c.avatar||'💫')+'</div>'
+      +'<div style="flex:1;font-size:13px;color:var(--txt);">'+String(c.name||'TA').replace(/</g,'&lt;')+'</div>'
+      +(sel?'<span style="font-size:12px;color:var(--accent);">✓ 一起看中</span>':'')+'</div>';
+  });
+  var lst=$('read-bookmark-list');
+  if(lst)lst.innerHTML='<div style="padding:12px 14px;font-size:14px;font-weight:600;color:var(--txt);">👥 选择一起看的人</div>'+html;
+  showOv('ov-read-bookmarks');
+}
+function readPickCompany(id){
+  readCompanyContactId=id;
+  hideOv('ov-read-bookmarks');
+  var c=contacts.find(function(x){return x.id===id;});
+  toast('已和 '+(c?c.name:'TA')+' 一起看');
+  var btn=$('read-company-pick-btn');
+  if(btn&&c)btn.innerHTML=(c.avatar||'💫');
+}
+function readCardsContactSelect(containerId){
+  var box=$('read-cards-contact-wrap');
+  if(!box)return;
+  var arr=contacts.filter(function(c){return c.id!==SELF&&c.type!=='group';});
+  var html='';
+  if(readCardsTabNow==='private'){
+    html='<div style="font-size:11px;color:var(--txt3);margin-bottom:4px;">专享字卡联系人：</div><div style="display:flex;gap:6px;flex-wrap:wrap;">';
+    html+='<span onclick="readCardsContact(\'\')" style="padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;background:'+(!readCardsContactId?'var(--accent)':'var(--c2)')+';color:'+(!readCardsContactId?'#fff':'var(--txt)')+';border:1px solid var(--border);">全部</span>';
+    arr.forEach(function(c){
+      var sel=c.id===readCardsContactId;
+      html+='<span onclick="readCardsContact(\''+c.id+'\')" style="padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;background:'+(sel?'var(--accent)':'var(--c2)')+';color:'+(sel?'#fff':'var(--txt)')+';border:1px solid var(--border);">'+(c.avatar||'')+' '+(c.name||'TA')+'</span>';
+    });
+    html+='</div>';
+  }
+  box.innerHTML=html;
+}
+function readCardsContact(id){
+  readCardsContactId=id;
+  readCardsRenderList();
+  readCardsContactSelect();
+}
+function readCardsBatchToggle(){
+  var w=$('read-cards-batch-wrap');
+  if(!w)return;
+  w.style.display=w.style.display==='none'?'block':'none';
+}
+function readCardsBatchDo(){
+  var inp=$('read-cards-batch-input');
+  var val=inp?inp.value.trim():'';
+  if(!val){toast('请输入字卡内容，一行一个');return;}
+  loadReadCards();
+  var lines=val.split(/\n+/).map(function(x){return x.trim();}).filter(Boolean);
+  var cat=readCardsCatNow||'主字卡';
+  if(readCardsTabNow==='private'){
+    var cid2=readCardsContactId||cid||'all';
+    if(!readCards.private[cid2])readCards.private[cid2]=[];
+    lines.forEach(function(x){readCards.private[cid2].push({cat:cat,content:x});});
+  }else{
+    lines.forEach(function(x){readCards.public.push({cat:cat,content:x});});
+  }
+  saveReadCards();
+  if(inp)inp.value='';
+  readCardsRenderList();
+  toast('已导入 '+lines.length+' 张字卡');
 }
 
 </script>

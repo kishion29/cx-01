@@ -2939,6 +2939,11 @@ function openAiChat(){
   aiChatLoadSettings();
   aiChatMsgs=ls('ml2_ai_chat_msgs')||[];
   if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
+  if(!aiChatMsgs.length&&window.localforage){
+    window.localforage.getItem('ml2_ai_chat_msgs').then(function(v){
+      if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
+    }).catch(function(){});
+  }
   var ov=document.getElementById('ai-chat-page');
   if(ov){ov.style.display='flex';renderAiChatMsgs();return;}
   ov=document.createElement('div');
@@ -2951,7 +2956,7 @@ function openAiChat(){
     +'<div id="ai-chat-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
     +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
     +'<div id="ai-chat-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
-    +'<div id="ai-chat-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+    +'<div style="width:8px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
   box.id='ai-chat-box';
@@ -2982,7 +2987,6 @@ function openAiChat(){
   head.querySelector('#ai-chat-set').onclick=function(){openAiChatSettings();};
   head.querySelector('#ai-chat-beauty').onclick=function(){if(typeof openBeautify==='function'){openBeautify();}}
   head.querySelector('#ai-chat-back').onclick=function(){closeAiChat();}
-  head.querySelector('#ai-chat-close').onclick=function(){ov.style.display='none';};
   send.onclick=function(){aiChatSend();};
   inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiChatSend();}});
   renderAiChatMsgs();
@@ -3014,8 +3018,17 @@ function renderAiChatMsgs(){
   var _taBubble=_beauty.taBubble||'var(--other-bubble-bg, #ffffff)';
   var _myText=_beauty.myText||'var(--my-bubble-text, #666666)';
   var _taText=_beauty.taText||'var(--other-bubble-text, #666666)';
+  var _lastTs=0;
   aiChatMsgs.forEach(function(m){
     var isUser=m.role==='user';
+    if(m.ts&&_lastTs&&m.ts-_lastTs>300000){
+      var _tl=document.createElement('div');
+      _tl.style.cssText='text-align:center;font-size:11px;color:var(--txt3);padding:8px 0 2px;';
+      var _d=new Date(m.ts);
+      _tl.textContent=('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2);
+      box.appendChild(_tl);
+    }
+    if(m.ts)_lastTs=m.ts;
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-direction:'+(isUser?'row-reverse':'row')+';';
     var av=document.createElement('div');
@@ -3042,6 +3055,7 @@ function aiChatSend(){
   }
   aiChatMsgs.push({role:'user',content:text,ts:Date.now()});
   try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
   inp.value='';
   renderAiChatMsgs();
   var msgs=[{role:'system',content:aiChatSystemPrompt()}];
@@ -3050,7 +3064,7 @@ function aiChatSend(){
   var wait=document.createElement('div');
   wait.id='ai-chat-wait';
   wait.textContent='💬 TA 正在回复...';
-  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;';
+  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;margin-top:auto;';
   box.appendChild(wait);
   box.scrollTop=box.scrollHeight;
   fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
@@ -3067,6 +3081,7 @@ function aiChatSend(){
     if(w)w.remove();
     aiChatMsgs.push({role:'assistant',content:text2,ts:Date.now()});
     try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+    try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
     renderAiChatMsgs();
   }).catch(function(e){
     console.warn('aiChat failed:',e);
@@ -3257,6 +3272,11 @@ function openAiChat(){
   aiChatLoadSettings();
   aiChatMsgs=ls('ml2_ai_chat_msgs')||[];
   if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
+  if(!aiChatMsgs.length&&window.localforage){
+    window.localforage.getItem('ml2_ai_chat_msgs').then(function(v){
+      if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
+    }).catch(function(){});
+  }
   var ov=document.getElementById('ai-chat-page');
   if(ov){ov.style.display='flex';renderAiChatMsgs();return;}
   ov=document.createElement('div');
@@ -3269,7 +3289,7 @@ function openAiChat(){
     +'<div id="ai-chat-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
     +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
     +'<div id="ai-chat-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
-    +'<div id="ai-chat-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+    +'<div style="width:8px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
   box.id='ai-chat-box';
@@ -3300,7 +3320,6 @@ function openAiChat(){
   head.querySelector('#ai-chat-set').onclick=function(){openAiChatSettings();};
   head.querySelector('#ai-chat-beauty').onclick=function(){if(typeof openBeautify==='function'){openBeautify();}}
   head.querySelector('#ai-chat-back').onclick=function(){closeAiChat();}
-  head.querySelector('#ai-chat-close').onclick=function(){ov.style.display='none';};
   send.onclick=function(){aiChatSend();};
   inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiChatSend();}});
   renderAiChatMsgs();
@@ -3332,8 +3351,17 @@ function renderAiChatMsgs(){
   var _taBubble=_beauty.taBubble||'var(--other-bubble-bg, #ffffff)';
   var _myText=_beauty.myText||'var(--my-bubble-text, #666666)';
   var _taText=_beauty.taText||'var(--other-bubble-text, #666666)';
+  var _lastTs=0;
   aiChatMsgs.forEach(function(m){
     var isUser=m.role==='user';
+    if(m.ts&&_lastTs&&m.ts-_lastTs>300000){
+      var _tl=document.createElement('div');
+      _tl.style.cssText='text-align:center;font-size:11px;color:var(--txt3);padding:8px 0 2px;';
+      var _d=new Date(m.ts);
+      _tl.textContent=('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2);
+      box.appendChild(_tl);
+    }
+    if(m.ts)_lastTs=m.ts;
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-direction:'+(isUser?'row-reverse':'row')+';';
     var av=document.createElement('div');
@@ -3360,6 +3388,7 @@ function aiChatSend(){
   }
   aiChatMsgs.push({role:'user',content:text,ts:Date.now()});
   try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
   inp.value='';
   renderAiChatMsgs();
   var msgs=[{role:'system',content:aiChatSystemPrompt()}];
@@ -3368,7 +3397,7 @@ function aiChatSend(){
   var wait=document.createElement('div');
   wait.id='ai-chat-wait';
   wait.textContent='💬 TA 正在回复...';
-  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;';
+  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;margin-top:auto;';
   box.appendChild(wait);
   box.scrollTop=box.scrollHeight;
   fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
@@ -3385,6 +3414,7 @@ function aiChatSend(){
     if(w)w.remove();
     aiChatMsgs.push({role:'assistant',content:text2,ts:Date.now()});
     try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+    try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
     renderAiChatMsgs();
   }).catch(function(e){
     console.warn('aiChat failed:',e);
@@ -3575,6 +3605,11 @@ function openAiDiviner(){
   aiDivinerLoadSettings();
   aiDivinerMsgs=ls('ml2_ai_diviner_msgs')||[];
   if(!Array.isArray(aiDivinerMsgs))aiDivinerMsgs=[];
+  if(!aiDivinerMsgs.length&&window.localforage){
+    window.localforage.getItem('ml2_ai_diviner_msgs').then(function(v){
+      if(v&&Array.isArray(v)&&v.length){aiDivinerMsgs=v;try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}if(typeof renderAiDivinerMsgs==='function')renderAiDivinerMsgs();}
+    }).catch(function(){});
+  }
   var ov=document.getElementById('ai-diviner-page');
   if(ov){ov.style.display='flex';renderAiDivinerMsgs();return;}
   ov=document.createElement('div');
@@ -3591,7 +3626,7 @@ function openAiDiviner(){
     +'<div id="ai-diviner-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
     +'<div id="ai-diviner-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
     +'<div id="ai-diviner-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
-    +'<div id="ai-diviner-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+    +'<div style="width:8px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
   box.id='ai-diviner-box';
@@ -3623,7 +3658,7 @@ function openAiDiviner(){
   head.querySelector('#ai-diviner-set').onclick=function(){openAiDivinerSettings();};
   head.querySelector('#ai-diviner-back').onclick=function(){closeAiDiviner();}
   head.querySelector('#ai-diviner-beauty').onclick=function(){if(typeof openBeautify==='function'){openBeautify();}}
-  head.querySelector('#ai-diviner-close').onclick=function(){closeAiDiviner();};
+  
   send.onclick=function(){aiDivinerSend();};
   inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiDivinerSend();}});
   renderAiDivinerMsgs();
@@ -3642,8 +3677,26 @@ function renderAiDivinerMsgs(){
     box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--accent);margin-bottom:10px;">'+"<svg width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;color:#B3976A;\"><circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M9 2.5h6\"/><path d=\"M12 2.5v3.5\"/><path d=\"M4.5 5.5l-1.5 2.5\"/><path d=\"M19.5 5.5l1.5 2.5\"/><path d=\"M12 13l2.5 2.5\"/></svg>"+'</div>占卜师已就位<br>直接发占卜问题，或把你抽出的牌发给我解牌<br>点击右上角设定解读指令 / 世界观 / 关联梦角人设</div>';
     return;
   }
+  var _lastTs2=0;
+  var _lastTs2=0;
   aiDivinerMsgs.forEach(function(m){
     var isUser=m.role==='user';
+    if(m.ts&&_lastTs2&&m.ts-_lastTs2>300000){
+      var _tl2=document.createElement('div');
+      _tl2.style.cssText='text-align:center;font-size:11px;color:#958A91;padding:8px 0 2px;';
+      var _d2=new Date(m.ts);
+      _tl2.textContent=('0'+_d2.getHours()).slice(-2)+':'+('0'+_d2.getMinutes()).slice(-2);
+      box.appendChild(_tl2);
+    }
+    if(m.ts)_lastTs2=m.ts;
+    if(m.ts&&_lastTs2&&m.ts-_lastTs2>300000){
+      var _tl2=document.createElement('div');
+      _tl2.style.cssText='text-align:center;font-size:11px;color:#958A91;padding:8px 0 2px;';
+      var _d2=new Date(m.ts);
+      _tl2.textContent=('0'+_d2.getHours()).slice(-2)+':'+('0'+_d2.getMinutes()).slice(-2);
+      box.appendChild(_tl2);
+    }
+    if(m.ts)_lastTs2=m.ts;
     var isCard=!isUser&&/抽(到|了|出)|牌面|塔罗|雷诺曼|阿卡纳/.test(m.content||'');
     var row=document.createElement('div');
     row.style.cssText='display:flex;justify-content:'+(isUser?'flex-end':'flex-start')+';';
@@ -3668,6 +3721,7 @@ function aiDivinerSend(){
   }
   aiDivinerMsgs.push({role:'user',content:text,ts:Date.now()});
   try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}
+  try{if(aiDivinerMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_diviner_msgs',JSON.stringify(aiDivinerMsgs));}catch(e){}
   inp.value='';
   renderAiDivinerMsgs();
   var msgs=[{role:'system',content:aiDivinerSystemPrompt()}];
@@ -3676,7 +3730,7 @@ function aiDivinerSend(){
   var wait=document.createElement('div');
   wait.id='ai-diviner-wait';
   wait.textContent='占卜师正在推演…';
-  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;';
+  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;margin-top:auto;';
   box.appendChild(wait);
   box.scrollTop=box.scrollHeight;
   fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
@@ -3693,6 +3747,7 @@ function aiDivinerSend(){
     if(w)w.remove();
     aiDivinerMsgs.push({role:'assistant',content:text2,ts:Date.now()});
     try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}
+    try{if(aiDivinerMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_diviner_msgs',JSON.stringify(aiDivinerMsgs));}catch(e){}
     renderAiDivinerMsgs();
   }).catch(function(e){
     console.warn('aiDiviner failed:',e);

@@ -189,7 +189,7 @@ var Storage = (function(){
     if(!isLargeDataKey){
       var serialized = (typeof v === 'object') ? JSON.stringify(v) : v;
       var lsKey = 'ml2_lf_' + k;
-      if(serialized.length < 50000){
+      if(serialized.length < 600000){
         try{
           localStorage.setItem(lsKey, serialized);
         }catch(e){

@@ -305,6 +305,9 @@ if($('contact-sound-btn'))$('contact-sound-btn').addEventListener('click',functi
 
 async function openBeautify(){
   if(!cid)return;
+  // ★ 置顶显示（可能从 AI 页面等全屏层打开）
+  var _bov=document.getElementById('ov-beautify');
+  if(_bov){try{_bov.style.setProperty('z-index','99998','important');}catch(e){_bov.style.zIndex='99998';}}
   var entity=groups.find(function(x){return x.id===cid})||contacts.find(function(x){return x.id===cid});
   if(!entity)return;
   var defaults=getDefaultChatSettings();
