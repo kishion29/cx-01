@@ -3669,12 +3669,13 @@ function showUsageNoticeFromSplash() {
 
 <!-- AI Interpret Modal -->
 <div class="overlay" id="ov-ai-interpret">
-  <div class="modal" style="width:90%;max-width:480px;">
-    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+  <div class="sheet" style="max-height:88vh;width:100%;max-width:480px;border-radius:16px 16px 0 0;display:flex;flex-direction:column;">
+    <div class="sh" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
       <div class="modal-title" style="font-size:16px;font-weight:600;">🔮 AI 解读字卡</div>
+      <div style="font-size:16px;color:var(--txt2);cursor:pointer;padding:4px 8px;" onclick="hideOv('ov-ai-interpret')">✕</div>
     </div>
-    <div id="ai-interpret-body" style="max-height:60vh;overflow-y:auto;padding:16px;"></div>
-    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+    <div id="ai-interpret-body" style="flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;"></div>
+    <div class="modal-buttons" style="padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;">
       <button class="btn" onclick="hideOv('ov-ai-interpret')" style="flex:1;">关闭</button>
     </div>
   </div>

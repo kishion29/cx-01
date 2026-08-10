@@ -2899,7 +2899,7 @@ function aiChatLoadSession(sid){
   aiChatMsgs=sess.msgs?JSON.parse(JSON.stringify(sess.msgs)):[];
   aiChatCurSessionId=sid;
   if(sess.settings){aiChatSettings=JSON.parse(JSON.stringify(sess.settings));}
-  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}
   aiChatSaveSettings();
   renderAiChatMsgs();
   toast('已切换到历史会话（设定已恢复）');
@@ -2937,11 +2937,19 @@ function aiChatSystemPrompt(){
 }
 function openAiChat(){
   aiChatLoadSettings();
-  aiChatMsgs=ls('ml2_ai_chat_msgs')||[];
+  if(!aiChatSettings.contactId&&typeof cid!=='undefined')aiChatSettings.contactId=cid;
+  var _aik=aiChatMsgsKey();
+  aiChatMsgs=ls(_aik)||[];
   if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
+  if(!aiChatMsgs.length&&_aik!=='ml2_ai_chat_msgs'){
+    var _old=null;
+    try{var _raw=localStorage.getItem('ml2_lf_ml2_ai_chat_msgs');if(_raw){_old=JSON.parse(_raw);}}catch(e){}
+    if(!_old||!_old.length){try{var _m=window.memoryCache||{};if(_m['ml2_ai_chat_msgs'])_old=_m['ml2_ai_chat_msgs'];}catch(e){}}
+    if(_old&&_old.length){aiChatMsgs=_old;try{ls('ml2_ai_chat_msgs',[]);}catch(e){}try{ls(_aik,aiChatMsgs);}catch(e){}}
+  }
   if(!aiChatMsgs.length&&window.localforage){
-    window.localforage.getItem('ml2_ai_chat_msgs').then(function(v){
-      if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
+    window.localforage.getItem(aiChatMsgsKey()).then(function(v){
+      if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
     }).catch(function(){});
   }
   var ov=document.getElementById('ai-chat-page');
@@ -2981,7 +2989,7 @@ function openAiChat(){
     aiChatArchiveCurrent();
     aiChatCurSessionId=null;
     aiChatMsgs=[];
-    try{ls('ml2_ai_chat_msgs',[]);}catch(e){}
+    try{ls(aiChatMsgsKey(),[]);}catch(e){}
     renderAiChatMsgs();
     toast('💬 已开始新对话（旧对话可在 📋 会话查看）');
   };
@@ -3040,6 +3048,14 @@ function renderAiChatMsgs(){
     b.textContent=m.content;
     row.appendChild(av);
     row.appendChild(b);
+    if(!isUser){
+      var _sp=document.createElement('span');
+      _sp.style.cssText='display:inline-block;cursor:pointer;margin-left:6px;font-size:12px;opacity:.85;vertical-align:middle;';
+      _sp.textContent='🔊';
+      _sp.title='播放TA的语音（用关联联系人音色）';
+      _sp.onclick=(function(_t){return function(_e){_e.stopPropagation();mmSpeak(_t,aiChatContactIdForVoice());};})(m.content);
+      b.appendChild(_sp);
+    }
     box.appendChild(row);
   });
   box.scrollTop=box.scrollHeight;
@@ -3056,8 +3072,8 @@ function aiChatSend(){
     return;
   }
   aiChatMsgs.push({role:'user',content:text,ts:Date.now()});
-  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
-  try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
+  try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}
+  try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_'+aiChatMsgsKey(),JSON.stringify(aiChatMsgs));}catch(e){}
   inp.value='';
   renderAiChatMsgs();
   var msgs=[{role:'system',content:aiChatSystemPrompt()}];
@@ -3082,15 +3098,15 @@ function aiChatSend(){
     var w=document.getElementById('ai-chat-wait');
     if(w)w.remove();
     aiChatMsgs.push({role:'assistant',content:text2,ts:Date.now()});
-    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
-    try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
+    try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}
+    try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_'+aiChatMsgsKey(),JSON.stringify(aiChatMsgs));}catch(e){}
     renderAiChatMsgs();
   }).catch(function(e){
     console.warn('aiChat failed:',e);
     var w=document.getElementById('ai-chat-wait');
     if(w)w.remove();
     aiChatMsgs.push({role:'assistant',content:'⚠️ 回复失败：'+(e.message||e)+'\n请检查 API 配置或网络。',ts:Date.now()});
-    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e2){}
+    try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e2){}
     renderAiChatMsgs();
   });
 }
@@ -3100,7 +3116,7 @@ function openAiChatSettings(){
   ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
   var box=document.createElement('div');
   box.style.cssText='width:88%;max-width:400px;max-height:85vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:18px;box-sizing:border-box;';
-  var contactOpts='<option value="">不关联（仅 TA 本体）</option>';
+  var contactOpts='<option value="none"'+(aiChatSettings.contactId==='none'?' selected':'')+'>不关联（仅 TA 本体）</option>';
   contacts.forEach(function(c){contactOpts+='<option value="'+c.id+'"'+(aiChatSettings.contactId===c.id?' selected':'')+'>'+String(c.name||c.id).replace(/"/g,'&quot;')+'</option>';});
   box.innerHTML='<div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:12px;">⚙️ AI聊天设定</div>'
     +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">if 线背景设定（这段故事的前提）</div>'
@@ -3272,11 +3288,19 @@ function aiDivinerSystemPrompt(){
 }
 function openAiChat(){
   aiChatLoadSettings();
-  aiChatMsgs=ls('ml2_ai_chat_msgs')||[];
+  if(!aiChatSettings.contactId&&typeof cid!=='undefined')aiChatSettings.contactId=cid;
+  var _aik=aiChatMsgsKey();
+  aiChatMsgs=ls(_aik)||[];
   if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
+  if(!aiChatMsgs.length&&_aik!=='ml2_ai_chat_msgs'){
+    var _old=null;
+    try{var _raw=localStorage.getItem('ml2_lf_ml2_ai_chat_msgs');if(_raw){_old=JSON.parse(_raw);}}catch(e){}
+    if(!_old||!_old.length){try{var _m=window.memoryCache||{};if(_m['ml2_ai_chat_msgs'])_old=_m['ml2_ai_chat_msgs'];}catch(e){}}
+    if(_old&&_old.length){aiChatMsgs=_old;try{ls('ml2_ai_chat_msgs',[]);}catch(e){}try{ls(_aik,aiChatMsgs);}catch(e){}}
+  }
   if(!aiChatMsgs.length&&window.localforage){
-    window.localforage.getItem('ml2_ai_chat_msgs').then(function(v){
-      if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
+    window.localforage.getItem(aiChatMsgsKey()).then(function(v){
+      if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
     }).catch(function(){});
   }
   var ov=document.getElementById('ai-chat-page');
@@ -3316,7 +3340,7 @@ function openAiChat(){
     aiChatArchiveCurrent();
     aiChatCurSessionId=null;
     aiChatMsgs=[];
-    try{ls('ml2_ai_chat_msgs',[]);}catch(e){}
+    try{ls(aiChatMsgsKey(),[]);}catch(e){}
     renderAiChatMsgs();
     toast('💬 已开始新对话（旧对话可在 📋 会话查看）');
   };
@@ -3375,6 +3399,14 @@ function renderAiChatMsgs(){
     b.textContent=m.content;
     row.appendChild(av);
     row.appendChild(b);
+    if(!isUser){
+      var _sp=document.createElement('span');
+      _sp.style.cssText='display:inline-block;cursor:pointer;margin-left:6px;font-size:12px;opacity:.85;vertical-align:middle;';
+      _sp.textContent='🔊';
+      _sp.title='播放TA的语音（用关联联系人音色）';
+      _sp.onclick=(function(_t){return function(_e){_e.stopPropagation();mmSpeak(_t,aiChatContactIdForVoice());};})(m.content);
+      b.appendChild(_sp);
+    }
     box.appendChild(row);
   });
   box.scrollTop=box.scrollHeight;
@@ -3391,8 +3423,8 @@ function aiChatSend(){
     return;
   }
   aiChatMsgs.push({role:'user',content:text,ts:Date.now()});
-  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
-  try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
+  try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}
+  try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_'+aiChatMsgsKey(),JSON.stringify(aiChatMsgs));}catch(e){}
   inp.value='';
   renderAiChatMsgs();
   var msgs=[{role:'system',content:aiChatSystemPrompt()}];
@@ -3417,15 +3449,15 @@ function aiChatSend(){
     var w=document.getElementById('ai-chat-wait');
     if(w)w.remove();
     aiChatMsgs.push({role:'assistant',content:text2,ts:Date.now()});
-    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
-    try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_ml2_ai_chat_msgs',JSON.stringify(aiChatMsgs));}catch(e){}
+    try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}
+    try{if(aiChatMsgs.length<2000)localStorage.setItem('ml2_lf_'+aiChatMsgsKey(),JSON.stringify(aiChatMsgs));}catch(e){}
     renderAiChatMsgs();
   }).catch(function(e){
     console.warn('aiChat failed:',e);
     var w=document.getElementById('ai-chat-wait');
     if(w)w.remove();
     aiChatMsgs.push({role:'assistant',content:'⚠️ 回复失败：'+(e.message||e)+'\n请检查 API 配置或网络。',ts:Date.now()});
-    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e2){}
+    try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e2){}
     renderAiChatMsgs();
   });
 }
@@ -3435,7 +3467,7 @@ function openAiChatSettings(){
   ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
   var box=document.createElement('div');
   box.style.cssText='width:88%;max-width:400px;max-height:85vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:18px;box-sizing:border-box;';
-  var contactOpts='<option value="">不关联（仅 TA 本体）</option>';
+  var contactOpts='<option value="none"'+(aiChatSettings.contactId==='none'?' selected':'')+'>不关联（仅 TA 本体）</option>';
   contacts.forEach(function(c){contactOpts+='<option value="'+c.id+'"'+(aiChatSettings.contactId===c.id?' selected':'')+'>'+String(c.name||c.id).replace(/"/g,'&quot;')+'</option>';});
   box.innerHTML='<div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:12px;">⚙️ AI聊天设定</div>'
     +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">if 线背景设定（这段故事的前提）</div>'
@@ -5885,8 +5917,16 @@ function mealPushMsg(contactId,text){
 }
 try{setInterval(mealRemindTick,60000);mealRemindTick();}catch(e){}
 
+function aiChatMsgsKey(){
+  var _c=aiChatSettings&&aiChatSettings.contactId;
+  return 'ml2_ai_chat_msgs'+(_c&&_c!=='none'?'_'+_c:'');
+}
+function aiChatContactIdForVoice(){
+  var _c=aiChatSettings&&aiChatSettings.contactId;
+  return (_c&&_c!=='none')?_c:(typeof cid!=='undefined'?cid:null);
+}
 function closeAiChat(){
-  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}
   var ov=document.getElementById('ai-chat-page');
   if(ov)ov.style.display='none';
   try{hideOv('ov-chat-more');}catch(e){}
