@@ -1183,11 +1183,15 @@ function showContactSwitcher(){
     html+='<div style="padding:8px 12px 4px;font-size:12px;color:var(--txt3);font-weight:600;">👥 群聊</div>';
     allGroups.forEach(function(g){
       var isActive=g.id===cid;
+      var gUnread=0;try{gUnread=g.id===cid?0:((getLastMsgSummary(g.id)||{unread:0}).unread);}catch(e){}
       var avatarHtml=g.avatar?'<img src="'+g.avatar.replace(/"/g,'&quot;')+'" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">':'<div style="width:40px;height:40px;border-radius:10px;background:var(--c3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txt2);">👥</div>';
       html+='<div class="contact-switcher-item" data-cid="'+g.id.replace(/"/g,'&quot;')+'" data-type="group" style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin:2px 4px;border-radius:10px;cursor:pointer;background:'+(isActive?'var(--c3)':'var(--c2)')+';transition:background 0.15s;">'+
         avatarHtml+
         '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:15px;font-weight:'+(isActive?'600':'400')+';color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+g.name.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
+          '<div style="display:flex;align-items:center;gap:6px;font-size:15px;font-weight:'+(isActive?'600':'400')+';color:var(--txt);">'+
+            '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+g.name.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>'+
+            (gUnread>0?'<span class="cunread" style="flex-shrink:0;">'+(gUnread>99?'99+':gUnread)+'</span>':'')+
+          '</div>'+
           '<div style="font-size:12px;color:var(--txt3);">'+(isActive?'当前聊天':'群聊')+'</div>'+
         '</div>'+
       '</div>';
@@ -1198,11 +1202,15 @@ function showContactSwitcher(){
   }
   allContacts.forEach(function(c){
     var isActive=c.id===cid;
+    var cUnread=0;try{cUnread=c.id===cid?0:((getLastMsgSummary(c.id)||{unread:0}).unread);}catch(e){}
     var avatarHtml=c.avatar?'<img src="'+c.avatar.replace(/"/g,'&quot;')+'" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">':'<div style="width:40px;height:40px;border-radius:10px;background:var(--c3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txt2);">✦</div>';
     html+='<div class="contact-switcher-item" data-cid="'+c.id.replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin:2px 4px;border-radius:10px;cursor:pointer;background:'+(isActive?'var(--c3)':'var(--c2)')+';transition:background 0.15s;">'+
       avatarHtml+
       '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:15px;font-weight:'+(isActive?'600':'400')+';color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+c.name.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
+        '<div style="display:flex;align-items:center;gap:6px;font-size:15px;font-weight:'+(isActive?'600':'400')+';color:var(--txt);">'+
+          '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+c.name.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>'+
+          (cUnread>0?'<span class="cunread" style="flex-shrink:0;">'+(cUnread>99?'99+':cUnread)+'</span>':'')+
+        '</div>'+
         '<div style="font-size:12px;color:var(--txt3);">'+(isActive?'当前聊天':'')+'</div>'+
       '</div>'+
     '</div>';

@@ -713,6 +713,74 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     console.log('[reply] 已push消息 idx='+idx+' m.length='+m.length+' reply='+String(_curReply||'').slice(0,20));
     savemsgs(targetId,m);
     if(targetId===window.currentCid)renderMsgs(m);renderChatList();
+    // ★ 回复消息逐条独立子卡撤回（同主动发送，按撤回概率）
+    (function(_mid){
+      var _rcP=getSpeed('rc-prob',senderId);
+      if(_rcP>0&&Math.random()*100<_rcP){
+        setTimeout(function(){
+          try{
+            var _all=msgs(targetId);
+            var _mm=_all.find(function(x){return x&&x.id===_mid&&!x.retracted;});
+            if(!_mm)return;
+            // ★ 优先：主文本按字卡分段撤回
+            var _segsArr2=splitCardSegs(_mm.t||'');
+            if(_segsArr2.length>1&&_mm.t){
+              _mm.retractedSegs=_mm.retractedSegs||[];
+              var _remainSegs2=[];
+              for(var _si4=0;_si4<_segsArr2.length;_si4++){
+                var _al2=false;
+                for(var _sj4=0;_sj4<_mm.retractedSegs.length;_sj4++){if(_mm.retractedSegs[_sj4].idx===_si4){_al2=true;break;}}
+                if(!_al2)_remainSegs2.push(_si4);
+              }
+              if(_remainSegs2.length){
+                var _nS2=1+Math.floor(Math.random()*Math.min(_remainSegs2.length,3));
+                var _kS2=Math.min(_nS2,_remainSegs2.length);
+                for(var _rk4=0;_rk4<_kS2;_rk4++){
+                  var _sI2=_remainSegs2.splice(Math.floor(Math.random()*_remainSegs2.length),1)[0];
+                  _mm.retractedSegs.push({text:_segsArr2[_sI2],idx:_sI2});
+                }
+                savemsgs(targetId,_all);
+                if(targetId===window.currentCid)renderMsgs(_all);
+                renderChatList();
+                return;
+              }
+            }
+            var _subs=[];
+            if(_mm.moodCard&&_mm.moodCard.content&&(!_mm.retractedCards||_mm.retractedCards.indexOf('mood')<0))_subs.push('mood');
+            if(_mm.heartCard&&_mm.heartCard.content&&(!_mm.retractedCards||_mm.retractedCards.indexOf('heart')<0))_subs.push('heart');
+            if(_mm.intentCard&&_mm.intentCard.content&&(!_mm.retractedCards||_mm.retractedCards.indexOf('intent')<0))_subs.push('intent');
+            if(_subs.length){
+              // ★ 情绪/心意/意图附属字卡也参与撤回
+              _mm.retractedCards=_mm.retractedCards||[];
+              var _n2=1+Math.floor(Math.random()*_subs.length);
+              for(var _si2=0;_si2<_n2;_si2++){
+                var _p2=_subs.splice(Math.floor(Math.random()*_subs.length),1)[0];
+                if(_p2&&_mm.retractedCards.indexOf(_p2)<0){
+                  _mm.retractedCards.push(_p2);
+                  _mm.retractedCardData=_mm.retractedCardData||[];
+                  var _cd2=_mm[_p2+'Card'];
+                  _mm.retractedCardData.push({type:_p2,content:(_cd2&&_cd2.content)||'',emoji:(_cd2&&_cd2.emoji)||''});
+                }
+              }
+              savemsgs(targetId,_all);
+              if(targetId===window.currentCid)renderMsgs(_all);
+              renderChatList();
+            }else{
+              _mm.retracted=true;
+              _mm.originalContent=_mm.t||'';
+              _mm.originalImg=_mm.img||'';
+              _mm.originalVoice=_mm.voice||'';
+              _mm.t='';_mm.img='';_mm.voice='';
+              _mm.originalCards={mood:_mm.moodCard,heart:_mm.heartCard,intent:_mm.intentCard};
+              _mm.moodCard=null;_mm.heartCard=null;_mm.intentCard=null;
+              savemsgs(targetId,_all);
+              if(targetId===window.currentCid)renderMsgs(_all);
+              renderChatList();
+            }
+          }catch(e){console.warn('reply per-msg retract error:',e);}
+        },(1+Math.random()*3)*1000);
+      }
+    })(replyMsg.id);
     if(idx===0)playSound('recv',targetId);
     if(idx<_replyCount-1){
       // ★ 拟真间隔：按本条消息长度决定基础间隔，长消息打字久；偶发停顿思考 / 偶发快速连发
@@ -747,27 +815,6 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
     else if(reply){msgText=reply;}
     else{msgText='[表情]';}
     showPushNotification(item?item.name:'联系人',msgText,(item&&item.avatar)?item.avatar:'',targetId);
-  }
-  
-  var rcProb=getSpeed('rc-prob',senderId);
-  if(Math.random()*100<rcProb){
-    setTimeout(function(){
-      var all=msgs(targetId);
-      if(all.length>0){
-        var lastMsg=all[all.length-1];
-        // ★ 修复：数组可能含 undefined 空槽（数据损坏/并发写），读 .id 会抛错导致整个回复中断
-        if(lastMsg&&lastMsg.id===replyMsg.id){
-          lastMsg.retracted=true;
-          lastMsg.originalContent=lastMsg.t||'';
-          lastMsg.originalImg=lastMsg.img||'';
-          lastMsg.t='';
-          lastMsg.img='';
-          savemsgs(targetId,all);
-          if(targetId===window.currentCid)renderMsgs(all);
-          renderChatList();
-        }
-      }
-    },(1+Math.random()*3)*1000);
   }
 }
 if($('msg-inp')){$('msg-inp').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&getSpeed('enter-send')===1){e.preventDefault();sendMsg()}});$('msg-inp').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';updateSendBtn()});}
@@ -1064,7 +1111,31 @@ if($('btn-more')){
 }
 if($('btn-ibar-more')){
   var _moreClicked=false;
-  function toggleChatMore(){
+  // ★ 面板底边紧贴聊天输入栏上边（用 getBoundingClientRect 精确测量输入栏顶部到屏幕底的距离）
+function fitPanelAboveIbar(panelSel){
+  try{
+    var panel=document.querySelector(panelSel);
+    if(!panel)return;
+    var measure=function(){
+      var inputWrap=document.querySelector('.input-wrap');
+      var h=49;
+      if(inputWrap&&inputWrap.getBoundingClientRect){
+        // ★ 面板是 absolute 相对 .phone，必须用 .phone 高度做参考系（innerHeight 会被地址栏/键盘干扰）
+        var phone=document.querySelector('.phone')||document.body;
+        var ph=phone&&phone.offsetHeight?phone.offsetHeight:(window.innerHeight||0);
+        var rect=inputWrap.getBoundingClientRect();
+        var top=rect.top+(window.scrollY||0);
+        h=Math.max(49, Math.round(ph-top));
+      }
+      panel.style.bottom=h+'px';
+    };
+    measure();
+    // 键盘收起/布局未稳定时延迟再测一次
+    setTimeout(measure,80);
+    setTimeout(measure,300);
+  }catch(e){}
+}
+function toggleChatMore(){
     if(_moreClicked)return;
     _moreClicked=true;
     setTimeout(function(){_moreClicked=false},300);
@@ -1074,6 +1145,7 @@ if($('btn-ibar-more')){
       hideOv('ov-emoji');
       renderChatMorePanel();
       showOv('ov-chat-more');
+      try{fitPanelAboveIbar('.chat-more-panel');}catch(e){}
     }
   }
   $('btn-ibar-more').addEventListener('click',function(e){

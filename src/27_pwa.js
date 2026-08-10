@@ -1623,6 +1623,8 @@ function d2ShowResultButtons() {
   $('d2-btnHistory').style.display = '';
   var aiBtn=$('d2-btnAi');
   if(aiBtn)aiBtn.style.display='';
+  var extraArea=$('d2-extraArea');
+  if(extraArea)extraArea.style.display='';
   var sendBtn = $('d2-btnSendChat');
   var sendSetting = $('d2-sendSetting');
   var sendEnabled = localStorage.getItem('ml2_divine_send_to_chat') !== 'false';

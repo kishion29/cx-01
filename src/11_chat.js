@@ -1788,6 +1788,14 @@ function _doRenderMsgs(messages){
       }else if(x.originalContent){
         originalHtml=x.originalContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
       }
+      // ★ 整撤时把子卡原文一并展示
+      if(x.originalCards){
+        var _ocArr=[];
+        if(x.originalCards.mood&&x.originalCards.mood.content)_ocArr.push('💭 '+x.originalCards.mood.content);
+        if(x.originalCards.heart&&x.originalCards.heart.content)_ocArr.push('❤️ '+x.originalCards.heart.content);
+        if(x.originalCards.intent&&x.originalCards.intent.content)_ocArr.push('💬 '+x.originalCards.intent.content);
+        if(_ocArr.length)originalHtml+=(originalHtml?'<br><br>':'')+_ocArr.join('<br>');
+      }
       if(originalHtml){
         contentHtml+='<div class="retracted-original" style="display:none;">'+originalHtml+'</div>';
       }
@@ -1897,7 +1905,8 @@ function _doRenderMsgs(messages){
       }else{
         // 修复：确保 x.t 是字符串后再调用 .replace()，避免非字符串类型导致渲染崩溃
         var _plainText=typeof x.t==='string'?x.t:(x.t!=null?String(x.t):'');
-        contentHtml=_plainText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        // ★ 字卡级局部撤回：文本分段渲染，被撤段显示「（已撤回）」
+        contentHtml=_renderSegsHtml(_plainText,x);
         // ★ 梦角文字消息旁：播放按钮（MiniMax 音色 TTS）——仅该梦角已复刻音色时显示，纯矢量图标
         // ★ 梦角文字消息旁：播放按钮（MiniMax 音色 TTS）——仅该梦角已复刻音色且内容为真实文字（非纯表情/emoji）时显示
         var _hasRealText=_plainText&&_plainText.trim()&&/[a-zA-Z\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef0-9]/.test(_plainText)&&!isEmojiOnly(_plainText);
@@ -1955,6 +1964,15 @@ function _doRenderMsgs(messages){
         }else if(quoteMsg.t){
           // ★ 修复：优先显示原文（文字消息不应显示成情绪字卡）；仅当无原文时才用情绪卡内容
           quoteContent=String(quoteMsg.t);
+        }else if(quoteMsg.originalContent){
+          // ★ 修复：引用的消息被整条撤回时，显示撤回前的原文
+          quoteContent='（已撤回）'+String(quoteMsg.originalContent);
+        }else if(quoteMsg.originalCards&&(quoteMsg.originalCards.mood||quoteMsg.originalCards.heart||quoteMsg.originalCards.intent)){
+          var _ocp=[];
+          if(quoteMsg.originalCards.mood&&quoteMsg.originalCards.mood.content)_ocp.push('💭 '+quoteMsg.originalCards.mood.content);
+          if(quoteMsg.originalCards.heart&&quoteMsg.originalCards.heart.content)_ocp.push('❤️ '+quoteMsg.originalCards.heart.content);
+          if(quoteMsg.originalCards.intent&&quoteMsg.originalCards.intent.content)_ocp.push('💬 '+quoteMsg.originalCards.intent.content);
+          quoteContent='（已撤回）'+_ocp.join(' ');
         }else if(quoteMsg.moodCard||quoteMsg.heartCard||quoteMsg.intentCard){
           var cardParts=[];
           if(quoteMsg.moodCard&&quoteMsg.moodCard.content)cardParts.push('💭 '+quoteMsg.moodCard.content);
@@ -1985,14 +2003,28 @@ function _doRenderMsgs(messages){
     var hasMood=x.moodCard&&x.moodCard.content;
     var hasHeart=x.heartCard&&x.heartCard.content;
     var hasIntent=x.intentCard&&x.intentCard.content;
-    if(hasMood||hasHeart||hasIntent){
+    if(!x.retracted&&(hasMood||hasHeart||hasIntent)){
       var moodColor=x.s===SELF?'var(--txt2)':'var(--txt3)';
       var pillStyle='display:inline-flex;align-items:center;font-size:11px;color:'+moodColor+';white-space:nowrap;';
       var pills=[];
-      if(hasMood)pills.push('<span class="message-mood-pill" style="'+pillStyle+'">💭 '+x.moodCard.content+'</span>');
-      if(hasHeart)pills.push('<span class="message-mood-pill" style="'+pillStyle+'">❤️ '+x.heartCard.content+'</span>');
-      if(hasIntent)pills.push('<span class="message-mood-pill" style="'+pillStyle+'">💬 '+x.intentCard.content+'</span>');
-      moodCardHtml='<div class="message-mood-card" style="display:inline-flex;flex-direction:row;flex-wrap:nowrap;gap:8px;margin-top:4px;padding:4px 10px;background:rgba(255,255,255,0.85);border-radius:12px;border:1px solid rgba(0,0,0,0.06);flex-shrink:0;">'+pills.join('')+'</div>';
+      var _rcc=x.retractedCards||[];
+      if(hasMood&&_rcc.indexOf('mood')<0)pills.push('<span class="message-mood-pill" style="'+pillStyle+'">💭 '+x.moodCard.content+'</span>');
+      if(hasHeart&&_rcc.indexOf('heart')<0)pills.push('<span class="message-mood-pill" style="'+pillStyle+'">❤️ '+x.heartCard.content+'</span>');
+      if(hasIntent&&_rcc.indexOf('intent')<0)pills.push('<span class="message-mood-pill" style="'+pillStyle+'">💬 '+x.intentCard.content+'</span>');
+      if(pills.length){moodCardHtml='<div class="message-mood-card" style="display:inline-flex;flex-direction:row;flex-wrap:nowrap;gap:8px;margin-top:4px;padding:4px 10px;background:rgba(255,255,255,0.85);border-radius:12px;border:1px solid rgba(0,0,0,0.06);flex-shrink:0;">'+pills.join('')+'</div>';}
+      // ★ 子卡撤回提示：显示实际撤回数量，点击展开查看撤了什么
+      if(x.retractedCardData&&x.retractedCardData.length){
+        var _subHtml='';
+        x.retractedCardData.forEach(function(d){
+          var _ic={mood:'💭',heart:'❤️',intent:'💬'}[d.type]||'💬';
+          _subHtml+='<div>'+_ic+' '+(d.content||'')+'</div>';
+        });
+        var _subTxt=x.s===SELF?'已撤回 '+x.retractedCardData.length+' 条字卡':'对方撤回了 '+x.retractedCardData.length+' 条字卡';
+        moodCardHtml+='<div style="margin-top:6px;text-align:left;">'
+          +'<span class="message-retracted-sub" onclick="event.stopPropagation();var _n=this.nextElementSibling;if(_n)_n.style.display=_n.style.display===\'block\'?\'none\':\'block\';" style="display:inline-flex;align-items:center;font-size:11px;color:var(--txt2);cursor:pointer;user-select:none;background:#ffffff;border:1px solid rgba(0,0,0,0.1);box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:3px 12px;border-radius:14px;">'+_subTxt+' <span style="margin-left:2px;">▾</span></span>'
+          +'<div style="display:none;margin-top:6px;padding:10px 14px;border-radius:12px;background:#ffffff;border:1px solid rgba(0,0,0,0.1);box-shadow:0 2px 8px rgba(0,0,0,0.06);font-size:12px;color:var(--txt);line-height:1.8;">'+_subHtml+'</div>'
+          +'</div>';
+      }
     }
     var editBtnHtml='';
     var canRetract=false;
@@ -2915,6 +2947,52 @@ function hideMsgActionMenuOnce(e){
     document.removeEventListener('click',hideMsgActionMenuOnce);
     document.removeEventListener('touchstart',hideMsgActionMenuOnce);
   }
+}
+// ★ 字卡级局部撤回：按标点/换行把消息文本拆成多个「字卡段」
+function splitCardSegs(text){
+  var out=[];
+  var cur='';
+  var str=String(text||'');
+  for(var i=0;i<str.length;i++){
+    var ch=str[i];
+    cur+=ch;
+    if(ch==='。'||ch==='！'||ch==='？'||ch==='；'||ch===';'||ch==='!'||ch==='?'||ch==='\n'||ch===','||ch==='，'||ch===' '){
+      if(cur.trim())out.push(cur.trim());
+      cur='';
+    }
+  }
+  if(cur.trim())out.push(cur.trim());
+  if(out.length<2&&str.trim())out=[str.trim()];
+  return out;
+}
+function _renderSegsHtml(text,msgObj){
+  var segs=splitCardSegs(text);
+  var rcs=msgObj&&msgObj.retractedSegs?msgObj.retractedSegs:[];
+  var html='';
+  var _firstSeg=true;
+  for(var i=0;i<segs.length;i++){
+    var isRc=false;
+    for(var j=0;j<rcs.length;j++){if(rcs[j].idx===i){isRc=true;break;}}
+    // ★ 被撤字卡正文不显示（保持气泡干净），撤回内容统一在下方提示中展开
+    if(!isRc){
+      // ★ 每个字卡中间空一格（保持用户设置的间距格式）
+      if(!_firstSeg)html+=' ';
+      html+=segs[i].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      _firstSeg=false;
+    }
+  }
+  html=html.replace(/\n/g,'<br>');
+  if(rcs.length){
+    var _tip=(msgObj&&msgObj.s===SELF)?'已撤回 '+rcs.length+' 条字卡':'对方撤回了 '+rcs.length+' 条字卡';
+    var _sub='';
+    rcs.forEach(function(r){_sub+='<div style="padding:2px 0;">（已撤回）'+(r.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';});
+    // ★ 撤回提示：胶囊按钮样式（不透明）+ 展开内容为气泡卡片
+    html+='<div style="margin-top:8px;text-align:left;">'
+      +'<span onclick="event.stopPropagation();var _n=this.nextElementSibling;if(_n)_n.style.display=_n.style.display===\'block\'?\'none\':\'block\';" style="display:inline-flex;align-items:center;font-size:11px;color:var(--txt2);cursor:pointer;user-select:none;background:#ffffff;border:1px solid rgba(0,0,0,0.1);box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:3px 12px;border-radius:14px;">'+_tip+' <span style="margin-left:2px;">▾</span></span>'
+      +'<div style="display:none;margin-top:6px;padding:10px 14px;border-radius:12px;background:#ffffff;border:1px solid rgba(0,0,0,0.1);box-shadow:0 2px 8px rgba(0,0,0,0.06);font-size:12px;color:var(--txt);line-height:1.8;">'+_sub+'</div>'
+      +'</div>';
+  }
+  return html;
 }
 function showRetractedContent(el){
   var original=el.nextElementSibling;

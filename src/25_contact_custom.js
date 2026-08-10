@@ -695,23 +695,54 @@ function exportFavVoicesZip(){
     var cname=c?c.name:'未知';
     (myFavs[cid2]||[]).forEach(function(f,idx){
       if(!f.msgData)return;
+      var _base=cname+'_'+String(f.msgText||('语音'+idx)).slice(0,12);
       if(f.msgData.mmAudioUrl){
-        entries.push({name:cname+'_'+String(f.msgText||('语音'+idx)).slice(0,12)+'.mp3',url:f.msgData.mmAudioUrl});
+        entries.push({name:_base+'.mp3',url:f.msgData.mmAudioUrl,fallback:f.msgData.voice});
       }else if(f.msgData.voice){
-        entries.push({name:cname+'_'+String(f.msgText||('语音'+idx)).slice(0,12)+'.webm',data:f.msgData.voice});
+        var _ext='.webm';
+        var _v=f.msgData.voice;
+        if(/audio\/(mp4|m4a|aac)/i.test(_v))_ext='.m4a';
+        else if(/audio\/mp3/i.test(_v))_ext='.mp3';
+        else if(/audio\/ogg/i.test(_v))_ext='.ogg';
+        entries.push({name:_base+_ext,data:_v});
       }
     });
   });
   if(!entries.length){toast('没有可导出的语音（需先播放过）');return;}
   toast('正在打包 '+entries.length+' 条语音...');
   Promise.all(entries.map(function(e){
-    if(e.data){
-      try{return {name:e.name,u8:dataUrlToU8(e.data)};}catch(err){return null;}
+    // ★ 语音真实数据解析：dataURL / IndexedDB 引用键还原 / http 链接（失败回退 voice）
+    function getData(d){
+      return new Promise(function(res){
+        if(!d){res(null);return;}
+        if(d.indexOf('data:')===0){try{res(dataUrlToU8(d));}catch(err){res(null);}return;}
+        if(d.indexOf('ml2_msg_voice_')===0||d.indexOf('ml2_')===0){
+          if(window.localforage&&typeof window.localforage.getItem==='function'){
+            window.localforage.getItem(d).then(function(big){
+              if(big&&typeof big==='string'){try{res(dataUrlToU8(big));}catch(err){res(null);}}
+              else res(null);
+            }).catch(function(){res(null);});
+          }else{res(null);}
+          return;
+        }
+        fetch(d).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();})
+          .then(function(ab){res(new Uint8Array(ab));}).catch(function(){res(null);});
+      });
     }
-    if(e.url.indexOf('data:')===0){
-      try{return {name:e.name,u8:dataUrlToU8(e.url)};}catch(err){return null;}
-    }
-    return fetch(e.url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then(function(ab){return {name:e.name,u8:new Uint8Array(ab)};}).catch(function(){return null;});
+    var _primary=e.data||(e.url&&e.url.indexOf('data:')===0?e.url:null);
+    return getData(_primary).then(function(u8){
+      if(u8)return {name:e.name,u8:u8};
+      if(e.url&&e.url.indexOf('http')===0){
+        return fetch(e.url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();})
+          .then(function(ab){return {name:e.name,u8:new Uint8Array(ab)};})
+          .catch(function(){
+            if(e.fallback)return getData(e.fallback).then(function(f){return f?{name:e.name,u8:f}:null;});
+            return null;
+          });
+      }
+      if(e.fallback)return getData(e.fallback).then(function(f){return f?{name:e.name,u8:f}:null;});
+      return null;
+    });
   })).then(function(results){
     var files=results.filter(Boolean);
     if(!files.length){toast('导出失败：语音文件获取不到');return;}

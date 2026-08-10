@@ -1547,13 +1547,18 @@ var chatbarItems=[
   {id:'contact-profile',name:'梦角主页',icon:'🏠',category:'梦角',fixed:false},
   {id:'favorites',name:'TA的收藏夹',icon:'⭐',fixed:false,category:'梦角'},
   {id:'ta_highlights',name:'TA想说的重点',icon:'💬',fixed:false,category:'梦角'},
+  {id:'ai_card_records',name:'AI解读字卡记录',icon:'📚',fixed:false,category:'消息工具'},
   {id:'chat_stats',name:'聊天统计',icon:'📊',fixed:false,category:'消息工具'},
   {id:'star_cal',name:'星言日历',icon:'✨',fixed:false,category:'梦角'},
   {id:'ta_distance',name:'TA与你的距离',icon:'📍',fixed:false,category:'梦角'},
   {id:'ta_touch',name:'TA的触碰',icon:'💫',fixed:false,category:'梦角'},
+  {id:'ai_card_memory',name:'AI解读记忆库',icon:'📔',fixed:false,category:'梦角'},
   {id:'read_together',name:'一起阅读',icon:'📖',fixed:false,category:'更多'},
   {id:'read_video',name:'一起看视频',icon:'🎬',fixed:false,category:'更多'},
-  {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
+  {id:'meals',name:'一日三餐',icon:'🍽️',fixed:false,category:'更多'},
+    {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
+  {id:'ai_chat',name:'AI聊天',icon:'💬',fixed:false,category:'更多'},
+  {id:'ai_diviner',name:'AI占卜师',icon:'🔮',fixed:false,category:'更多'},
   
   {id:'add',name:'添加好友',icon:'+',fixed:false,category:'其他'},
   {id:'search',name:'搜索',icon:'🔍',fixed:false,category:'其他'},
@@ -1626,6 +1631,8 @@ function showTADistance(){
   // ★ 持续状态机制：梦角存在系统（打开时判定延续/变化）
   var nowTs=Date.now();
   var cur=data.current||null;
+  var _forceOpen=!!data._forceOpen;data._forceOpen=false;delete data._forceOpen;
+  data.lastOpenAt=nowTs;
   var level=null,dir='',state=null,pos=null,act='',statusNote='',changed=false;
   var perceive=null,trend='',reason='',sinceText='';
   var LEVELS_ARR=TA_DISTANCE_LEVELS;
@@ -1646,9 +1653,12 @@ function showTADistance(){
   var lastInteract=data.lastInteract||0;
   var interacted=(nowTs-lastInteract)<2*3600000;
   if(cur&&cur.level&&cur.expiresAt&&nowTs<cur.expiresAt){
+    var _lastOpen=data.lastOpenAt||nowTs;
+    var _gapH=(nowTs-_lastOpen)/3600000;
+    var _refreshProb=_forceOpen?1:(_gapH<0.5?0.1:(_gapH<6?0.4:0.6));
     var r=Math.random();
-    if(r<0.7){
-      // 70% 保持当前状态
+    if(r>=_refreshProb){
+      // 未触发刷新：保持当前状态
       var li0=_findLv(cur.level);
       level=LEVELS_ARR[li0>=0?li0:2];
       dir=cur.dir;state={key:cur.state,desc:cur.stateDesc};pos={key:cur.pos,desc:cur.posDesc};act=cur.act;
@@ -1786,19 +1796,22 @@ function showTADistance(){
     html+='<div style="border-radius:12px;padding:10px 14px;background:rgba(0,0,0,0.04);border:1px dashed var(--border);margin-bottom:12px;font-size:13px;color:var(--txt2);">'+statusNote+'</div>';
   }
   // 当前感知描述（组合句）
-  html+='<div style="border-radius:14px;padding:20px;background:'+moodBg+';border:1px solid var(--border);margin-bottom:14px;">';
+  html+='<div style="border-radius:16px;padding:22px;background:'+moodBg+';border:1px solid rgba(255,190,130,0.35);margin-bottom:14px;box-shadow:0 4px 18px rgba(255,180,120,0.12);">';
   html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前感知</div>';
   html+='<div style="font-size:18px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.5;">'+level.key+' · '+dir+'</div>';
   html+='<div style="font-size:13px;color:var(--txt2);">'+pos.desc+' '+level.sense+'</div>';
+  var _perT=new Date(nowTs);
+  html+='<div style="font-size:11px;color:var(--txt3);margin-top:8px;">感知于 '+('0'+_perT.getHours()).slice(-2)+':'+('0'+_perT.getMinutes()).slice(-2)+'</div>';
   html+='</div>';
+  html+='<div style="text-align:center;margin:-6px 0 14px;"><button onclick="taDistanceRefresh()" style="padding:8px 24px;border:1px solid var(--accent);border-radius:20px;background:var(--c2);color:var(--accent);font-size:13px;cursor:pointer;">🔮 刷新感知</button></div>';
   // 距离 / 方向 两卡
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
-  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);box-shadow:0 3px 12px rgba(0,0,0,0.05);">';
   html+='<div style="font-size:12px;color:var(--txt3);">当前距离</div>';
   html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+level.key+'</div>';
   html+='<div style="font-size:12px;color:var(--txt2);">'+level.desc+'</div>';
   html+='</div>';
-  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);box-shadow:0 3px 12px rgba(0,0,0,0.05);">';
   html+='<div style="font-size:12px;color:var(--txt3);">TA所在方向</div>';
   html+='<div style="font-size:24px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+dir+'</div>';
   html+='<div style="font-size:12px;color:var(--txt2);">'+act+'</div>';
@@ -1806,12 +1819,12 @@ function showTADistance(){
   html+='</div>';
   // 空间状态 / 连接状态
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
-  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);box-shadow:0 3px 12px rgba(0,0,0,0.05);">';
   html+='<div style="font-size:12px;color:var(--txt3);">空间状态</div>';
   html+='<div style="font-size:20px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+pos.key+'</div>';
   html+='<div style="font-size:12px;color:var(--txt2);">'+pos.desc+'</div>';
   html+='</div>';
-  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
+  html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);box-shadow:0 3px 12px rgba(0,0,0,0.05);">';
   html+='<div style="font-size:12px;color:var(--txt3);">连接状态</div>';
   html+='<div style="font-size:20px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+state.key+'</div>';
   html+='<div style="font-size:12px;color:var(--txt2);">'+state.desc+'</div>';
@@ -1824,7 +1837,6 @@ function showTADistance(){
   html+='<div><div style="font-size:12px;color:var(--txt3);">距离趋势</div><div style="font-size:18px;font-weight:700;color:var(--txt);margin-top:4px;">'+(trend==='正在靠近'?'↑ 正在靠近':(trend==='正在远离'?'↓ 正在远离':'→ 保持稳定'))+'</div><div style="font-size:11px;color:var(--txt2);">'+(trend||'')+'</div></div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">';
-  html+='<div><div style="font-size:12px;color:var(--txt3);">状态持续</div><div style="font-size:14px;font-weight:700;color:var(--txt);margin-top:4px;line-height:1.5;">'+sinceText+'</div></div>';
   html+='<div><div style="font-size:12px;color:var(--txt3);">停留稳定度</div><div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;">'+stability+'</div><div style="font-size:11px;color:var(--txt2);">'+(stability==='稳定'?'TA目前保持着这个状态。':(stability==='波动'?'TA的距离正在轻微变化。':'TA可能会改变位置。'))+'</div></div>';
   html+='<div><div style="font-size:12px;color:var(--txt3);">变化原因</div><div style="font-size:13px;color:var(--txt2);margin-top:4px;line-height:1.5;">'+reason+'</div></div>';
   html+='</div>';
@@ -1862,6 +1874,12 @@ function showTADistance(){
   var body=$('ta-distance-body');
   if(body)body.innerHTML=html;
   showOv('ov-ta-distance');
+}
+function taDistanceRefresh(){
+  var data=ls('ml2_ta_distance')||{};
+  data._forceOpen=true;
+  ls('ml2_ta_distance',data);
+  showTADistance();
 }
 function showTADistanceHistory(){
   if(!cid){toast('请先进入聊天');return;}
@@ -2689,7 +2707,1244 @@ function initAiFixObserver(){
 }
 try{initAiFixObserver();}catch(e){}
 
-// ★ 占卜抽牌后的 AI 解读：基础设定 + 梦角人设 + 占卜师指令
+// ================= AI 占卜师：独立对话页面 =================
+var aiDivinerMsgs=[];
+var aiDivinerSettings={instruction:'',worldviewMode:'default',customWorldview:'',contactId:'',memory:[]};
+// ★ AI 占卜师历史会话：新对话自动归档，可切换回看
+function aiDivinerSessionsLoad(){try{var a=ls('ml2_ai_diviner_sessions');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function aiDivinerSessionsSave(arr){try{ls('ml2_ai_diviner_sessions',arr);}catch(e){}}
+function aiDivinerArchiveCurrent(){
+  if(!aiDivinerMsgs||!aiDivinerMsgs.length)return null;
+  var arr=aiDivinerSessionsLoad();
+  var title='';
+  for(var i=0;i<aiDivinerMsgs.length;i++){
+    if(aiDivinerMsgs[i].role==='user'){title=String(aiDivinerMsgs[i].content||'').slice(0,20);break;}
+  }
+  if(!title)title='🔮 占卜对话';
+  var sess={id:'s'+Date.now(),title:title,msgs:aiDivinerMsgs.slice(),settings:JSON.parse(JSON.stringify(aiDivinerSettings)),ts:Date.now()};
+  // 同 id 替换
+  var dup=arr.findIndex(function(x){return aiDivinerCurSessionId&&x.id===aiDivinerCurSessionId;});
+  if(dup>=0)arr[dup]=sess;else arr.unshift(sess);
+  aiDivinerSessionsSave(arr);
+  return sess;
+}
+function aiDivinerShowSessions(){
+  var arr=aiDivinerSessionsLoad();
+  if(!arr.length){toast('还没有历史会话');return;}
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='width:88%;max-width:400px;max-height:80vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:16px;box-sizing:border-box;';
+  var html='<div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:12px;">📋 历史会话</div>';
+  arr.forEach(function(sess,idx){
+    var t=new Date(sess.ts||Date.now());
+    var ts=(t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+    var cur=aiDivinerCurSessionId&&sess.id===aiDivinerCurSessionId;
+    html+='<div class="ad-sess-item" data-id="'+sess.id+'" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:'+(cur?'var(--c3)':'var(--c2)')+';border:1px solid var(--border);margin-bottom:8px;cursor:pointer;">'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+String(sess.title||'占卜对话').replace(/</g,'&lt;')+(cur?'（当前）':'')+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+sess.msgs.length+' 条 · '+ts+'</div>'
+      +'</div>'
+      +'<span class="ad-sess-edit" data-id="'+sess.id+'" style="color:var(--accent);font-size:14px;flex-shrink:0;margin-left:4px;">✏️</span>'
+      +'<span class="ad-sess-del" data-id="'+sess.id+'" style="color:#ff4d4f;font-size:14px;flex-shrink:0;">🗑</span>'
+      +'</div>';
+  });
+  html+='<div style="text-align:center;margin-top:12px;"><button id="ad-sess-close" style="padding:9px 0;width:100%;border:none;border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">关闭</button></div>';
+  box.innerHTML=html;
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  box.querySelectorAll('.ad-sess-item').forEach(function(item){
+    item.addEventListener('click',function(e){
+      if(e.target.classList&&e.target.classList.contains('ad-sess-del'))return;
+      var sid=item.getAttribute('data-id');
+      aiDivinerLoadSession(sid);
+      ov.remove();
+    });
+  });
+  box.querySelectorAll('.ad-sess-edit').forEach(function(ed){
+    ed.addEventListener('click',function(e){
+      e.stopPropagation();
+      var sid=ed.getAttribute('data-id');
+      var arr=aiDivinerSessionsLoad();
+      var idx=arr.findIndex(function(x){return x.id===sid;});
+      if(idx<0)return;
+      var newTitle=prompt('编辑会话标题：',String(arr[idx].title||''));
+      if(newTitle===null)return;
+      newTitle=newTitle.trim();
+      if(newTitle)arr[idx].title=newTitle.slice(0,30);
+      aiDivinerSessionsSave(arr);
+      aiDivinerShowSessions();
+    });
+  });
+  box.querySelectorAll('.ad-sess-del').forEach(function(del){
+    del.addEventListener('click',function(e){
+      e.stopPropagation();
+      var sid=del.getAttribute('data-id');
+      var arr=aiDivinerSessionsLoad();
+      var idx=arr.findIndex(function(x){return x.id===sid;});
+      if(idx>=0){arr.splice(idx,1);aiDivinerSessionsSave(arr);}
+      if(aiDivinerCurSessionId===sid)aiDivinerCurSessionId=null;
+      aiDivinerShowSessions();
+    });
+  });
+  box.querySelector('#ad-sess-close').onclick=function(){ov.remove();};
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+}
+function aiDivinerLoadSession(sid){
+  var arr=aiDivinerSessionsLoad();
+  var sess=arr.find(function(x){return x.id===sid;});
+  if(!sess){toast('会话不存在');return;}
+  // 保存当前会话再切换
+  aiDivinerArchiveCurrent();
+  aiDivinerMsgs=sess.msgs?JSON.parse(JSON.stringify(sess.msgs)):[];
+  aiDivinerCurSessionId=sid;
+  // ★ 会话设定独立：旧会话没有快照时以当前设定补一份，此后各自独立
+  if(!sess.settings){sess.settings=JSON.parse(JSON.stringify(aiDivinerSettings));}
+  aiDivinerSettings=JSON.parse(JSON.stringify(sess.settings));
+  var _arr2=aiDivinerSessionsLoad();
+  var _si2=_arr2.findIndex(function(x){return x.id===sid;});
+  if(_si2>=0){_arr2[_si2].settings=JSON.parse(JSON.stringify(sess.settings));aiDivinerSessionsSave(_arr2);}
+  try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}
+  aiDivinerSaveSettings();
+  renderAiDivinerMsgs();
+  toast('已切换到历史会话（设定已恢复）');
+}
+// ================= AI 聊天（梦角 if 线） =================
+var aiChatMsgs=[];
+var aiChatSettings={background:'',worldviewMode:'default',customWorldview:'',contactId:'',personaMode:'contact',personaCustom:'',memory:[],beauty:{taAvatar:'',myAvatar:'',bgImage:'',myBubble:'#e3d9f5',taBubble:'#ffffff'}};
+// ★ AI 聊天历史会话：每会话独立设定快照，可切换继续
+function aiChatSessionsLoad(){try{var a=ls('ml2_ai_chat_sessions');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function aiChatSessionsSave(arr){try{ls('ml2_ai_chat_sessions',arr);}catch(e){}}
+var aiChatCurSessionId=null;
+function aiChatArchiveCurrent(){
+  if(!aiChatMsgs||!aiChatMsgs.length)return null;
+  var arr=aiChatSessionsLoad();
+  var title='';
+  for(var i=0;i<aiChatMsgs.length;i++){
+    if(aiChatMsgs[i].role==='user'){title=String(aiChatMsgs[i].content||'').slice(0,20);break;}
+  }
+  if(!title)title='💬 AI聊天';
+  var sess={id:'c'+Date.now(),title:title,msgs:aiChatMsgs.slice(),settings:JSON.parse(JSON.stringify(aiChatSettings)),ts:Date.now()};
+  var dup=arr.findIndex(function(x){return aiChatCurSessionId&&x.id===aiChatCurSessionId;});
+  if(dup>=0)arr[dup]=sess;else arr.unshift(sess);
+  aiChatSessionsSave(arr);
+  return sess;
+}
+function aiChatShowSessions(){
+  var arr=aiChatSessionsLoad();
+  if(!arr.length){toast('还没有历史会话');return;}
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='width:88%;max-width:400px;max-height:80vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:16px;box-sizing:border-box;';
+  var html='<div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:12px;">📋 历史会话</div>';
+  arr.forEach(function(sess,idx){
+    var t=new Date(sess.ts||Date.now());
+    var ts=(t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+    var cur=aiChatCurSessionId&&sess.id===aiChatCurSessionId;
+    html+='<div class="ac-sess-item" data-id="'+sess.id+'" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:'+(cur?'var(--c3)':'var(--c2)')+';border:1px solid var(--border);margin-bottom:8px;cursor:pointer;">'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+String(sess.title||'AI聊天').replace(/</g,'&lt;')+(cur?'（当前）':'')+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+sess.msgs.length+' 条 · '+ts+'</div>'
+      +'</div>'
+      +'<span class="ac-sess-edit" data-id="'+sess.id+'" style="color:var(--accent);font-size:14px;flex-shrink:0;">✏️</span>'
+      +'<span class="ac-sess-del" data-id="'+sess.id+'" style="color:#ff4d4f;font-size:14px;flex-shrink:0;">🗑</span>'
+      +'</div>';
+  });
+  html+='<div style="text-align:center;margin-top:12px;"><button id="ac-sess-close" style="padding:9px 0;width:100%;border:none;border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">关闭</button></div>';
+  box.innerHTML=html;
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  box.querySelectorAll('.ac-sess-item').forEach(function(item){
+    item.addEventListener('click',function(e){
+      if(e.target.classList&&(e.target.classList.contains('ac-sess-del')||e.target.classList.contains('ac-sess-edit')))return;
+      aiChatLoadSession(item.getAttribute('data-id'));
+      ov.remove();
+    });
+  });
+  box.querySelectorAll('.ac-sess-edit').forEach(function(ed){
+    ed.addEventListener('click',function(e){
+      e.stopPropagation();
+      var sid=ed.getAttribute('data-id');
+      var arr=aiChatSessionsLoad();
+      var idx=arr.findIndex(function(x){return x.id===sid;});
+      if(idx<0)return;
+      var newTitle=prompt('编辑会话标题：',String(arr[idx].title||''));
+      if(newTitle===null)return;
+      newTitle=newTitle.trim();
+      if(newTitle)arr[idx].title=newTitle.slice(0,30);
+      aiChatSessionsSave(arr);
+      aiChatShowSessions();
+    });
+  });
+  box.querySelectorAll('.ac-sess-del').forEach(function(del){
+    del.addEventListener('click',function(e){
+      e.stopPropagation();
+      var sid=del.getAttribute('data-id');
+      var arr=aiChatSessionsLoad();
+      var idx=arr.findIndex(function(x){return x.id===sid;});
+      if(idx>=0){arr.splice(idx,1);aiChatSessionsSave(arr);}
+      if(aiChatCurSessionId===sid)aiChatCurSessionId=null;
+      aiChatShowSessions();
+    });
+  });
+  box.querySelector('#ac-sess-close').onclick=function(){ov.remove();};
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+}
+function aiChatLoadSession(sid){
+  var arr=aiChatSessionsLoad();
+  var sess=arr.find(function(x){return x.id===sid;});
+  if(!sess){toast('会话不存在');return;}
+  aiChatArchiveCurrent();
+  aiChatMsgs=sess.msgs?JSON.parse(JSON.stringify(sess.msgs)):[];
+  aiChatCurSessionId=sid;
+  if(sess.settings){aiChatSettings=JSON.parse(JSON.stringify(sess.settings));}
+  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  aiChatSaveSettings();
+  renderAiChatMsgs();
+  toast('已切换到历史会话（设定已恢复）');
+}
+function aiChatLoadSettings(){
+  try{var s=ls('ml2_ai_chat_settings');if(s&&typeof s==='object'){for(var k in aiChatSettings){if(s[k]!==undefined)aiChatSettings[k]=s[k];}}}catch(e){}
+}
+function aiChatSaveSettings(){try{ls('ml2_ai_chat_settings',aiChatSettings);}catch(e){}}
+function aiChatSystemPrompt(){
+  var s=getApiSettings();
+  var wv='';
+  if(aiChatSettings.worldviewMode==='custom'&&aiChatSettings.customWorldview){
+    wv='\n【世界观设定】'+aiChatSettings.customWorldview;
+  }else{
+    try{wv=aiWorldview(s);}catch(e){}
+  }
+  var persona='';
+  var genderText='恋人';
+  if(aiChatSettings.personaMode==='custom'&&aiChatSettings.personaCustom){
+    // ★ 自定义 TA 设定（不依赖梦角）
+    persona='\n【TA的角色设定】'+aiChatSettings.personaCustom;
+  }else if(aiChatSettings.contactId){
+    try{
+      genderText=getContactGender(aiChatSettings.contactId)==='girl'?'女朋友':'男朋友';
+      var cp=getContactPersona(aiChatSettings.contactId);
+      if(cp)persona='\n【梦角TA的完整人设】'+cp;
+    }catch(e){}
+  }
+  var bg=aiChatSettings.background?'\n【if线背景设定】'+aiChatSettings.background:'';
+  var mem='';
+  if(aiChatSettings.memory&&aiChatSettings.memory.length){
+    mem='\n【关于我们的记忆（请记住并自然运用）】\n'+aiChatSettings.memory.map(function(x){return '- '+x;}).join('\n');
+  }
+  return '你是用户的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。'+wv+persona+bg+mem+'\n请始终以TA的身份和用户聊天：第一人称"我"=你（TA），第二人称"你"=用户。语气温暖自然，像真实的恋人聊天。';
+}
+function openAiChat(){
+  aiChatLoadSettings();
+  aiChatMsgs=ls('ml2_ai_chat_msgs')||[];
+  if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
+  var ov=document.getElementById('ai-chat-page');
+  if(ov){ov.style.display='flex';renderAiChatMsgs();return;}
+  ov=document.createElement('div');
+  ov.id='ai-chat-page';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  var head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.innerHTML='<div id="ai-chat-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="flex:1;"></div>'
+    +'<div id="ai-chat-new" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-chat-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-chat-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div id="ai-chat-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+  ov.appendChild(head);
+  var box=document.createElement('div');
+  box.id='ai-chat-box';
+  box.style.cssText='flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;';
+  ov.appendChild(box);
+  var foot=document.createElement('div');
+  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end;';
+  var inp=document.createElement('textarea');
+  inp.id='ai-chat-inp';
+  inp.rows=1;
+  inp.placeholder='和 TA 聊聊这个 if 线里的故事…';
+  inp.style.cssText='flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:14px;padding:9px 12px;resize:none;box-sizing:border-box;max-height:120px;';
+  var send=document.createElement('button');
+  send.textContent='➤';
+  send.style.cssText='width:40px;height:38px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
+  foot.appendChild(inp);foot.appendChild(send);
+  ov.appendChild(foot);
+  document.body.appendChild(ov);
+  head.querySelector('#ai-chat-new').onclick=function(){
+    aiChatArchiveCurrent();
+    aiChatCurSessionId=null;
+    aiChatMsgs=[];
+    try{ls('ml2_ai_chat_msgs',[]);}catch(e){}
+    renderAiChatMsgs();
+    toast('💬 已开始新对话（旧对话可在 📋 会话查看）');
+  };
+  head.querySelector('#ai-chat-sess').onclick=function(){aiChatShowSessions();};
+  head.querySelector('#ai-chat-set').onclick=function(){openAiChatSettings();};
+  head.querySelector('#ai-chat-beauty').onclick=function(){if(typeof openBeautify==='function'){openBeautify();}}
+  head.querySelector('#ai-chat-back').onclick=function(){closeAiChat();}
+  head.querySelector('#ai-chat-close').onclick=function(){ov.style.display='none';};
+  send.onclick=function(){aiChatSend();};
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiChatSend();}});
+  renderAiChatMsgs();
+}
+function renderAiChatMsgs(){
+  var box=document.getElementById('ai-chat-box');
+  if(!box)return;
+  var _beauty=aiChatSettings.beauty||{};
+  if(_beauty.bgImage){
+    box.style.background='url('+_beauty.bgImage+') center/cover no-repeat';
+  }else{
+    box.style.background='';
+    box.style.backgroundImage='var(--chat-bg-image, none)';
+    box.style.backgroundSize='cover';
+    box.style.backgroundPosition='center';
+  }
+  box.innerHTML='';
+  if(!aiChatMsgs.length){
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--txt3);margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
+    return;
+  }
+  var _taAva=_beauty.taAvatar
+    ?'<img src="'+_beauty.taAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
+    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c9a961,#e8c88a);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#7a5a30;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>';
+  var _myAva=_beauty.myAvatar
+    ?'<img src="'+_beauty.myAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
+    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8ec5e8,#6fa8d9);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg></div>';
+  var _myBubble=_beauty.myBubble||'var(--my-bubble-bg, #e3d9f5)';
+  var _taBubble=_beauty.taBubble||'var(--other-bubble-bg, #ffffff)';
+  var _myText=_beauty.myText||'var(--my-bubble-text, #666666)';
+  var _taText=_beauty.taText||'var(--other-bubble-text, #666666)';
+  aiChatMsgs.forEach(function(m){
+    var isUser=m.role==='user';
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-direction:'+(isUser?'row-reverse':'row')+';';
+    var av=document.createElement('div');
+    av.innerHTML=isUser?_myAva:_taAva;
+    var b=document.createElement('div');
+    b.style.cssText='max-width:72%;padding:10px 14px;border-radius:'+(isUser?'14px 14px 4px 14px':'14px 14px 14px 4px')+';background:'+(isUser?_myBubble:_taBubble)+';color:'+(isUser?_myText:_taText)+';font-size:var(--bubble-font-size,14px);line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.05);opacity:var(--bubble-opacity,1);';
+    b.textContent=m.content;
+    row.appendChild(av);
+    row.appendChild(b);
+    box.appendChild(row);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+function aiChatSend(){
+  var inp=document.getElementById('ai-chat-inp');
+  if(!inp)return;
+  var text=inp.value.trim();
+  if(!text)return;
+  var s=getApiSettings();
+  if(!s.enabled||!s.apiKey){
+    var r=confirm('还没有接入 AI 接口。\n\n请在 底部导航「设置」→「API 接口」中配置。\n\n现在去配置吗？');
+    if(r&&typeof openApiSettings==='function')openApiSettings();
+    return;
+  }
+  aiChatMsgs.push({role:'user',content:text,ts:Date.now()});
+  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  inp.value='';
+  renderAiChatMsgs();
+  var msgs=[{role:'system',content:aiChatSystemPrompt()}];
+  aiChatMsgs.slice(-20).forEach(function(m){msgs.push({role:m.role,content:m.content});});
+  var box=document.getElementById('ai-chat-box');
+  var wait=document.createElement('div');
+  wait.id='ai-chat-wait';
+  wait.textContent='💬 TA 正在回复...';
+  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;';
+  box.appendChild(wait);
+  box.scrollTop=box.scrollHeight;
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:msgs,max_tokens:800})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text2=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text2){throw new Error('返回为空');}
+    var w=document.getElementById('ai-chat-wait');
+    if(w)w.remove();
+    aiChatMsgs.push({role:'assistant',content:text2,ts:Date.now()});
+    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+    renderAiChatMsgs();
+  }).catch(function(e){
+    console.warn('aiChat failed:',e);
+    var w=document.getElementById('ai-chat-wait');
+    if(w)w.remove();
+    aiChatMsgs.push({role:'assistant',content:'⚠️ 回复失败：'+(e.message||e)+'\n请检查 API 配置或网络。',ts:Date.now()});
+    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e2){}
+    renderAiChatMsgs();
+  });
+}
+function openAiChatSettings(){
+  aiChatLoadSettings();
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='width:88%;max-width:400px;max-height:85vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:18px;box-sizing:border-box;';
+  var contactOpts='<option value="">不关联（仅 TA 本体）</option>';
+  contacts.forEach(function(c){contactOpts+='<option value="'+c.id+'"'+(aiChatSettings.contactId===c.id?' selected':'')+'>'+String(c.name||c.id).replace(/"/g,'&quot;')+'</option>';});
+  box.innerHTML='<div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:12px;">⚙️ AI聊天设定</div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">if 线背景设定（这段故事的前提）</div>'
+    +'<textarea id="ac-bg" style="width:100%;box-sizing:border-box;height:80px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="例如：如果我们没有相遇，我们是在图书馆偶遇的陌生人…">'+String(aiChatSettings.background||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:10px 0 6px;">世界观</div>'
+    +'<select id="ac-wv" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'
+    +'<option value="default"'+(aiChatSettings.worldviewMode!=='custom'?' selected':'')+'>星言默认世界观（梦角设定）</option>'
+    +'<option value="custom"'+(aiChatSettings.worldviewMode==='custom'?' selected':'')+'>自定义世界观</option>'
+    +'</select>'
+    +'<div id="ac-cw-wrap" style="margin-top:8px;'+(aiChatSettings.worldviewMode==='custom'?'':'display:none;')+'">'
+    +'<textarea id="ac-cw" style="width:100%;box-sizing:border-box;height:64px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="写下你的世界观设定…">'+String(aiChatSettings.customWorldview||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:10px 0 6px;">TA 的身份设定</div>'
+    +'<select id="ac-pm" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'
+    +'<option value="contact"'+(aiChatSettings.personaMode!=='custom'?' selected':'')+'>关联梦角TA（用TA的完整人设）</option>'
+    +'<option value="custom"'+(aiChatSettings.personaMode==='custom'?' selected':'')+'>自定义设定（重新写TA）</option>'
+    +'</select>'
+    +'<div id="ac-pc-wrap" style="margin-top:8px;'+(aiChatSettings.personaMode==='custom'?'':'display:none;')+'">'
+    +'<textarea id="ac-pc" style="width:100%;box-sizing:border-box;height:80px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="重新写一个TA：名字、性格、说话习惯、你们的关系…">'+String(aiChatSettings.personaCustom||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'</div>'
+    +'<div id="ac-cid-wrap"'+(aiChatSettings.personaMode==='custom'?' style="display:none;margin-top:10px;"':' style="margin-top:10px;"')+'>'
+    +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">关联梦角TA（用TA的完整人设聊天）</div>'
+    +'<select id="ac-cid" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'+contactOpts+'</select>'
+    +'</div>'
+    +'<div style="margin:14px 0 4px;">'
+    +'</div>'
+
+    +'<div style="font-size:12px;color:var(--txt2);margin:12px 0 6px;">📌 会话记忆库（TA 会记住这些）</div>'
+    +'<div style="display:flex;gap:8px;"><input id="ac-mem-inp" placeholder="例如：我最近在备考，不想聊考试" style="flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:12px;padding:8px 10px;box-sizing:border-box;">'
+    +'<button id="ac-mem-add" style="padding:8px 14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;flex-shrink:0;">添加</button></div>'
+    +'<div id="ac-mem-list" style="margin-top:8px;"></div>'
+    +'<div style="display:flex;gap:8px;margin-top:16px;">'
+    +'<button id="ac-cancel" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">取消</button>'
+    +'<button id="ac-save" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">保存</button>'
+    +'</div>';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  // ★ 完整美化页面入口（复用主聊天 ov-beautify）
+  var beautifyBtn=box.querySelector('#ac-beautify');
+  if(beautifyBtn){
+    beautifyBtn.onclick=function(){
+      ov.remove();
+      if(typeof openBeautify==='function'){
+        try{openBeautify();}catch(e){console.warn(e);toast('打开美化失败');}
+      }else{toast('美化功能不可用');}
+    };
+  }
+  // ★ 美化交互：气泡色块 + 头像/背景上传
+  var _myColors=['#e3d9f5','#f5d9d9','#d9f0e1','#d9e8f5','#f5ecd9','#f2d9f0'];
+  var _taColors=['#ffffff','#f7f0e1','#eef3f7','#f5eef7','#f0f0f0'];
+  function acBuildColors(){
+    var curMy=(aiChatSettings.beauty&&aiChatSettings.beauty.myBubble)||'#e3d9f5';
+    var curTa=(aiChatSettings.beauty&&aiChatSettings.beauty.taBubble)||'#ffffff';
+    var m1=box.querySelector('#ac-mycolors');
+    var t1=box.querySelector('#ac-tacolors');
+    if(m1){m1.innerHTML='';_myColors.forEach(function(c){
+      var d=document.createElement('div');
+      d.style.cssText='width:28px;height:28px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(c===curMy?'var(--accent)':'transparent')+';';
+      d.onclick=function(){box.setAttribute('data-mycolor',c);acBuildColors();};
+      m1.appendChild(d);
+    });}
+    if(t1){t1.innerHTML='';_taColors.forEach(function(c){
+      var d=document.createElement('div');
+      d.style.cssText='width:28px;height:28px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(c===curTa?'var(--accent)':'transparent')+';';
+      d.onclick=function(){box.setAttribute('data-tacolor',c);acBuildColors();};
+      t1.appendChild(d);
+    });}
+  }
+  function acReadImg(inputId,key){
+    var inp=box.querySelector(inputId);
+    if(!inp)return;
+    inp.onchange=function(){
+      var f=inp.files&&inp.files[0];
+      if(!f)return;
+      var rd=new FileReader();
+      rd.onload=function(ev){
+        if(!aiChatSettings.beauty)aiChatSettings.beauty={};
+        aiChatSettings.beauty[key]=ev.target.result;
+        openAiChatSettings();
+        toast('已设置');
+      };
+      rd.readAsDataURL(f);
+    };
+  }
+  acReadImg('#ac-taava','taAvatar');
+  acReadImg('#ac-myava','myAvatar');
+  acReadImg('#ac-bgimg','bgImage');
+  acBuildColors();
+  // ★ 记忆库交互
+  function acRenderMem(){
+    var ml=box.querySelector('#ac-mem-list');
+    if(!ml)return;
+    var arr=aiChatSettings.memory||[];
+    ml.innerHTML=arr.length?'':('<div style="font-size:11px;color:var(--txt3);">还没有记忆</div>');
+    arr.forEach(function(mem,idx){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;background:var(--c2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:6px;';
+      var tx=document.createElement('span');
+      tx.style.cssText='flex:1;font-size:12px;color:var(--txt);';
+      tx.textContent=mem;
+      var del=document.createElement('span');
+      del.textContent='🗑';
+      del.style.cssText='color:#ff4d4f;font-size:12px;cursor:pointer;flex-shrink:0;';
+      del.onclick=function(){aiChatSettings.memory.splice(idx,1);acRenderMem();};
+      row.appendChild(tx);row.appendChild(del);
+      ml.appendChild(row);
+    });
+  }
+  box.querySelector('#ac-mem-add').onclick=function(){
+    var inp=box.querySelector('#ac-mem-inp');
+    var v=inp.value.trim();
+    if(!v){toast('请输入记忆内容');return;}
+    if(!aiChatSettings.memory)aiChatSettings.memory=[];
+    aiChatSettings.memory.push(v);
+    inp.value='';
+    acRenderMem();
+  };
+  acRenderMem();
+  var wvSel=box.querySelector('#ac-wv');
+  wvSel.onchange=function(){box.querySelector('#ac-cw-wrap').style.display=wvSel.value==='custom'?'block':'none';};
+  var pmSel=box.querySelector('#ac-pm');
+  pmSel.onchange=function(){
+    var _c=pmSel.value==='custom';
+    box.querySelector('#ac-pc-wrap').style.display=_c?'block':'none';
+    box.querySelector('#ac-cid-wrap').style.display=_c?'none':'block';
+  };
+  box.querySelector('#ac-cancel').onclick=function(){ov.remove();};
+  box.querySelector('#ac-save').onclick=function(){
+    aiChatSettings.background=box.querySelector('#ac-bg').value.trim();
+    aiChatSettings.worldviewMode=wvSel.value;
+    aiChatSettings.customWorldview=box.querySelector('#ac-cw').value.trim();
+    aiChatSettings.personaMode=pmSel.value;
+    aiChatSettings.personaCustom=box.querySelector('#ac-pc').value.trim();
+    aiChatSettings.contactId=box.querySelector('#ac-cid').value;
+    if(!aiChatSettings.beauty)aiChatSettings.beauty={};
+    aiChatSettings.beauty.myBubble=box.getAttribute('data-mycolor')||aiChatSettings.beauty.myBubble||'#e3d9f5';
+    aiChatSettings.beauty.taBubble=box.getAttribute('data-tacolor')||aiChatSettings.beauty.taBubble||'#ffffff';
+    aiChatSaveSettings();
+    ov.remove();
+    toast('⚙️ 设定已保存');
+  };
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+}
+function aiDivinerLoadSettings(){
+  try{var s=ls('ml2_ai_diviner_settings');if(s&&typeof s==='object'){for(var k in aiDivinerSettings){if(s[k]!==undefined)aiDivinerSettings[k]=s[k];}}}catch(e){}
+}
+function aiDivinerSaveSettings(){try{ls('ml2_ai_diviner_settings',aiDivinerSettings);}catch(e){}}
+function aiDivinerSystemPrompt(){
+  var s=getApiSettings();
+  var wv='';
+  if(aiDivinerSettings.worldviewMode==='custom'&&aiDivinerSettings.customWorldview){
+    wv='\n【世界观设定】'+aiDivinerSettings.customWorldview;
+  }else{
+    try{wv=aiWorldview(s);}catch(e){}
+  }
+  var persona='';
+  if(aiDivinerSettings.contactId){
+    try{
+      var cp=getContactPersona(aiDivinerSettings.contactId);
+      if(cp)persona='\n【梦角TA的完整人设】'+cp;
+    }catch(e){}
+  }
+  var mem='';
+  if(aiDivinerSettings.memory&&aiDivinerSettings.memory.length){
+    mem='\n【关于你们的一些记忆（解读时请结合）】\n'+aiDivinerSettings.memory.map(function(x){return '- '+x;}).join('\n');
+  }
+  var ins=aiDivinerSettings.instruction||'你是专业的占卜师，根据用户给的占卜问题、抽出的牌面或指令进行解读。';
+  return '你是用户专属的「AI占卜师」。用第一人称"我"=占卜师，用第二人称"你"称呼用户。'+wv+persona+mem+'\n【占卜师解读指令】'+ins+'\n请始终以占卜师身份对话；对占卜相关话题认真解读，其他话题也可友好回应。';
+}
+function openAiChat(){
+  aiChatLoadSettings();
+  aiChatMsgs=ls('ml2_ai_chat_msgs')||[];
+  if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
+  var ov=document.getElementById('ai-chat-page');
+  if(ov){ov.style.display='flex';renderAiChatMsgs();return;}
+  ov=document.createElement('div');
+  ov.id='ai-chat-page';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  var head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.innerHTML='<div id="ai-chat-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="flex:1;"></div>'
+    +'<div id="ai-chat-new" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-chat-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-chat-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div id="ai-chat-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+  ov.appendChild(head);
+  var box=document.createElement('div');
+  box.id='ai-chat-box';
+  box.style.cssText='flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;';
+  ov.appendChild(box);
+  var foot=document.createElement('div');
+  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end;';
+  var inp=document.createElement('textarea');
+  inp.id='ai-chat-inp';
+  inp.rows=1;
+  inp.placeholder='和 TA 聊聊这个 if 线里的故事…';
+  inp.style.cssText='flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:14px;padding:9px 12px;resize:none;box-sizing:border-box;max-height:120px;';
+  var send=document.createElement('button');
+  send.textContent='➤';
+  send.style.cssText='width:40px;height:38px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
+  foot.appendChild(inp);foot.appendChild(send);
+  ov.appendChild(foot);
+  document.body.appendChild(ov);
+  head.querySelector('#ai-chat-new').onclick=function(){
+    aiChatArchiveCurrent();
+    aiChatCurSessionId=null;
+    aiChatMsgs=[];
+    try{ls('ml2_ai_chat_msgs',[]);}catch(e){}
+    renderAiChatMsgs();
+    toast('💬 已开始新对话（旧对话可在 📋 会话查看）');
+  };
+  head.querySelector('#ai-chat-sess').onclick=function(){aiChatShowSessions();};
+  head.querySelector('#ai-chat-set').onclick=function(){openAiChatSettings();};
+  head.querySelector('#ai-chat-beauty').onclick=function(){if(typeof openBeautify==='function'){openBeautify();}}
+  head.querySelector('#ai-chat-back').onclick=function(){closeAiChat();}
+  head.querySelector('#ai-chat-close').onclick=function(){ov.style.display='none';};
+  send.onclick=function(){aiChatSend();};
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiChatSend();}});
+  renderAiChatMsgs();
+}
+function renderAiChatMsgs(){
+  var box=document.getElementById('ai-chat-box');
+  if(!box)return;
+  var _beauty=aiChatSettings.beauty||{};
+  if(_beauty.bgImage){
+    box.style.background='url('+_beauty.bgImage+') center/cover no-repeat';
+  }else{
+    box.style.background='';
+    box.style.backgroundImage='var(--chat-bg-image, none)';
+    box.style.backgroundSize='cover';
+    box.style.backgroundPosition='center';
+  }
+  box.innerHTML='';
+  if(!aiChatMsgs.length){
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--txt3);margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
+    return;
+  }
+  var _taAva=_beauty.taAvatar
+    ?'<img src="'+_beauty.taAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
+    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c9a961,#e8c88a);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#7a5a30;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>';
+  var _myAva=_beauty.myAvatar
+    ?'<img src="'+_beauty.myAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
+    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8ec5e8,#6fa8d9);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg></div>';
+  var _myBubble=_beauty.myBubble||'var(--my-bubble-bg, #e3d9f5)';
+  var _taBubble=_beauty.taBubble||'var(--other-bubble-bg, #ffffff)';
+  var _myText=_beauty.myText||'var(--my-bubble-text, #666666)';
+  var _taText=_beauty.taText||'var(--other-bubble-text, #666666)';
+  aiChatMsgs.forEach(function(m){
+    var isUser=m.role==='user';
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-direction:'+(isUser?'row-reverse':'row')+';';
+    var av=document.createElement('div');
+    av.innerHTML=isUser?_myAva:_taAva;
+    var b=document.createElement('div');
+    b.style.cssText='max-width:72%;padding:10px 14px;border-radius:'+(isUser?'14px 14px 4px 14px':'14px 14px 14px 4px')+';background:'+(isUser?_myBubble:_taBubble)+';color:'+(isUser?_myText:_taText)+';font-size:var(--bubble-font-size,14px);line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.05);opacity:var(--bubble-opacity,1);';
+    b.textContent=m.content;
+    row.appendChild(av);
+    row.appendChild(b);
+    box.appendChild(row);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+function aiChatSend(){
+  var inp=document.getElementById('ai-chat-inp');
+  if(!inp)return;
+  var text=inp.value.trim();
+  if(!text)return;
+  var s=getApiSettings();
+  if(!s.enabled||!s.apiKey){
+    var r=confirm('还没有接入 AI 接口。\n\n请在 底部导航「设置」→「API 接口」中配置。\n\n现在去配置吗？');
+    if(r&&typeof openApiSettings==='function')openApiSettings();
+    return;
+  }
+  aiChatMsgs.push({role:'user',content:text,ts:Date.now()});
+  try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+  inp.value='';
+  renderAiChatMsgs();
+  var msgs=[{role:'system',content:aiChatSystemPrompt()}];
+  aiChatMsgs.slice(-20).forEach(function(m){msgs.push({role:m.role,content:m.content});});
+  var box=document.getElementById('ai-chat-box');
+  var wait=document.createElement('div');
+  wait.id='ai-chat-wait';
+  wait.textContent='💬 TA 正在回复...';
+  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;';
+  box.appendChild(wait);
+  box.scrollTop=box.scrollHeight;
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:msgs,max_tokens:800})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text2=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text2){throw new Error('返回为空');}
+    var w=document.getElementById('ai-chat-wait');
+    if(w)w.remove();
+    aiChatMsgs.push({role:'assistant',content:text2,ts:Date.now()});
+    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+    renderAiChatMsgs();
+  }).catch(function(e){
+    console.warn('aiChat failed:',e);
+    var w=document.getElementById('ai-chat-wait');
+    if(w)w.remove();
+    aiChatMsgs.push({role:'assistant',content:'⚠️ 回复失败：'+(e.message||e)+'\n请检查 API 配置或网络。',ts:Date.now()});
+    try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e2){}
+    renderAiChatMsgs();
+  });
+}
+function openAiChatSettings(){
+  aiChatLoadSettings();
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='width:88%;max-width:400px;max-height:85vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:18px;box-sizing:border-box;';
+  var contactOpts='<option value="">不关联（仅 TA 本体）</option>';
+  contacts.forEach(function(c){contactOpts+='<option value="'+c.id+'"'+(aiChatSettings.contactId===c.id?' selected':'')+'>'+String(c.name||c.id).replace(/"/g,'&quot;')+'</option>';});
+  box.innerHTML='<div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:12px;">⚙️ AI聊天设定</div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">if 线背景设定（这段故事的前提）</div>'
+    +'<textarea id="ac-bg" style="width:100%;box-sizing:border-box;height:80px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="例如：如果我们没有相遇，我们是在图书馆偶遇的陌生人…">'+String(aiChatSettings.background||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:10px 0 6px;">世界观</div>'
+    +'<select id="ac-wv" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'
+    +'<option value="default"'+(aiChatSettings.worldviewMode!=='custom'?' selected':'')+'>星言默认世界观（梦角设定）</option>'
+    +'<option value="custom"'+(aiChatSettings.worldviewMode==='custom'?' selected':'')+'>自定义世界观</option>'
+    +'</select>'
+    +'<div id="ac-cw-wrap" style="margin-top:8px;'+(aiChatSettings.worldviewMode==='custom'?'':'display:none;')+'">'
+    +'<textarea id="ac-cw" style="width:100%;box-sizing:border-box;height:64px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="写下你的世界观设定…">'+String(aiChatSettings.customWorldview||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:10px 0 6px;">TA 的身份设定</div>'
+    +'<select id="ac-pm" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'
+    +'<option value="contact"'+(aiChatSettings.personaMode!=='custom'?' selected':'')+'>关联梦角TA（用TA的完整人设）</option>'
+    +'<option value="custom"'+(aiChatSettings.personaMode==='custom'?' selected':'')+'>自定义设定（重新写TA）</option>'
+    +'</select>'
+    +'<div id="ac-pc-wrap" style="margin-top:8px;'+(aiChatSettings.personaMode==='custom'?'':'display:none;')+'">'
+    +'<textarea id="ac-pc" style="width:100%;box-sizing:border-box;height:80px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="重新写一个TA：名字、性格、说话习惯、你们的关系…">'+String(aiChatSettings.personaCustom||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'</div>'
+    +'<div id="ac-cid-wrap"'+(aiChatSettings.personaMode==='custom'?' style="display:none;margin-top:10px;"':' style="margin-top:10px;"')+'>'
+    +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">关联梦角TA（用TA的完整人设聊天）</div>'
+    +'<select id="ac-cid" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'+contactOpts+'</select>'
+    +'</div>'
+    +'<div style="margin:14px 0 4px;">'
+    +'</div>'
+
+    +'<div style="font-size:12px;color:var(--txt2);margin:12px 0 6px;">📌 会话记忆库（TA 会记住这些）</div>'
+    +'<div style="display:flex;gap:8px;"><input id="ac-mem-inp" placeholder="例如：我最近在备考，不想聊考试" style="flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:12px;padding:8px 10px;box-sizing:border-box;">'
+    +'<button id="ac-mem-add" style="padding:8px 14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;flex-shrink:0;">添加</button></div>'
+    +'<div id="ac-mem-list" style="margin-top:8px;"></div>'
+    +'<div style="display:flex;gap:8px;margin-top:16px;">'
+    +'<button id="ac-cancel" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">取消</button>'
+    +'<button id="ac-save" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">保存</button>'
+    +'</div>';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  // ★ 完整美化页面入口（复用主聊天 ov-beautify）
+  var beautifyBtn=box.querySelector('#ac-beautify');
+  if(beautifyBtn){
+    beautifyBtn.onclick=function(){
+      ov.remove();
+      if(typeof openBeautify==='function'){
+        try{openBeautify();}catch(e){console.warn(e);toast('打开美化失败');}
+      }else{toast('美化功能不可用');}
+    };
+  }
+  // ★ 美化交互：气泡色块 + 头像/背景上传
+  var _myColors=['#e3d9f5','#f5d9d9','#d9f0e1','#d9e8f5','#f5ecd9','#f2d9f0'];
+  var _taColors=['#ffffff','#f7f0e1','#eef3f7','#f5eef7','#f0f0f0'];
+  function acBuildColors(){
+    var curMy=(aiChatSettings.beauty&&aiChatSettings.beauty.myBubble)||'#e3d9f5';
+    var curTa=(aiChatSettings.beauty&&aiChatSettings.beauty.taBubble)||'#ffffff';
+    var m1=box.querySelector('#ac-mycolors');
+    var t1=box.querySelector('#ac-tacolors');
+    if(m1){m1.innerHTML='';_myColors.forEach(function(c){
+      var d=document.createElement('div');
+      d.style.cssText='width:28px;height:28px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(c===curMy?'var(--accent)':'transparent')+';';
+      d.onclick=function(){box.setAttribute('data-mycolor',c);acBuildColors();};
+      m1.appendChild(d);
+    });}
+    if(t1){t1.innerHTML='';_taColors.forEach(function(c){
+      var d=document.createElement('div');
+      d.style.cssText='width:28px;height:28px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(c===curTa?'var(--accent)':'transparent')+';';
+      d.onclick=function(){box.setAttribute('data-tacolor',c);acBuildColors();};
+      t1.appendChild(d);
+    });}
+  }
+  function acReadImg(inputId,key){
+    var inp=box.querySelector(inputId);
+    if(!inp)return;
+    inp.onchange=function(){
+      var f=inp.files&&inp.files[0];
+      if(!f)return;
+      var rd=new FileReader();
+      rd.onload=function(ev){
+        if(!aiChatSettings.beauty)aiChatSettings.beauty={};
+        aiChatSettings.beauty[key]=ev.target.result;
+        openAiChatSettings();
+        toast('已设置');
+      };
+      rd.readAsDataURL(f);
+    };
+  }
+  acReadImg('#ac-taava','taAvatar');
+  acReadImg('#ac-myava','myAvatar');
+  acReadImg('#ac-bgimg','bgImage');
+  acBuildColors();
+  // ★ 记忆库交互
+  function acRenderMem(){
+    var ml=box.querySelector('#ac-mem-list');
+    if(!ml)return;
+    var arr=aiChatSettings.memory||[];
+    ml.innerHTML=arr.length?'':('<div style="font-size:11px;color:var(--txt3);">还没有记忆</div>');
+    arr.forEach(function(mem,idx){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;background:var(--c2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:6px;';
+      var tx=document.createElement('span');
+      tx.style.cssText='flex:1;font-size:12px;color:var(--txt);';
+      tx.textContent=mem;
+      var del=document.createElement('span');
+      del.textContent='🗑';
+      del.style.cssText='color:#ff4d4f;font-size:12px;cursor:pointer;flex-shrink:0;';
+      del.onclick=function(){aiChatSettings.memory.splice(idx,1);acRenderMem();};
+      row.appendChild(tx);row.appendChild(del);
+      ml.appendChild(row);
+    });
+  }
+  box.querySelector('#ac-mem-add').onclick=function(){
+    var inp=box.querySelector('#ac-mem-inp');
+    var v=inp.value.trim();
+    if(!v){toast('请输入记忆内容');return;}
+    if(!aiChatSettings.memory)aiChatSettings.memory=[];
+    aiChatSettings.memory.push(v);
+    inp.value='';
+    acRenderMem();
+  };
+  acRenderMem();
+  var wvSel=box.querySelector('#ac-wv');
+  wvSel.onchange=function(){box.querySelector('#ac-cw-wrap').style.display=wvSel.value==='custom'?'block':'none';};
+  var pmSel=box.querySelector('#ac-pm');
+  pmSel.onchange=function(){
+    var _c=pmSel.value==='custom';
+    box.querySelector('#ac-pc-wrap').style.display=_c?'block':'none';
+    box.querySelector('#ac-cid-wrap').style.display=_c?'none':'block';
+  };
+  box.querySelector('#ac-cancel').onclick=function(){ov.remove();};
+  box.querySelector('#ac-save').onclick=function(){
+    aiChatSettings.background=box.querySelector('#ac-bg').value.trim();
+    aiChatSettings.worldviewMode=wvSel.value;
+    aiChatSettings.customWorldview=box.querySelector('#ac-cw').value.trim();
+    aiChatSettings.personaMode=pmSel.value;
+    aiChatSettings.personaCustom=box.querySelector('#ac-pc').value.trim();
+    aiChatSettings.contactId=box.querySelector('#ac-cid').value;
+    if(!aiChatSettings.beauty)aiChatSettings.beauty={};
+    aiChatSettings.beauty.myBubble=box.getAttribute('data-mycolor')||aiChatSettings.beauty.myBubble||'#e3d9f5';
+    aiChatSettings.beauty.taBubble=box.getAttribute('data-tacolor')||aiChatSettings.beauty.taBubble||'#ffffff';
+    aiChatSaveSettings();
+    ov.remove();
+    toast('⚙️ 设定已保存');
+  };
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+}
+function aiDivinerLoadSettings(){
+  try{var s=ls('ml2_ai_diviner_settings');if(s&&typeof s==='object'){for(var k in aiDivinerSettings){if(s[k]!==undefined)aiDivinerSettings[k]=s[k];}}}catch(e){}
+}
+function aiDivinerSaveSettings(){try{ls('ml2_ai_diviner_settings',aiDivinerSettings);}catch(e){}}
+function aiDivinerSystemPrompt(){
+  var s=getApiSettings();
+  var wv='';
+  if(aiDivinerSettings.worldviewMode==='custom'&&aiDivinerSettings.customWorldview){
+    wv='\n【世界观设定】'+aiDivinerSettings.customWorldview;
+  }else{
+    try{wv=aiWorldview(s);}catch(e){}
+  }
+  var persona='';
+  if(aiDivinerSettings.contactId){
+    try{
+      var cp=getContactPersona(aiDivinerSettings.contactId);
+      if(cp)persona='\n【梦角TA的完整人设】'+cp;
+    }catch(e){}
+  }
+  var mem='';
+  if(aiDivinerSettings.memory&&aiDivinerSettings.memory.length){
+    mem='\n【关于你们的一些记忆（解读时请结合）】\n'+aiDivinerSettings.memory.map(function(x){return '- '+x;}).join('\n');
+  }
+  var ins=aiDivinerSettings.instruction||'你是专业的占卜师，根据用户给的占卜问题、抽出的牌面或指令进行解读。';
+  return '你是用户专属的「AI占卜师」。用第一人称"我"=占卜师，用第二人称"你"称呼用户。'+wv+persona+mem+'\n【占卜师解读指令】'+ins+'\n请始终以占卜师身份对话；对占卜相关话题认真解读，其他话题也可友好回应。';
+}
+function openAiDiviner(){
+  aiDivinerLoadSettings();
+  aiDivinerMsgs=ls('ml2_ai_diviner_msgs')||[];
+  if(!Array.isArray(aiDivinerMsgs))aiDivinerMsgs=[];
+  var ov=document.getElementById('ai-diviner-page');
+  if(ov){ov.style.display='flex';renderAiDivinerMsgs();return;}
+  ov=document.createElement('div');
+  ov.id='ai-diviner-page';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  var head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.style.background='linear-gradient(135deg,rgba(0,0,0,0.04),rgba(255,255,255,0))';
+  head.innerHTML='<div id="ai-diviner-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="display:flex;align-items:center;gap:6px;flex:1;">'
+    +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="13" r="7"/><path d="M9 2.5h6"/><path d="M12 2.5v3.5"/><path d="M4.5 5.5l-1.5 2.5"/><path d="M19.5 5.5l1.5 2.5"/><path d="M12 13l2.5 2.5"/></svg>'
+    +'<div style="flex:1;"></div>'
+    +'</div>'
+    +'<div id="ai-diviner-new" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-diviner-sess" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-diviner-beauty" title="美化聊天页面" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-diviner-set" style="font-size:12px;color:var(--accent);cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div id="ai-diviner-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+  ov.appendChild(head);
+  var box=document.createElement('div');
+  box.id='ai-diviner-box';
+  box.style.cssText='flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#F8F4F0;';
+  ov.appendChild(box);
+  var foot=document.createElement('div');
+  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end;';
+  var inp=document.createElement('textarea');
+  inp.id='ai-diviner-inp';
+  inp.rows=1;
+  inp.placeholder='发给占卜师：占卜问题 / 抽出的牌面 / 指令...';
+  inp.style.cssText='flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:14px;padding:9px 12px;resize:none;box-sizing:border-box;max-height:120px;';
+  var send=document.createElement('button');
+  send.innerHTML='<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5l7 7-7 7\"/></svg>';
+  send.style.cssText='width:40px;height:38px;border:none;border-radius:10px;background:#B3976A;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
+  foot.appendChild(inp);foot.appendChild(send);
+  ov.appendChild(foot);
+  document.body.appendChild(ov);
+  head.querySelector('#ai-diviner-new').onclick=function(){
+    // ★ 归档当前对话为历史会话，再开新对话
+    aiDivinerArchiveCurrent();
+    aiDivinerCurSessionId=null;
+    aiDivinerMsgs=[];
+    try{ls('ml2_ai_diviner_msgs',[]);}catch(e){}
+    renderAiDivinerMsgs();
+    toast('🔮 已开始新对话（旧对话可在 📋 会话中查看）');
+  };
+  head.querySelector('#ai-diviner-sess').onclick=function(){aiDivinerShowSessions();};
+  head.querySelector('#ai-diviner-set').onclick=function(){openAiDivinerSettings();};
+  head.querySelector('#ai-diviner-back').onclick=function(){closeAiDiviner();}
+  head.querySelector('#ai-diviner-beauty').onclick=function(){if(typeof openBeautify==='function'){openBeautify();}}
+  head.querySelector('#ai-diviner-close').onclick=function(){closeAiDiviner();};
+  send.onclick=function(){aiDivinerSend();};
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiDivinerSend();}});
+  renderAiDivinerMsgs();
+}
+function closeAiDiviner(){
+  try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}
+  var ov=document.getElementById('ai-diviner-page');
+  if(ov)ov.style.display='none';
+  hideOv('ov-chat-more');
+}
+function renderAiDivinerMsgs(){
+  var box=document.getElementById('ai-diviner-box');
+  if(!box)return;
+  box.innerHTML='';
+  if(!aiDivinerMsgs.length){
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:var(--txt3);font-size:13px;line-height:2.2;"><div style="color:var(--accent);margin-bottom:10px;">'+"<svg width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;color:#B3976A;\"><circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M9 2.5h6\"/><path d=\"M12 2.5v3.5\"/><path d=\"M4.5 5.5l-1.5 2.5\"/><path d=\"M19.5 5.5l1.5 2.5\"/><path d=\"M12 13l2.5 2.5\"/></svg>"+'</div>占卜师已就位<br>直接发占卜问题，或把你抽出的牌发给我解牌<br>点击右上角设定解读指令 / 世界观 / 关联梦角人设</div>';
+    return;
+  }
+  aiDivinerMsgs.forEach(function(m){
+    var isUser=m.role==='user';
+    var isCard=!isUser&&/抽(到|了|出)|牌面|塔罗|雷诺曼|阿卡纳/.test(m.content||'');
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:'+(isUser?'flex-end':'flex-start')+';';
+    var b=document.createElement('div');
+    b.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(isUser?'14px 14px 4px 14px':'14px 14px 14px 4px')+';background:'+(isCard?'var(--quote-bg,#F4EBDD)':(isUser?'var(--my-bubble-bg,#e3d9f5)':'var(--other-bubble-bg,#ffffff)'))+';color:'+(isUser?'var(--my-bubble-text,#666666)':'var(--other-bubble-text,#666666)')+';font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.05);';
+    b.textContent=m.content;
+    row.appendChild(b);
+    box.appendChild(row);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+function aiDivinerSend(){
+  var inp=document.getElementById('ai-diviner-inp');
+  if(!inp)return;
+  var text=inp.value.trim();
+  if(!text)return;
+  var s=getApiSettings();
+  if(!s.enabled||!s.apiKey){
+    var r=confirm('还没有接入 AI 接口，无法占卜。\n\n请在 底部导航「设置」→「API 接口」中配置。\n\n现在去配置吗？');
+    if(r&&typeof openApiSettings==='function')openApiSettings();
+    return;
+  }
+  aiDivinerMsgs.push({role:'user',content:text,ts:Date.now()});
+  try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}
+  inp.value='';
+  renderAiDivinerMsgs();
+  var msgs=[{role:'system',content:aiDivinerSystemPrompt()}];
+  aiDivinerMsgs.slice(-20).forEach(function(m){msgs.push({role:m.role,content:m.content});});
+  var box=document.getElementById('ai-diviner-box');
+  var wait=document.createElement('div');
+  wait.id='ai-diviner-wait';
+  wait.textContent='占卜师正在推演…';
+  wait.style.cssText='color:var(--txt3);font-size:12px;padding:6px 4px;';
+  box.appendChild(wait);
+  box.scrollTop=box.scrollHeight;
+  fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
+    body:JSON.stringify({model:s.model,messages:msgs,max_tokens:800})
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var text2=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    if(!text2){throw new Error('返回为空');}
+    var w=document.getElementById('ai-diviner-wait');
+    if(w)w.remove();
+    aiDivinerMsgs.push({role:'assistant',content:text2,ts:Date.now()});
+    try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e){}
+    renderAiDivinerMsgs();
+  }).catch(function(e){
+    console.warn('aiDiviner failed:',e);
+    var w=document.getElementById('ai-diviner-wait');
+    if(w)w.remove();
+    aiDivinerMsgs.push({role:'assistant',content:'⚠️ 占卜失败：'+(e.message||e)+'\n请检查 API 配置或网络。',ts:Date.now()});
+    try{ls('ml2_ai_diviner_msgs',aiDivinerMsgs);}catch(e2){}
+    renderAiDivinerMsgs();
+  });
+}
+function openAiDivinerSettings(){
+  try{_openAiDivinerSettings();}catch(e){console.warn('openAiDivinerSettings err:',e);toast('打开失败：'+(e&&e.message?e.message:e));}
+}
+function _openAiDivinerSettings(){
+  aiDivinerLoadSettings();
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='width:88%;max-width:400px;max-height:85vh;overflow-y:auto;background:var(--c1);border-radius:16px;padding:18px;box-sizing:border-box;';
+  var contactOpts='<option value="">不关联（仅占卜师）</option>';
+  contacts.forEach(function(c){contactOpts+='<option value="'+c.id+'"'+(aiDivinerSettings.contactId===c.id?' selected':'')+'>'+String(c.name||c.id).replace(/"/g,'&quot;')+'</option>';});
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-size:15px;font-weight:600;color:var(--txt);">⚙️ AI占卜师设定</div><div id="ad-clear" style="font-size:12px;color:#ff4d4f;cursor:pointer;">🗑 清空对话</div></div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">解读指令（占卜师行为准则）</div>'
+    +'<textarea id="ad-ins" style="width:100%;box-sizing:border-box;height:76px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="例如：先看牌面含义，再联系两人关系给出建议…">'+String(aiDivinerSettings.instruction||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:10px 0 6px;">世界观</div>'
+    +'<select id="ad-wv" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'
+    +'<option value="default"'+(aiDivinerSettings.worldviewMode!=='custom'?' selected':'')+'>星言默认世界观（梦角设定）</option>'
+    +'<option value="custom"'+(aiDivinerSettings.worldviewMode==='custom'?' selected':'')+'>自定义世界观</option>'
+    +'</select>'
+    +'<div id="ad-cw-wrap" style="margin-top:8px;'+(aiDivinerSettings.worldviewMode==='custom'?'':'display:none;')+'">'
+    +'<textarea id="ad-cw" style="width:100%;box-sizing:border-box;height:64px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:9px;" placeholder="写下你的世界观设定…">'+String(aiDivinerSettings.customWorldview||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:10px 0 6px;">关联梦角TA（解读时带上TA的完整人设）</div>'
+    +'<select id="ad-cid" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;">'+contactOpts+'</select>'
+    +'<div style="font-size:12px;color:var(--txt2);margin:12px 0 6px;">📌 会话记忆库（TA 解读时会参考）</div>'
+    +'<div style="display:flex;gap:8px;"><input id="ad-mem-inp" placeholder="例如：我们认识三个月了，TA怕黑" style="flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:12px;padding:8px 10px;box-sizing:border-box;">'
+    +'<button id="ad-mem-add" style="padding:8px 14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;flex-shrink:0;">添加</button></div>'
+    +'<div id="ad-mem-list" style="margin-top:8px;"></div>'
+    +'<div style="display:flex;gap:8px;margin-top:16px;">'
+    +'<button id="ad-cancel" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">取消</button>'
+    +'<button id="ad-save" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">保存</button>'
+    +'</div>';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  // ★ 记忆库交互
+  function adRenderMem(){
+    var ml=box.querySelector('#ad-mem-list');
+    if(!ml)return;
+    var arr=aiDivinerSettings.memory||[];
+    ml.innerHTML=arr.length?'':('<div style="font-size:11px;color:var(--txt3);">还没有记忆</div>');
+    arr.forEach(function(mem,idx){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;background:var(--c2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:6px;';
+      var tx=document.createElement('span');
+      tx.style.cssText='flex:1;font-size:12px;color:var(--txt);';
+      tx.textContent=mem;
+      var del=document.createElement('span');
+      del.textContent='🗑';
+      del.style.cssText='color:#ff4d4f;font-size:12px;cursor:pointer;flex-shrink:0;';
+      del.onclick=function(){aiDivinerSettings.memory.splice(idx,1);adRenderMem();};
+      row.appendChild(tx);row.appendChild(del);
+      ml.appendChild(row);
+    });
+  }
+  box.querySelector('#ad-mem-add').onclick=function(){
+    var inp=box.querySelector('#ad-mem-inp');
+    var v=inp.value.trim();
+    if(!v){toast('请输入记忆内容');return;}
+    if(!aiDivinerSettings.memory)aiDivinerSettings.memory=[];
+    aiDivinerSettings.memory.push(v);
+    inp.value='';
+    adRenderMem();
+  };
+  adRenderMem();
+  var wvSel=box.querySelector('#ad-wv');
+  wvSel.onchange=function(){box.querySelector('#ad-cw-wrap').style.display=wvSel.value==='custom'?'block':'none';};
+  box.querySelector('#ad-clear').onclick=function(){aiDivinerMsgs=[];try{ls('ml2_ai_diviner_msgs',[]);}catch(e){}renderAiDivinerMsgs();toast('对话已清空');};
+  box.querySelector('#ad-cancel').onclick=function(){ov.remove();};
+  box.querySelector('#ad-save').onclick=function(){
+    try{
+      aiDivinerSettings.instruction=box.querySelector('#ad-ins').value.trim();
+      aiDivinerSettings.worldviewMode=wvSel.value;
+      aiDivinerSettings.customWorldview=box.querySelector('#ad-cw').value.trim();
+      aiDivinerSettings.contactId=box.querySelector('#ad-cid').value;
+      aiDivinerSaveSettings();
+      // ★ 保存后立即同步当前会话快照（每个会话设定独立）
+      if(aiDivinerCurSessionId){
+        var _sa=aiDivinerSessionsLoad();
+        var _si3=_sa.findIndex(function(x){return x.id===aiDivinerCurSessionId;});
+        if(_si3>=0){_sa[_si3].settings=JSON.parse(JSON.stringify(aiDivinerSettings));aiDivinerSessionsSave(_sa);}
+      }
+      ov.remove();
+      toast('⚙️ 占卜师设定已保存');
+    }catch(e){console.warn('diviner save err:',e);toast('保存失败');}
+  };
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+}
+
+// ================= AI 解读字卡：手动记忆库 + 自动记录 =================
+// —— 记忆库（手动添加，AI 解读时自动参考）——
+function aiCardMemoryLoad(){try{var a=ls('ml2_ai_card_memory');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function aiCardMemorySave(arr){try{ls('ml2_ai_card_memory',arr);}catch(e){}}
+function aiCardMemoryAdd(content){
+  if(!content||!content.trim())return;
+  var arr=aiCardMemoryLoad();
+  arr.unshift({id:'mem'+Date.now(),content:content.trim(),savedAt:Date.now()});
+  aiCardMemorySave(arr);
+}
+// —— 字卡解读记录（每次解读成功自动存档，全部保留不受限）——
+function aiCardRecordLoad(){try{var a=ls('ml2_ai_card_records');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function aiCardRecordSave(arr){try{ls('ml2_ai_card_records',arr);}catch(e){}}
+function aiCardRecordAdd(entry){var arr=aiCardRecordLoad();arr.unshift(entry);aiCardRecordSave(arr);}
+
+// ===== 手动记忆库页面（梦角分类：🧠 AI解读记忆库）=====
+function openAiCardMemory(){
+  var ov=document.getElementById('ai-memory-page');
+  if(ov){ov.style.display='flex';renderAiCardMemory();return;}
+  ov=document.createElement('div');
+  ov.id='ai-memory-page';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  var head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.innerHTML='<div style="font-size:16px;font-weight:600;color:var(--txt);flex:1;">📔 AI解读记忆库</div>'
+    +'<div id="ai-memory-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+  ov.appendChild(head);
+  var addWrap=document.createElement('div');
+  addWrap.style.cssText='padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  addWrap.innerHTML='<div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">➕ 添加记忆（AI 解读字卡时会自动参考这些记忆）</div>'
+    +'<div style="display:flex;gap:8px;"><input id="ai-memory-inp" placeholder="例如：TA怕黑，喜欢下雨天，最在意我说早安" style="flex:1;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;padding:9px 12px;box-sizing:border-box;">'
+    +'<button id="ai-memory-add" style="padding:9px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;flex-shrink:0;">添加</button></div>';
+  ov.appendChild(addWrap);
+  var box=document.createElement('div');
+  box.id='ai-memory-list';
+  box.style.cssText='flex:1;overflow-y:auto;padding:12px;';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  head.querySelector('#ai-memory-close').onclick=function(){ov.style.display='none';};
+  addWrap.querySelector('#ai-memory-add').onclick=function(){
+    var inp=addWrap.querySelector('#ai-memory-inp');
+    var v=inp.value.trim();
+    if(!v){toast('请输入记忆内容');return;}
+    aiCardMemoryAdd(v);
+    inp.value='';
+    renderAiCardMemory();
+    toast('已添加记忆');
+  };
+  renderAiCardMemory();
+}
+function renderAiCardMemory(){
+  var box=document.getElementById('ai-memory-list');
+  if(!box)return;
+  var arr=aiCardMemoryLoad();
+  box.innerHTML='';
+  if(!arr.length){
+    box.innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--txt3);font-size:13px;line-height:2;">📔 还没有记忆<br>在这里添加关于 TA 和你们的记忆<br>AI 解读字卡时会自动参考</div>';
+    return;
+  }
+  arr.forEach(function(m,idx){
+    var item=document.createElement('div');
+    item.style.cssText='background:var(--c2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;';
+    var body=document.createElement('div');
+    body.style.cssText='flex:1;font-size:14px;color:var(--txt);line-height:1.7;white-space:pre-wrap;word-break:break-word;';
+    body.textContent=m.content;
+    var del=document.createElement('div');
+    del.textContent='🗑';
+    del.style.cssText='color:#ff4d4f;cursor:pointer;font-size:14px;flex-shrink:0;';
+    del.onclick=function(){arr.splice(idx,1);aiCardMemorySave(arr);renderAiCardMemory();};
+    item.appendChild(body);
+    item.appendChild(del);
+    box.appendChild(item);
+  });
+}
+
+// ===== 自动记录页面（消息工具分类：📚 AI解读字卡记录）=====
+function openAiCardRecords(){
+  var ov=document.getElementById('ai-records-page');
+  if(ov){ov.style.display='flex';renderAiCardRecords();return;}
+  ov=document.createElement('div');
+  ov.id='ai-records-page';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:var(--c1);display:flex;flex-direction:column;';
+  var head=document.createElement('div');
+  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  head.innerHTML='<div style="font-size:16px;font-weight:600;color:var(--txt);flex:1;">📚 AI解读字卡记录</div>'
+    +'<div id="ai-records-clear" style="font-size:12px;color:#ff4d4f;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);flex-shrink:0;">🗑 清空</div>'
+    +'<div id="ai-records-close" style="font-size:16px;color:var(--txt2);cursor:pointer;padding:5px 8px;flex-shrink:0;">✕</div>';
+  ov.appendChild(head);
+  var box=document.createElement('div');
+  box.id='ai-records-list';
+  box.style.cssText='flex:1;overflow-y:auto;padding:12px;';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  head.querySelector('#ai-records-clear').onclick=function(){
+    if(!aiCardRecordLoad().length){toast('记录为空');return;}
+    if(!confirm('确定清空全部解读记录？'))return;
+    aiCardRecordSave([]);
+    renderAiCardRecords();
+    toast('已清空');
+  };
+  head.querySelector('#ai-records-close').onclick=function(){ov.style.display='none';};
+  renderAiCardRecords();
+}
+function renderAiCardRecords(){
+  var box=document.getElementById('ai-records-list');
+  if(!box)return;
+  var arr=aiCardRecordLoad();
+  box.innerHTML='';
+  if(!arr.length){
+    box.innerHTML='<div style="text-align:center;padding:50px 20px;color:var(--txt3);font-size:13px;line-height:2;">📭 还没有解读记录<br>每次对字卡消息点「AI 解读」成功后会自动记录到这里</div>';
+    return;
+  }
+  arr.forEach(function(m,idx){
+    var item=document.createElement('div');
+    item.style.cssText='background:var(--c2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;';
+    var head=document.createElement('div');
+    head.style.cssText='display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--txt2);margin-bottom:8px;';
+    var t=new Date(m.savedAt||Date.now());
+    var ts=(t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+    head.innerHTML='<span>👤 '+String(m.contactName||'TA').replace(/</g,'&lt;')+' · '+ts+'</span>'
+      +'<span style="color:#ff4d4f;cursor:pointer;" class="ar-del">🗑</span>';
+    item.appendChild(head);
+    var card=document.createElement('div');
+    card.style.cssText='font-size:13px;color:var(--accent);margin-bottom:6px;line-height:1.6;';
+    // ★ 完整显示原字卡 + 情绪/心意/交流意图等附加字卡
+    var _cardFull=String(m.cardText||'（未知字卡）');
+    if(m.cardExtra&&String(m.cardExtra).trim())_cardFull+=String(m.cardExtra);
+    card.innerHTML='💌 '+_cardFull.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    item.appendChild(card);
+    var body=document.createElement('div');
+    body.style.cssText='font-size:13px;color:var(--txt);line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:96px;overflow:hidden;';
+    body.textContent=m.interpret||'';
+    item.appendChild(body);
+    var more=document.createElement('div');
+    more.textContent='展开/收起';
+    more.style.cssText='font-size:11px;color:var(--txt3);cursor:pointer;margin-top:6px;text-align:center;';
+    var open=false;
+    more.onclick=function(){
+      open=!open;
+      body.style.maxHeight=open?'none':'96px';
+      more.textContent=open?'收起':'展开/收起';
+    };
+    item.appendChild(more);
+    head.querySelector('.ar-del').onclick=function(e){
+      e.stopPropagation();
+      arr.splice(idx,1);
+      aiCardRecordSave(arr);
+      renderAiCardRecords();
+    };
+    box.appendChild(item);
+  });
+}
+
+
 function d2AiInterpret(){  var s=getApiSettings();
   if(!s.enabled||!s.apiKey){
     var r=confirm('还没有接入 AI 接口，无法解读。\n\n请在 底部导航「设置」→「API 接口」中：\n1. 打开「启用 AI 解读」开关\n2. 填入 API 地址和 Key（如 DeepSeek）\n3. 保存后即可使用\n\n现在去配置吗？');
@@ -2734,7 +3989,11 @@ function d2AiInterpret(){  var s=getApiSettings();
   '3. 【指引】联系用户与其梦角的关系给出建议；\n'+
   '4. 【回应】给用户一句话温暖的回应。\n'+
   '用 250~400 字。用第二人称"你"对用户说话，第一人称"我"=TA。';
-  var userPrompt='这是我的占卜结果（牌面）：\n'+resultText+'\n请务必逐张解读上面列出的每一张牌，再给出整体解读和指引。';
+  // ★ 补充信息（可选）：抽牌后、AI 解读前填写，帮助更准解读
+  var extraText='';
+  var extraEl=$('d2-extraInput');
+  if(extraEl&&extraEl.value.trim())extraText='\n【补充信息】'+extraEl.value.trim();
+  var userPrompt='这是我的占卜结果（牌面）：\n'+resultText+extraText+'\n请务必逐张解读上面列出的每一张牌，再给出整体解读和指引。';
   var area=$('d2-ai-area');
   if(area){
     area.style.display='block';
@@ -3386,7 +4645,21 @@ function mmSpeakMsg(msgId,el){
       _btn.style.opacity='0.7';_btn.style.width=_ow+'px';_btn.style.height=_oh+'px';_btn.style.padding='0';_btn.style.borderRadius='11px';_btn.style.background='rgba(0,0,0,0.06)';_btn.style.display='inline-flex';_btn.style.alignItems='center';_btn.style.justifyContent='center';_btn.style.overflow='hidden';_btn.style.verticalAlign='middle';
     }
   }catch(e){}
-  mmSpeak(msg.t,cid,msgId,_restore,_fallback);
+  // ★ 语音朗读排除已撤回的字卡
+  var _speakText=msg.t;
+  if(msg.retractedSegs&&msg.retractedSegs.length){
+    try{
+      var _ss=splitCardSegs(msg.t||'');
+      var _keep=[];
+      for(var _sk2=0;_sk2<_ss.length;_sk2++){
+        var _rc3=false;
+        for(var _sj2=0;_sj2<msg.retractedSegs.length;_sj2++){if(msg.retractedSegs[_sj2].idx===_sk2){_rc3=true;break;}}
+        if(!_rc3)_keep.push(_ss[_sk2]);
+      }
+      if(_keep.length)_speakText=_keep.join(' ');
+    }catch(e){}
+  }
+  mmSpeak(_speakText,cid,msgId,_restore,_fallback);
 }
 // ★ AI 解读字卡：长按消息菜单调用
 function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
@@ -3422,7 +4695,25 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
   var systemPrompt='你是用户当前联系人的梦角TA——用户另一个世界的恋人（'+genderText+'）。不同联系人是不同的人、不同的梦角，你的人设和语气只属于当前联系人。\n'+
   aiWorldview(s)+personaText+'\n'+
   '【解读要求】下面的字卡是"你（TA）"发给用户的话，不是用户说的。请以"你（TA）"第一人称，用 100~200 字解读这张字卡：字面意思 → 你真正想对用户说的话 → 你此刻的感受 → 给用户的一句话回应。用第二人称"你"称呼用户，第一人称"我"=你（TA）。';
-  var userPrompt='你（TA）发给用户一张字卡：「'+cardText+'」'+cardExtra+'。请以你（TA）的身份，解读这张字卡想对用户传达的意思。';
+  // ★ 结合手动记忆 + 最近对话上下文，让解读更连贯
+  var _ctxInfo='';
+  try{
+    var _memArr=aiCardMemoryLoad();
+    if(_memArr&&_memArr.length){
+      _ctxInfo+='\n【关于你们的一些记忆（解读时请结合）】\n'+_memArr.map(function(x){return '- '+x.content;}).join('\n');
+    }
+    var _allM=msgs(cid)||[];
+    var _recent=[];
+    for(var _i=_allM.length-1;_i>=0&&_recent.length<8;_i--){
+      var _x=_allM[_i];
+      if(!_x)continue;
+      var _t=_x.t||_x.originalContent||(_x.img?'[图片]':_x.voice?'[语音]':null);
+      if(!_t)continue;
+      _recent.unshift((_x.s===SELF?'我：':'TA：')+String(_t).slice(0,60));
+    }
+    if(_recent.length)_ctxInfo+='\n【最近的对话上下文】\n'+_recent.join('\n');
+  }catch(e){}
+  var userPrompt='你（TA）发给用户一张字卡：「'+cardText+'」'+cardExtra+_ctxInfo+'。请以你（TA）的身份，解读这张字卡想对用户传达的意思。';
   // ★ 不弹窗：直接在消息下方显示「解读中...」，完成后原地替换为解读内容
   // ★ 保持滚动位置：渲染前后记录/恢复 scrollTop，避免点前面消息的解读按钮被弹到底部
   var _scrollBox=document.getElementById('msgbox');
@@ -3462,6 +4753,10 @@ function aiInterpretCard(msgId){  hideMsgActionMenu();  var m=msgs(cid);
     var target=mm2.find(function(x){return x.id===msgId;});
     if(target){
       target.aiInterpret=text;
+      try{
+        var _memContact=contacts.find(function(c){return c.id===cid})||{};
+        aiCardRecordAdd({id:'r'+Date.now()+'_'+msgId,msgId:msgId,contactId:cid,contactName:_memContact.name||'TA',cardText:cardText,cardExtra:cardExtra||'',interpret:text,savedAt:Date.now()});
+      }catch(e){}
       window._aiFixCtxs=window._aiFixCtxs||{};
       window._aiFixCtxs['msg_'+msgId]={systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:text,onDone:function(t){
         var mm=msgs(cid);var tg=mm.find(function(x){return x.id===msgId});
@@ -3502,10 +4797,10 @@ function renderChatMorePanel(){
 
   var enabledItems=customChatbarEnabled;
   if(!enabledItems||!Array.isArray(enabledItems)||enabledItems.length===0){
-    enabledItems=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
+    enabledItems=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
   }else{
     // ★ 铁证：无论 customChatbarEnabled 来自哪里（旧存档/未合并），渲染时都强制补全新功能
-    ['ta_distance','ta_touch','read_together','read_cards','read_video'].forEach(function(_i){
+    ['ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'].forEach(function(_i){
       if(enabledItems.indexOf(_i)===-1)enabledItems.push(_i);
     });
   }
@@ -3514,7 +4809,7 @@ function renderChatMorePanel(){
     var c=contacts.find(function(x){return x.id===cid});
     if(c&&c.chatbarEnabled&&Array.isArray(c.chatbarEnabled)){
       // 合并：确保新功能也出现在联系人定制列表中
-      var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
+      var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
       var merged=c.chatbarEnabled.slice();
       defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
       enabledItems=merged;
@@ -3522,7 +4817,7 @@ function renderChatMorePanel(){
     if(c&&c.chatbarOrder&&Array.isArray(c.chatbarOrder)){
       // ★ 补新功能：旧数据 order 没有 ta_distance/ta_touch 等，导入后要补上
       displayOrder=c.chatbarOrder.slice();
-      var _newIds=['ta_distance','ta_touch','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library','read_together','read_cards','read_video'];
+      var _newIds=['ta_distance','ta_touch','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
       _newIds.forEach(function(_nid){if(displayOrder.indexOf(_nid)===-1)displayOrder.push(_nid);});
     }
   }
@@ -3575,9 +4870,25 @@ function renderChatMorePanel(){
     catNames.forEach(function(catName){
       tabsHtml+='<div class="chat-more-tab'+(catName===activeCat?' sel':'')+'" data-cat="'+catName.replace(/"/g,'&quot;')+'">'+catName+'</div>';
     });
-    // ★ 独立「设置」按钮：不属于任何分类，固定在 tab 行最右侧
-    tabsHtml+='<div class="chat-more-settings-tab" data-action="settings" style="margin-left:auto;flex-shrink:0;padding:6px 12px;border-radius:16px;font-size:13px;color:var(--txt2);background:var(--c2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all .2s;">⚙️ 设置</div>';
+    // ★ 右侧工具按钮：🙈 隐藏底部导航 + ⚙️ 设置（固定在 tab 行最右侧，同分类 tab 并列）
+    var _navHidden=ls('ml2_hide_bottom_nav')||false;
+    tabsHtml+='<div style="margin-left:auto;flex-shrink:0;display:flex;align-items:center;gap:6px;">'
+      +'<div class="chat-more-nav-toggle" data-action="toggle_bottom_nav" title="隐藏/显示底部导航" style="padding:6px 10px;border-radius:16px;font-size:13px;color:'+(_navHidden?'var(--accent)':'var(--txt2)')+';background:'+(_navHidden?'var(--c3)':'var(--c2)')+';cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all .2s;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>'+'</div>'
+      +'<div class="chat-more-settings-tab" data-action="settings" style="padding:6px 12px;border-radius:16px;font-size:13px;color:var(--txt2);background:var(--c2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all .2s;">'+"<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='flex-shrink:0;'><circle cx='12' cy='12' r='3'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1'/></svg>"+'设置</div>'
+      +'</div>';
     tabs.innerHTML=tabsHtml;
+    // 隐藏导航按钮点击
+    var nt=tabs.querySelector('.chat-more-nav-toggle');
+    if(nt){
+      nt.addEventListener('click',function(){
+        ls('ml2_hide_bottom_nav', !(ls('ml2_hide_bottom_nav')||false));
+        if(typeof updateBottomNavVisibility==='function')updateBottomNavVisibility();
+        toast(ls('ml2_hide_bottom_nav')?'🙈 底部导航已隐藏（可在联系人编辑里恢复）':'底部导航已显示');
+        renderChatMorePanel();
+        // ★ 导航隐藏/恢复后输入栏位置变了，必须重新贴合面板底边
+        try{fitPanelAboveIbar('.chat-more-panel');}catch(e){}
+      });
+    }
     // 设置按钮点击
     var st=tabs.querySelector('.chat-more-settings-tab');
     if(st){
@@ -3634,6 +4945,7 @@ function toggleChatEmoji(){
     hideOv('ov-chat-more');
     var lastTab=ls('last_emoji_tab')||'public';
     renderEmojiPanel(lastTab);
+    try{fitPanelAboveIbar('.emoji-panel');}catch(e){}
   }
 }
 
@@ -3675,7 +4987,7 @@ function handleChatMoreAction(action){
         renderStarMusicPage();
         break;
       case 'giftbox':
-        showGiftBox(cid||'');
+        if(cid)showGiftBox(cid);else toast('请先进入聊天');
         break;
       case 'survey':
         openSurveyModal('half');
@@ -3700,6 +5012,26 @@ function handleChatMoreAction(action){
         break;
       case 'read_video':
         if(typeof showReadVideo==='function')showReadVideo();
+        break;
+      case 'toggle_bottom_nav':
+        ls('ml2_hide_bottom_nav', !(ls('ml2_hide_bottom_nav')||false));
+        if(typeof updateBottomNavVisibility==='function')updateBottomNavVisibility();
+        toast(ls('ml2_hide_bottom_nav')?'🙈 底部导航已隐藏（可从联系人设置恢复）':'底部导航已显示');
+        break;
+      case 'ai_diviner':
+        if(typeof openAiDiviner==='function')openAiDiviner();
+        break;
+      case 'ai_chat':
+        if(typeof openAiChat==='function')openAiChat();
+        break;
+      case 'ai_card_memory':
+        if(typeof openAiCardMemory==='function')openAiCardMemory();
+        break;
+      case 'ai_card_records':
+        if(typeof openAiCardRecords==='function')openAiCardRecords();
+        break;
+      case 'meals':
+        if(typeof openMealsPanel==='function')openMealsPanel();
         break;
       case 'copy_msg':
         showCopyMsg();
@@ -3755,10 +5087,10 @@ function handleChatMoreAction(action){
           }else{
             showChatTouchMenu(cid);
           }
-        }
+        }else{toast('请先进入聊天');}
         break;
       case 'redpacket':
-        if(cid)showRedPacketModal(cid);
+        if(cid)showRedPacketModal(cid);else toast('请先进入聊天');
         break;
       case 'contact-profile':
         if(cid)showContactProfile(cid);
@@ -3795,16 +5127,16 @@ function handleChatMoreAction(action){
     }
   }catch(e){
     console.error('handleChatMoreAction error:',e);
-    toast('操作失败');
+    toast('打开失败：'+(e&&e.message?e.message:e));
   }
 }
 
 function loadChatbarSettings(){
-  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
+  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
   var saved=ls('ml2_custom_chatbar');
   if(saved&&Array.isArray(saved)&&saved.length>0){
     // 合并：把新增的默认功能添加到已保存的配置中
-    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
+    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
     var merged=saved.slice();
     defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
     customChatbarEnabled=merged;
@@ -3817,7 +5149,7 @@ async function loadChatbarSettingsAsync(){
     try{
       var saved=await window.localforage.getItem('ml2_custom_chatbar');
       if(saved&&Array.isArray(saved)&&saved.length>0){
-        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video'];
+        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
         var merged=saved.slice();
         defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
         customChatbarEnabled=merged;
@@ -4317,3 +5649,177 @@ if($('storage-clean-orphan-btn'))$('storage-clean-orphan-btn').addEventListener(
   }catch(e){console.error('cleanup orphan error:',e);toast('清理失败: '+(e.message||'未知错误'));}
 });
 
+// ==================== 一日三餐记录 ====================
+var MEAL_SLOTS=[
+  {key:'breakfast',name:'早餐',icon:'☀️',start:420,end:600},
+  {key:'lunch',name:'午餐',icon:'🍚',start:660,end:840},
+  {key:'dinner',name:'晚餐',icon:'🌙',start:1020,end:1260}
+];
+function mealDateStr(d){var x=d||new Date();function p(n){return ('0'+n).slice(-2);}return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());}
+function mealTimeStr(d){var x=d||new Date();return ('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2);}
+function mealsStore(){return ls('ml2_meals')||{};}
+function mealsTodayRecs(){return mealsStore()[mealDateStr()]||{};}
+function openMealsPanel(){
+  if(!cid){toast('请先进入聊天');return;}
+  showOv('ov-meals');
+  renderMealsPanel();
+}
+function renderMealsPanel(){
+  var day=mealsTodayRecs(),cnt=0;
+  var html='<div style="padding:16px 14px 6px;display:flex;align-items:baseline;justify-content:space-between;"><div style="font-size:18px;font-weight:700;color:#5C4A3D;">🍽 一日三餐记录</div><div style="font-size:13px;color:#9A8878;">'+mealDateStr()+'</div></div>';
+  MEAL_SLOTS.forEach(function(sl){
+    var rec=day[sl.key],status='未记录',detail='还没有记录',tagBg='#F3E6D5',tagColor='#9A8878';
+    if(rec&&rec.status==='recorded'){status='已记录';tagBg='#E8C8A9';tagColor='#8a5a33';detail=(rec.time||'')+(rec.content?' · '+rec.content:'');cnt++;}
+    else if(rec&&rec.status==='eaten'){status='已吃';tagColor='#B96F58';detail=(rec.time||'已吃')+(rec.content?' · '+rec.content:'');}
+    else if(rec&&rec.status==='skipped'){status='没吃';detail='这一餐没有吃';}
+    html+='<div style="margin:8px 14px;padding:14px;background:#FFFDF8;border-radius:14px;box-shadow:0 1px 6px rgba(90,74,61,0.07);border:1px solid #EFE4D5;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
+      +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">'+sl.icon+'</span><span style="font-size:15px;font-weight:700;color:#5C4A3D;">'+sl.name+'</span></div>'
+      +'<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:'+tagBg+';color:'+tagColor+';font-weight:600;">'+status+'</span></div>'
+      +'<div style="margin-top:8px;font-size:13px;color:#9A8878;line-height:1.6;">'+detail+'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:12px;">'
+      +'<button onclick="openMealEdit(\''+sl.key+'\')" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:#C98F62;color:#FFFDF8;font-size:13px;font-weight:600;cursor:pointer;">'+(rec?'修改这一餐':'＋ 记录这一餐')+'</button>'
+      +'<button onclick="mealQuickEat(\''+sl.key+'\')" style="flex:1;padding:10px 0;border:1px solid #E8C8A9;border-radius:10px;background:#FFFDF8;color:#B96F58;font-size:13px;font-weight:600;cursor:pointer;">✓ 已吃</button>'
+      +'</div></div>';
+  });
+  html+='<div style="margin:8px 14px 14px;padding:12px 14px;background:#F3E6D5;border-radius:12px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;color:#5C4A3D;">今日已记录：<b style="color:#B96F58;">'+cnt+'</b> / 3</span><button onclick="openMealHistory()" style="padding:7px 14px;border:none;border-radius:10px;background:#FFFDF8;color:#C98F62;font-size:12px;font-weight:600;cursor:pointer;">历史记录</button></div>';
+  $('ov-meals-content').innerHTML=html;
+}
+function mealQuickEat(key){
+  var st=mealsStore(),d=mealDateStr();
+  if(!st[d])st[d]={};
+  st[d][key]={status:'eaten',time:mealTimeStr(),ts:Date.now()};
+  ls('ml2_meals',st);
+  var sl=MEAL_SLOTS.filter(function(s){return s.key===key;})[0];
+  toast(sl.name+'已记录（已吃）');
+  renderMealsPanel();
+}
+var _mealEditKey='lunch';
+function openMealEdit(key){
+  _mealEditKey=key;
+  var day=mealsTodayRecs(),rec=day[key]||{};
+  var sl=MEAL_SLOTS.filter(function(s){return s.key===key;})[0];
+  var html='<div style="padding:14px 16px 4px;font-size:16px;font-weight:700;color:#5C4A3D;">'+sl.icon+' '+sl.name+'记录</div>';
+  html+='<div style="padding:12px 16px 0;">'
+    +'<div style="margin-bottom:10px;"><div style="font-size:12px;color:#9A8878;margin-bottom:5px;">时间</div><input id="meal-edit-time" type="time" value="'+(rec.time||mealTimeStr())+'" style="width:100%;padding:9px;border:1px solid #E8DDD0;border-radius:9px;font-size:14px;color:#5C4A3D;background:#FFFDF8;box-sizing:border-box;"></div>'
+    +'<div style="margin-bottom:10px;"><div style="font-size:12px;color:#9A8878;margin-bottom:5px;">吃了什么</div><input id="meal-edit-content" placeholder="如：番茄鸡蛋面" value="'+(rec.content||'')+'" style="width:100%;padding:9px;border:1px solid #E8DDD0;border-radius:9px;font-size:14px;color:#5C4A3D;background:#FFFDF8;box-sizing:border-box;"></div>'
+    +'<div style="margin-bottom:10px;"><div style="font-size:12px;color:#9A8878;margin-bottom:5px;">备注</div><input id="meal-edit-note" placeholder="选填" value="'+(rec.note||'')+'" style="width:100%;padding:9px;border:1px solid #E8DDD0;border-radius:9px;font-size:14px;color:#5C4A3D;background:#FFFDF8;box-sizing:border-box;"></div>'
+    +'<div style="margin-bottom:14px;"><div style="font-size:12px;color:#9A8878;margin-bottom:5px;">心情</div><select id="meal-edit-mood" style="width:100%;padding:9px;border:1px solid #E8DDD0;border-radius:9px;font-size:14px;color:#5C4A3D;background:#FFFDF8;">'
+    +['平静','开心','难过','疲惫','烦躁','其他'].map(function(x){return '<option'+(rec.mood===x?' selected':'')+'>'+x+'</option>';}).join('')
+    +'</select></div></div>'
+    +'<div style="padding:0 16px 14px;display:flex;gap:8px;">'
+    +'<button onclick="mealSave(\'recorded\')" style="flex:1;padding:11px 0;border:none;border-radius:10px;background:#C98F62;color:#FFFDF8;font-size:14px;font-weight:600;cursor:pointer;">保存记录</button>'
+    +'<button onclick="mealSave(\'skipped\')" style="flex:1;padding:11px 0;border:1px solid #E8C8A9;border-radius:10px;background:#FFFDF8;color:#9A8878;font-size:14px;font-weight:600;cursor:pointer;">这餐没吃</button>'
+    +'</div>'
+    +'<div style="padding:0 16px 12px;display:flex;justify-content:center;"><button onclick="mealDelete()" style="padding:6px 16px;border:none;background:transparent;color:#c0785f;font-size:12px;cursor:pointer;">删除这条记录</button></div>';
+  $('ov-meal-edit-content').innerHTML=html;
+  showOv('ov-meal-edit');
+}
+function mealSave(status){
+  var st=mealsStore(),d=mealDateStr();
+  if(!st[d])st[d]={};
+  st[d][_mealEditKey]={status:status,time:$('meal-edit-time').value||mealTimeStr(),content:$('meal-edit-content').value.trim(),note:$('meal-edit-note').value.trim(),mood:$('meal-edit-mood').value,ts:Date.now()};
+  ls('ml2_meals',st);
+  hideOv('ov-meal-edit');
+  toast(status==='recorded'?'已记录这一餐':'已标记没吃');
+  renderMealsPanel();
+}
+function mealDelete(){
+  var st=mealsStore(),d=mealDateStr();
+  if(st[d])delete st[d][_mealEditKey];
+  ls('ml2_meals',st);
+  hideOv('ov-meal-edit');
+  toast('已删除');
+  renderMealsPanel();
+}
+function openMealHistory(){
+  var st=mealsStore();
+  var dates=Object.keys(st).sort().reverse();
+  var html='<div style="padding:16px 14px 6px;display:flex;align-items:center;gap:8px;"><button onclick="renderMealsPanel()" style="border:none;background:none;font-size:16px;color:#C98F62;cursor:pointer;">←</button><div style="font-size:18px;font-weight:700;color:#5C4A3D;">📖 历史记录</div></div>';
+  if(!dates.length)html+='<div style="padding:30px;text-align:center;color:#9A8878;font-size:13px;">还没有记录</div>';
+  dates.forEach(function(d){
+    var day=st[d];
+    html+='<div style="margin:8px 14px;padding:12px 14px;background:#FFFDF8;border-radius:12px;border:1px solid #EFE4D5;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:14px;font-weight:600;color:#5C4A3D;">'+d+'</span><span style="font-size:12px;color:#B96F58;font-weight:600;">'+(MEAL_SLOTS.filter(function(s){return day[s.key]&&day[s.key].status==='recorded';}).length)+' / 3</span></div>';
+    MEAL_SLOTS.forEach(function(sl){
+      var r=day[sl.key];
+      var txt='○ 未记录';
+      if(r&&r.status==='recorded'){txt=sl.icon+' '+sl.name+' · '+(r.time||'')+(r.content?' '+r.content:'');}
+      else if(r&&r.status==='eaten'){txt=sl.icon+' '+sl.name+' · 已吃';}
+      else if(r&&r.status==='skipped'){txt=sl.icon+' '+sl.name+' · 没吃';}
+      html+='<div style="font-size:12px;color:#9A8878;line-height:2;">'+txt+'</div>';
+    });
+    html+='</div>';
+  });
+  $('ov-meals-content').innerHTML=html;
+}
+// ============ 梦角吃饭提醒 ============
+var MEAL_REMIND_MSGS=['到饭点了，记得吃东西。','先去吃点东西吧，别饿着。','到饭点了。别告诉我你又忘了。','去吃饭吧，我等你回来。','该吃饭啦，好好照顾自己。','饭点到了，记得按时吃饭哦。','又在忙吧？先吃饭。','记得吃饭，我不许你饿着。'];
+function mealRemindEnabled(){var s=ls('ml2_settings')||{};return s.mealRemind!==false;}
+function mealRemindTick(){
+  try{
+    if(!mealRemindEnabled())return;
+    var today=mealDateStr();
+    var st=ls('ml2_meal_remind')||{};
+    if(st.date!==today){st={date:today,count:0,reminded:{},who:{}};ls('ml2_meal_remind',st);}
+    if(st.count>=2)return;
+    var now=new Date(),t=now.getHours()*60+now.getMinutes();
+    var day=mealsTodayRecs();
+    MEAL_SLOTS.forEach(function(sl){
+      if(st.reminded[sl.key])return;
+      if(day[sl.key])return;
+      if(t<sl.start||t>=sl.end)return;
+      st.reminded[sl.key]=true;
+      var prob=30-(st.count>0?5:0);if(prob<20)prob=20;
+      if(Math.random()*100<prob){
+        st.count++;
+        var contactId=mealPickContact(st);
+        if(contactId){
+          st.who[sl.key]=contactId;
+          ls('ml2_meal_remind',st);
+          triggerMealRemind(sl.key,contactId);
+          return;
+        }
+      }
+      ls('ml2_meal_remind',st);
+    });
+  }catch(e){}
+}
+function mealPickContact(st){
+  var cs=contacts||[];
+  var used={};
+  for(var k in st.who)used[st.who[k]]=true;
+  var pool=cs.filter(function(c){return c.id!==SELF&&!used[c.id]&&c.type!=='group';});
+  if(!pool.length)pool=cs.filter(function(c){return c.id!==SELF&&c.type!=='group';});
+  if(!pool.length)return '';
+  return pool[Math.floor(Math.random()*pool.length)].id;
+}
+function triggerMealRemind(slotKey,contactId){
+  var c=contacts.find(function(x){return x.id===contactId;});
+  var name=c?c.name:'梦角';
+  var text=MEAL_REMIND_MSGS[Math.floor(Math.random()*MEAL_REMIND_MSGS.length)];
+  var sl=MEAL_SLOTS.filter(function(s){return s.key===slotKey;})[0];
+  var html='<div style="padding:16px 16px 6px;display:flex;align-items:center;gap:10px;">'
+    +'<div style="width:40px;height:40px;border-radius:50%;background:#E8C8A9;display:flex;align-items:center;justify-content:center;font-size:18px;color:#8a5a33;">'+(c&&c.avatar?c.avatar:'💫')+'</div>'
+    +'<div><div style="font-size:15px;font-weight:700;color:#5C4A3D;">'+name+'</div><div style="font-size:11px;color:#9A8878;">'+sl.name+'时间到</div></div></div>'
+    +'<div style="padding:8px 16px;font-size:14px;color:#5C4A3D;line-height:1.8;">'+text+'</div>'
+    +'<div style="padding:12px 16px 16px;display:flex;gap:8px;">'
+    +'<button onclick="mealRemindGo(\''+slotKey+'\',\''+contactId+'\')" style="flex:1;padding:11px 0;border:none;border-radius:10px;background:#C98F62;color:#FFFDF8;font-size:14px;font-weight:600;cursor:pointer;">去记录</button>'
+    +'<button onclick="hideOv(\'ov-meal-remind\')" style="flex:1;padding:11px 0;border:1px solid #E8C8A9;border-radius:10px;background:#FFFDF8;color:#9A8878;font-size:14px;font-weight:600;cursor:pointer;">稍后</button>'
+    +'</div>';
+  $('ov-meal-remind-content').innerHTML=html;
+  showOv('ov-meal-remind');
+  mealPushMsg(contactId,name+'：'+text);
+}
+function mealRemindGo(slotKey,contactId){
+  hideOv('ov-meal-remind');
+  openMealEdit(slotKey);
+}
+function mealPushMsg(contactId,text){
+  try{
+    var arr=msgs(contactId)||[];
+    arr.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:contactId,t:text,ts:Date.now(),ty:'t'});
+    savemsgs(contactId,arr);
+  }catch(e){}
+}
+try{setInterval(mealRemindTick,60000);mealRemindTick();}catch(e){}

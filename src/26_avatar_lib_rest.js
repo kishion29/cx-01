@@ -1843,9 +1843,22 @@ function migrateSettings(){
     speedData.rn_prob = 20;
     updated = true;
   }
-  if (speedData.rc_prob === undefined) {
-    speedData.rc_prob = 5;
+  // ★ 撤回概率：旧默认 5 强制升级到 25（用户反馈 5% 几乎不触发）
+  if (speedData.rc_prob === undefined || speedData.rc_prob === 5) {
+    speedData.rc_prob = 25;
     updated = true;
+  }
+  if (speedData.rc_refix === undefined || speedData.rc_refix === 5) {
+    speedData.rc_refix = 35;
+    updated = true;
+  }
+  // 联系人级旧默认 5 一并升级
+  if (speedData.contacts) {
+    Object.keys(speedData.contacts).forEach(function(_cid2){
+      var _cs2=speedData.contacts[_cid2];
+      if(_cs2&&(_cs2.rc_prob===undefined||_cs2.rc_prob===5)){_cs2.rc_prob=25;updated=true;}
+      if(_cs2&&(_cs2.rc_refix===undefined||_cs2.rc_refix===5)){_cs2.rc_refix=35;updated=true;}
+    });
   }
   if (speedData.quote_prob === undefined) {
     speedData.quote_prob = 5;
@@ -6734,6 +6747,10 @@ sendMsg=function(){
                 <button class="d2-btn d2-btn-outline" id="d2-btnAi" style="display:none;">⭐ AI 解读</button>
                 <button class="d2-btn-send-chat" id="d2-btnSendChat" style="display:none;" onclick="d2SendResultToChat()">💬 发送至聊天</button>
                 <label class="d2-send-setting" id="d2-sendSetting" style="display:none;" title="关闭后不再自动显示发送按钮"><input type="checkbox" id="d2-sendToggle" checked onchange="d2ToggleSendToChat()"> 发送至聊天</label>
+            </div>
+            <div id="d2-extraArea" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:12px;background:var(--c3);border:1px dashed var(--border);box-sizing:border-box;">
+              <div style="font-size:12px;color:var(--txt2);margin-bottom:6px;">补充信息（可选）— 补充问题里的背景，帮 AI 更准解读</div>
+              <textarea id="d2-extraInput" placeholder="例如：我们认识三个月，最近一周没怎么说话…" style="width:100%;box-sizing:border-box;height:64px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;padding:8px;"></textarea>
             </div>
             <div id="d2-ai-area" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:12px;background:var(--c3);border:1px dashed var(--border);box-sizing:border-box;"></div>
             <div class="d2-disclaimer" style="margin-top: 6px; padding-bottom: 8px;">

@@ -524,7 +524,8 @@ function showStarCalDetail(dateStr){
   if(!entry){
     detail.style.display='block';
     detail.style.background='#fff';
-    detail.innerHTML='<div style="text-align:center;padding:20px;color:#8a7a6a;"><div style="font-size:32px;margin-bottom:8px;">📝</div><div style="font-size:14px;color:#5a4a3a;font-weight:500;">'+dateStr+'</div><div style="font-size:12px;margin-top:6px;">这一天没有记录</div></div>';
+    detail.innerHTML='<div style="text-align:center;padding:20px;color:#8a7a6a;"><div style="font-size:32px;margin-bottom:8px;">📝</div><div style="font-size:14px;color:#5a4a3a;font-weight:500;">'+dateStr+'</div><div style="font-size:12px;margin-top:6px;">这一天没有记录</div></div>'
+    +'<div style="text-align:center;margin:14px 0 6px;"><button onclick="summonStarCal(\''+dateStr+'\')" style="padding:10px 22px;border:none;border-radius:20px;background:linear-gradient(135deg,#c9a961,#e8c88a);color:#5a4a3a;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 10px rgba(201,169,97,0.4);">✨ 召唤TA补记这一天</button></div>';
     return;
   }
   var style=MOOD_CATEGORY_STYLES[entry.category]||MOOD_CATEGORY_STYLES['平静'];
@@ -548,6 +549,21 @@ function showStarCalDetail(dateStr){
     +'<div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;"><span style="font-size:13px;">✉️</span><span style="font-size:11px;color:#8a7a6a;">TA的留言</span></div>'
     +'<div style="font-size:14px;color:#4a3a2a;line-height:1.8;white-space:pre-wrap;word-break:break-word;font-family:serif;">「'+escapeDreamHtml(entry.message)+'」</div>'
     +'</div>';
+}
+
+// ★ 召唤联系人补记指定日期（星言日历空白日）
+function summonStarCal(dateStr){
+  if(!_starCalContactId||!dateStr){toast('请先选择联系人');return;}
+  var key=_starCalContactId+'_'+dateStr;
+  if(_starCalData[key]){toast('这一天已有记录');showStarCalDetail(dateStr);return;}
+  var moodItem=STAR_MOODS[Math.floor(Math.random()*STAR_MOODS.length)];
+  var activity=STAR_ACTIVITIES[Math.floor(Math.random()*STAR_ACTIVITIES.length)];
+  var message=generateDailyMessage(_starCalContactId);
+  _starCalData[key]={mood:moodItem.mood,emoji:moodItem.emoji,category:moodItem.category,activity:activity,message:message||'那天也在想你...',date:dateStr,contactId:_starCalContactId,timestamp:Date.now()};
+  saveStarCalData();
+  toast('✨ TA补记了这一天');
+  renderStarCalCalendar();
+  showStarCalDetail(dateStr);
 }
 
 // ---------- Diary（日记本 - IndexedDB 本地存储）----------

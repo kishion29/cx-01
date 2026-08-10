@@ -2456,6 +2456,7 @@ async function exportData(){
     console.error('exportData error:',e);
     if(progress&&typeof progress.setError==='function')progress.setError('导出失败：'+e.message);
     else toast('导出失败，请重试');
+    try{setTimeout(function(){if(progress&&typeof progress.hide==='function')progress.hide();},1800);}catch(e2){}
   }
 }
 
@@ -2920,6 +2921,20 @@ function showImportProgress(customTitle){
   box.appendChild(pct);
   ov.appendChild(box);
   document.body.appendChild(ov);
+  // ★ 兜底：点击遮罩/右上✕可关闭
+  box.style.position='relative';
+  var _closeBtn=document.createElement('div');
+  _closeBtn.textContent='✕';
+  _closeBtn.style.cssText='position:absolute;top:6px;right:10px;font-size:14px;color:#bbb;cursor:pointer;padding:4px;';
+  box.appendChild(_closeBtn);
+  var _hidAuto=false;
+  function _autoHide(){
+    if(_hidAuto)return;
+    _hidAuto=true;
+    setTimeout(function(){try{document.body.removeChild(ov);}catch(e){}},2200);
+  }
+  ov.addEventListener('click',function(e){if(e.target===ov){try{document.body.removeChild(ov);}catch(e2){}}});
+  _closeBtn.onclick=function(){try{document.body.removeChild(ov);}catch(e){}};
   var cb=function(msg,percent){
     if(percent===undefined)percent=0;
     var p=Math.min(100,Math.max(0,percent));
@@ -2935,6 +2950,7 @@ function showImportProgress(customTitle){
     label.textContent='数据已完整导入';
     label.style.color='#2e7d32';
     pct.textContent='100%';
+    _autoHide();
   };
   cb.setError=function(errMsg){
     title.textContent='❌ 导入失败';
@@ -2942,6 +2958,7 @@ function showImportProgress(customTitle){
     bar.style.background='linear-gradient(90deg,#c62828,#e57373)';
     label.textContent=errMsg||'请检查文件后重试';
     label.style.color='#c62828';
+    _autoHide();
   };
   cb.hide=function(){try{document.body.removeChild(ov);}catch(e){}};
   return cb;

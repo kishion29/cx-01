@@ -213,7 +213,7 @@ function maybeAutoSend(onlyTargetId){
       var _asBaseId='m_'+Date.now();
       // ★ 修复：主动发送多条也逐条延迟（间隔拟真：按长度+偶发停顿/快发），且同批去重
       // 仅表情包图片允许 15% 小概率连发同一条；文字/emoji/颜文字/图片/语音同批内绝不重复
-      function _sendAsBatch(ai){
+      async function _sendAsBatch(ai){
         if(ai>=_asCount){
           savemsgs(targetId,m);
           lastAutoSendTime[targetId]=Date.now();
@@ -221,6 +221,17 @@ function maybeAutoSend(onlyTargetId){
           return;
         }
         var _curReply=reply,_curImg=imgSrc,_curVoice=voiceSrc,_curVoiceText=voiceText;
+        // ★ 每条消息独立抽取字卡（不只第一条带卡），让每条消息都可能发生子卡撤回
+        var _moodC=ai===0?moodCard:null;
+        var _heartC=ai===0?heartCard:null;
+        var _intentC=ai===0?intentCard:null;
+        if(ai>0){
+          try{
+            if(Math.random()<0.7){_moodC=await getRandomMoodCard(targetId,false);}
+            if(Math.random()<0.4){_heartC=await getRandomHeartCard(targetId,_moodC);}
+            if(Math.random()<0.2){_intentC=await getRandomIntentCard(targetId,_heartC);}
+          }catch(e){}
+        }
         if(ai>0){
           var _usedSt2=[],_usedIm2=[],_usedVo2=[],_usedTe2=[];
           for(var _bi=0;_bi<m.length;_bi++){
@@ -269,9 +280,96 @@ function maybeAutoSend(onlyTargetId){
             _curReply=_rcB5.content;
           }
         }
-        m.push({id:_asBaseId+'_'+ai+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:(ai===0?moodCard:null),heartCard:(ai===0?heartCard:null),intentCard:(ai===0?intentCard:null),quote:(ai===0?quoteMsgId:null),isSticker:(_isStickerType===true),isVoice:_curVoice?true:false});
+        m.push({id:_asBaseId+'_'+ai+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_curReply,img:_curImg,voice:_curVoice,voiceText:_curVoiceText,ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:_moodC,heartCard:_heartC,intentCard:_intentC,quote:(ai===0?quoteMsgId:null),isSticker:(_isStickerType===true),isVoice:_curVoice?true:false});
         savemsgs(targetId,m);
         if(cid===targetId){renderMsgs(m)}renderChatList();
+        // ★ 单条独立撤回：优先撤回该条消息里的某张字卡（情绪/心意/意图），无子卡才整条撤回
+        (function(_mid){
+          var _rcP=getSpeed('rc-prob',targetId);
+          if(_rcP>0&&Math.random()*100<_rcP){
+            setTimeout(function(){
+              try{
+                var all=msgs(targetId);
+                var mm=all.find(function(x){return x&&x.id===_mid&&!x.retracted;});
+                if(mm){
+                  // ★ 优先：主文本按字卡分段撤回（联系人撤回某几个字卡，不是整条）
+                  var _segsArr=splitCardSegs(mm.t||'');
+                  if(_segsArr.length>1&&mm.t){
+                    mm.retractedSegs=mm.retractedSegs||[];
+                    var _remainSegs=[];
+                    for(var _si3=0;_si3<_segsArr.length;_si3++){
+                      var _already=false;
+                      for(var _sj3=0;_sj3<mm.retractedSegs.length;_sj3++){if(mm.retractedSegs[_sj3].idx===_si3){_already=true;break;}}
+                      if(!_already)_remainSegs.push(_si3);
+                    }
+                    if(_remainSegs.length){
+                      var _nSegs=1+Math.floor(Math.random()*Math.min(_remainSegs.length,3));
+                      var _kSegs=Math.min(_nSegs,_remainSegs.length);
+                      for(var _rk3=0;_rk3<_kSegs;_rk3++){
+                        var _sIdx=_remainSegs.splice(Math.floor(Math.random()*_remainSegs.length),1)[0];
+                        mm.retractedSegs.push({text:_segsArr[_sIdx],idx:_sIdx});
+                      }
+                      savemsgs(targetId,all);
+                      if(cid===targetId)renderMsgs(all);
+                      renderChatList();
+                      return;
+                    }
+                  }
+                  var _subs=[];
+                  if(mm.moodCard&&mm.moodCard.content&&(!mm.retractedCards||mm.retractedCards.indexOf('mood')<0))_subs.push('mood');
+                  if(mm.heartCard&&mm.heartCard.content&&(!mm.retractedCards||mm.retractedCards.indexOf('heart')<0))_subs.push('heart');
+                  if(mm.intentCard&&mm.intentCard.content&&(!mm.retractedCards||mm.retractedCards.indexOf('intent')<0))_subs.push('intent');
+                  if(_subs.length){
+                    // ★ 情绪/心意/意图附属字卡也参与撤回
+                    mm.retractedCards=mm.retractedCards||[];
+                    var _n=1+Math.floor(Math.random()*_subs.length);
+                    for(var _si=0;_si<_n;_si++){
+                      var _pick=_subs.splice(Math.floor(Math.random()*_subs.length),1)[0];
+                      if(_pick&&mm.retractedCards.indexOf(_pick)<0){
+                        mm.retractedCards.push(_pick);
+                        // ★ 保存被撤字卡内容，供点击查看
+                        mm.retractedCardData=mm.retractedCardData||[];
+                        var _cd=mm[_pick+'Card'];
+                        mm.retractedCardData.push({type:_pick,content:(_cd&&_cd.content)||'',emoji:(_cd&&_cd.emoji)||''});
+                      }
+                    }
+                    savemsgs(targetId,all);
+                    if(cid===targetId)renderMsgs(all);
+                    renderChatList();
+                    // ★ 撤回后概率补发一张新字卡（话没说完想补两句）
+                    if(Math.random()*100<getSpeed('rc-refix',targetId)){
+                      setTimeout(function(){
+                        try{
+                          var _fixText='';
+                          var _fixPool=(typeof textCards!=='undefined'&&textCards&&textCards.length)?textCards:null;
+                          if(_fixPool){var _fc=_fixPool[Math.floor(Math.random()*_fixPool.length)];if(_fc)_fixText=_fc.content;}
+                          if(!_fixText){var _fbs=['等等，这句我想重说…','刚才那句不算，我是想说…','嗯…换个说法：','突然觉得刚才的卡不合适…'];_fixText=_fbs[Math.floor(Math.random()*_fbs.length)];}
+                          var _m2=msgs(targetId)||[];
+                          _m2.push({id:'fx'+Date.now()+'_'+Math.random().toString(36).substr(2,6),s:OTHER,t:_fixText,img:'',voice:'',voiceText:'',ts:new Date(),pc:false,isAuto:true,isInitiative:true,read:(cid===targetId),moodCard:null,heartCard:null,intentCard:null,quote:null,isSticker:false,isVoice:false});
+                          savemsgs(targetId,_m2);
+                          if(cid===targetId)renderMsgs(_m2);
+                          renderChatList();
+                        }catch(e){console.warn('autosend refix error:',e);}
+                      },3000+Math.random()*4000);
+                    }
+                  }else{
+                    mm.retracted=true;
+                    mm.originalContent=mm.t||'';
+                    mm.originalImg=mm.img||'';
+                    mm.originalVoice=mm.voice||'';
+                    mm.t='';mm.img='';mm.voice='';
+                    // ★ 整撤也保留子卡原文，供点击查看
+                    mm.originalCards={mood:mm.moodCard,heart:mm.heartCard,intent:mm.intentCard};
+                    mm.moodCard=null;mm.heartCard=null;mm.intentCard=null;
+                    savemsgs(targetId,all);
+                    if(cid===targetId)renderMsgs(all);
+                    renderChatList();
+                  }
+                }
+              }catch(e){console.warn('autosend per-msg retract error:',e);}
+            },(1+Math.random()*3)*1000);
+          }
+        })(m[m.length-1].id);
         if(ai===0)playSound('recv',targetId);
         if(ai<_asCount-1){
           // ★ 拟真间隔：按本条消息长度决定基础间隔，偶发停顿思考 / 偶发快速连发
@@ -299,11 +397,7 @@ function maybeAutoSend(onlyTargetId){
         else{msgText='[表情]';}
         showPushNotification(contact.name,msgText,(contact&&contact.avatar)?contact.avatar:'',targetId);
       }
-      var rcProb=getSpeed('rc-prob',targetId);if(Math.random()*100<rcProb){
-        // 修复：延迟回调用 try/catch 包裹，避免抛错时成为未捕获异常
-        setTimeout(function(){try{var all=msgs(targetId);if(all.length>0){var lastMsg=all[all.length-1];lastMsg.retracted=true;lastMsg.originalContent=lastMsg.t||'';lastMsg.originalImg=lastMsg.img||'';lastMsg.originalVoice=lastMsg.voice||'';lastMsg.t='';lastMsg.img='';lastMsg.voice='';}savemsgs(targetId,all);
-          if(cid===targetId)renderMsgs(all);renderChatList();}catch(e){console.warn('maybeAutoSend retract callback error:',e);}},(1+Math.random()*3)*1000);
-      }
+
       }catch(asyncErr){
         // 修复：添加 catch 块捕获 async 错误，避免变成 unhandled rejection 持续累积
         console.warn('maybeAutoSend async error:',asyncErr);

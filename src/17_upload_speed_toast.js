@@ -1328,7 +1328,8 @@ var speedSettings={
   'reply-min':{key:'reply_min',default:1,min:1,max:10,step:1,val:'reply-min-val'},
   'reply-max':{key:'reply_max',default:2,min:1,max:10,step:1,val:'reply-max-val'},
   'rn-prob':{key:'rn_prob',default:20,min:0,max:100,step:5,val:'rn-prob-val'},
-  'rc-prob':{key:'rc_prob',default:5,min:0,max:100,step:1,val:'rc-prob-val'},
+  'rc-prob':{key:'rc_prob',default:25,min:0,max:100,step:1,val:'rc-prob-val'},
+  'rc-refix':{key:'rc_refix',default:35,min:0,max:100,step:5,val:'rc-refix-val'},
   'quote-prob':{key:'quote_prob',default:5,min:0,max:100,step:1,val:'quote-prob-val'},
   'sticker-prob':{key:'sticker_prob',default:10,min:0,max:100,step:1,val:'sticker-prob-val'},
   'image-prob':{key:'image_prob',default:5,min:0,max:100,step:1,val:'image-prob-val'},
@@ -1678,6 +1679,7 @@ function syncGroupSpeedUI(){
     {key:'as_max',id:'gs-as-max-val',default:10},
     {key:'rn_prob',id:'gs-rn-prob-val',default:20},
     {key:'rc_prob',id:'gs-rc-prob-val',default:5},
+    {key:'rc_refix',id:'gs-rc-refix-val',default:35},
     {key:'quote_prob',id:'gs-quote-prob-val',default:5},
     {key:'sticker_prob',id:'gs-sticker-prob-val',default:10},
     {key:'image_prob',id:'gs-image-prob-val',default:5},
@@ -1764,6 +1766,41 @@ document.querySelectorAll('#ov-moments-settings .stepper').forEach(function(st){
     btnPlus.addEventListener('touchend',function(e){e.preventDefault();var v=parseInt(input.value)||0;input.value=v+1;});
   }
 });
+// 群聊回复设置：应用当前设置到群聊全部成员
+function applyGroupSpeedToAllMembers(){
+  if(!currentGroupSpeedGroupId){toast('请先打开群聊回复设置');return;}
+  var group=groups.find(function(g){return g.id===currentGroupSpeedGroupId});
+  if(!group||!group.memberIds||!group.memberIds.length){toast('群聊没有成员');return;}
+  var fields=[
+    {key:'rs_min',id:'gs-rs-min-val',isCheckbox:false},{key:'rs_max',id:'gs-rs-max-val',isCheckbox:false},
+    {key:'py_en',id:'gs-py-en',isCheckbox:true},{key:'py_prob',id:'gs-prob-val',isCheckbox:false},
+    {key:'py_min',id:'gs-min-val',isCheckbox:false},{key:'py_max',id:'gs-max-val',isCheckbox:false},
+    {key:'as_en',id:'gs-as-en',isCheckbox:true},{key:'as_prob',id:'gs-as-prob-val',isCheckbox:false},
+    {key:'as_min',id:'gs-as-min-val',isCheckbox:false},{key:'as_max',id:'gs-as-max-val',isCheckbox:false},
+    {key:'rn_prob',id:'gs-rn-prob-val',isCheckbox:false},{key:'rc_prob',id:'gs-rc-prob-val',isCheckbox:false},
+    {key:'quote_prob',id:'gs-quote-prob-val',isCheckbox:false},{key:'sticker_prob',id:'gs-sticker-prob-val',isCheckbox:false},
+    {key:'image_prob',id:'gs-image-prob-val',isCheckbox:false},{key:'voice_prob',id:'gs-voice-prob-val',isCheckbox:false},
+    {key:'touch_prob',id:'gs-touch-prob-val',isCheckbox:false},{key:'emoji_prob',id:'gs-emoji-prob-val',isCheckbox:false}
+  ];
+  var s=ls('ml2_speed')||{};
+  if(!s.groupMembers)s.groupMembers={};
+  if(!s.groupMembers[currentGroupSpeedGroupId])s.groupMembers[currentGroupSpeedGroupId]={};
+  group.memberIds.forEach(function(mid){
+    if(!s.groupMembers[currentGroupSpeedGroupId][mid])s.groupMembers[currentGroupSpeedGroupId][mid]={};
+    fields.forEach(function(f){
+      var el=document.getElementById(f.id);
+      if(!el)return;
+      if(f.isCheckbox){
+        s.groupMembers[currentGroupSpeedGroupId][mid][f.key]=el.checked;
+      }else{
+        var v=parseInt(el.value)||0;
+        s.groupMembers[currentGroupSpeedGroupId][mid][f.key]=v;
+      }
+    });
+  });
+  ls('ml2_speed',s);ls('ml2_speed_version',(parseInt(ls('ml2_speed_version'))||0)+1);
+  toast('已应用到群聊全部 '+group.memberIds.length+' 位成员');
+}
 
 // ---------- Toast ----------
 var _toastTimer=null;

@@ -653,10 +653,10 @@ function escapeHtml(text) {
 var UPDATE_NOTICES = [
   {
     version: '1.7.2',
-    date: '2026-08-08',
+    date: '2026-08-10',
     title: '星言 1.7.2',
     summary: 'AI 解读接入、TA与你的距离 / TA的触碰、消息回复拟真化、多项稳定性修复',
-    content: '<h4>🌙 0808 星言 1.7.2 版本更新公告</h4><h4>✨ 新增：AI 解读（API 接口）</h4><p>底部导航「设置」→「API 接口」可接入 AI 大模型（支持 DeepSeek / 通义 / GLM / OpenAI 等）。</p><p>接入后：聊天中长按字卡消息 → 📜 解读这条字卡想表达的意思；朋友圈动态、信箱的信也能一键解读。</p><p>每个联系人是独立的梦角：可分别设置 TA 是男朋友/女朋友、各自的完整人设（性格/背景/称呼/说话习惯），解读时按该梦角自己的设定来，不会混淆。</p><p>占卜抽牌后新增「AI 解读」，可按你设定的占卜师指令解读牌面。所有配置仅保存在本机，不会上传任何服务器。</p><h4>✨ 新增：TA与你的距离 / TA的触碰（梦角）</h4><p>梦角分类新增两个存在感功能：</p><p>📍 TA与你的距离：TA在哪里、离你多近（贴近/很近/近/稍远/远 + 方向 + 连接状态），有持续状态与变化记录。</p><p>💫 TA的触碰：TA对你做了什么（牵手/拥抱/摸头等 14 个部位动作），有动作持续与记录，可点击查看完整信息。</p><p>两个功能采用「持续存在感」机制：打开不一定刷新——TA可能还在做上一个动作，状态有持续时间，记录点击可看完整。</p><h4>🎙️ 新增：梦角语音（MiniMax 音色）</h4><p>在「设置」→「API 接口」→「梦角语音」中，可上传一段参考音频（mp3 / m4a / wav，10秒~5分钟，建议 30秒~1分钟更省钱）复刻梦角专属音色。每个梦角独立设置（开关 / Key / 音色）。</p><p>聊天中梦角发的文字消息旁会出现 ▶ 按钮，用梦角的专属声音读出来；已生成的语音会缓存，重复播放不重复扣费。</p><p>音色 ID 可手动填写或复制，已复刻的音色永久有效、不必重复复刻。</p><p>注意：<strong>星言网站本身完全免费，不收取任何费用</strong>；MiniMax / AI 接口产生的费用由第三方服务商（MiniMax、DeepSeek 等）直接向你收取，与星言无关。复刻按音频时长、播放按字符计费，请量入为出。</p><h4>🛠️ 其他新增</h4><p>更多功能 → 消息工具：新增「🎤 发送语音」（录制后作为语音消息发送，持久保存）与「🔗 发送链接」（小红书 / B站 / QQ音乐 / 网易云等链接以卡片显示，点击打开）。</p><p>语音消息长按菜单新增「🗣️ 语音转文字」（浏览器自带识别，免费）。</p><h4>🔧 修复与优化</h4><p>修复：联系人多条回复文字/图片/语音重复发送（现仅表情包允许小概率连发）</p><p>修复：主动发送多条消息也去重，间隔拟真化</p><p>修复：表情包与图片大小混淆（表情包小图、图片大图）</p><p>修复：回复设置「已读不回概率」调 0 仍触发；「应用到全部联系人」误报未选择</p><p>修复：iOS/安卓刷新后偶发丢失聊天记录、朋友圈、头像（双端合并取最完整）</p><p>修复：纯表情/emoji 消息不再误显示语音播放按钮</p><p>回复/主动发送间隔拟真：短消息快回、长消息打字久、偶发停顿或快速连发</p><p>开屏右上角新增「最新版本部署时间」，方便确认是否为最新版本</p>'
+    content: '<h4>🌙 0810 星言 1.7.2 补充更新公告</h4><p>🔮 新增「AI占卜师」：更多功能→更多分类，独立对话页，可设定解读指令/世界观（星言默认或自定义）/关联梦角人设，直接发占卜问题或抽出的牌让 TA 解。</p><p>🧠 新增「AI解读记忆库」（梦角分类）：手动添加关于 TA 的记忆，AI 解读字卡时自动参考。</p><p>📚 新增「AI解读字卡记录」（消息工具分类）：每次字卡解读成功自动存档，全部保留，可查看/删除/清空。</p><p>💬 字卡解读优化：自动带上最近 8 条对话上下文 + 你的手动记忆，解读更连贯。</p><p>🙈 隐藏底部导航入口移入更多功能；收藏语音 ZIP 导出修复（支持 IndexedDB 引用还原与 mp3/m4a 格式）；一起阅读支持 GBK 中文 txt；一起看视频支持横屏全屏。</p><p>开屏右上角「最新版本部署时间」= 2026-08-10 12:00，可确认是否最新版本。</p><h4>🌙 0808 星言 1.7.2 版本更新公告</h4><h4>✨ 新增：AI 解读（API 接口）</h4><p>底部导航「设置」→「API 接口」可接入 AI 大模型（支持 DeepSeek / 通义 / GLM / OpenAI 等）。</p><p>接入后：聊天中长按字卡消息 → 📜 解读这条字卡想表达的意思；朋友圈动态、信箱的信也能一键解读。</p><p>每个联系人是独立的梦角：可分别设置 TA 是男朋友/女朋友、各自的完整人设（性格/背景/称呼/说话习惯），解读时按该梦角自己的设定来，不会混淆。</p><p>占卜抽牌后新增「AI 解读」，可按你设定的占卜师指令解读牌面。所有配置仅保存在本机，不会上传任何服务器。</p><h4>✨ 新增：TA与你的距离 / TA的触碰（梦角）</h4><p>梦角分类新增两个存在感功能：</p><p>📍 TA与你的距离：TA在哪里、离你多近（贴近/很近/近/稍远/远 + 方向 + 连接状态），有持续状态与变化记录。</p><p>💫 TA的触碰：TA对你做了什么（牵手/拥抱/摸头等 14 个部位动作），有动作持续与记录，可点击查看完整信息。</p><p>两个功能采用「持续存在感」机制：打开不一定刷新——TA可能还在做上一个动作，状态有持续时间，记录点击可看完整。</p><h4>🎙️ 新增：梦角语音（MiniMax 音色）</h4><p>在「设置」→「API 接口」→「梦角语音」中，可上传一段参考音频（mp3 / m4a / wav，10秒~5分钟，建议 30秒~1分钟更省钱）复刻梦角专属音色。每个梦角独立设置（开关 / Key / 音色）。</p><p>聊天中梦角发的文字消息旁会出现 ▶ 按钮，用梦角的专属声音读出来；已生成的语音会缓存，重复播放不重复扣费。</p><p>音色 ID 可手动填写或复制，已复刻的音色永久有效、不必重复复刻。</p><p>注意：<strong>星言网站本身完全免费，不收取任何费用</strong>；MiniMax / AI 接口产生的费用由第三方服务商（MiniMax、DeepSeek 等）直接向你收取，与星言无关。复刻按音频时长、播放按字符计费，请量入为出。</p><h4>🛠️ 其他新增</h4><p>更多功能 → 消息工具：新增「🎤 发送语音」（录制后作为语音消息发送，持久保存）与「🔗 发送链接」（小红书 / B站 / QQ音乐 / 网易云等链接以卡片显示，点击打开）。</p><p>语音消息长按菜单新增「🗣️ 语音转文字」（浏览器自带识别，免费）。</p><h4>🔧 修复与优化</h4><p>修复：联系人多条回复文字/图片/语音重复发送（现仅表情包允许小概率连发）</p><p>修复：主动发送多条消息也去重，间隔拟真化</p><p>修复：表情包与图片大小混淆（表情包小图、图片大图）</p><p>修复：回复设置「已读不回概率」调 0 仍触发；「应用到全部联系人」误报未选择</p><p>修复：iOS/安卓刷新后偶发丢失聊天记录、朋友圈、头像（双端合并取最完整）</p><p>修复：纯表情/emoji 消息不再误显示语音播放按钮</p><p>回复/主动发送间隔拟真：短消息快回、长消息打字久、偶发停顿或快速连发</p><p>开屏右上角新增「最新版本部署时间」，方便确认是否为最新版本</p>'
   },
   {
     version: '1.7.1',
@@ -953,54 +953,71 @@ if (document.readyState === 'loading') {
 
 // ============ 一起阅读 + 一起看字卡库 ============
 var readBook={name:'',content:'',pages:[],page:0,perPage:8};
-var readCards={public:[],private:{}};
-var readCardsTabNow='public';
-var readCardsCatNow='主字卡';
-var READ_DEFAULT_CARDS=[
-  {cat:'主字卡',content:'这本书读起来有种熟悉的感觉。'},
-  {cat:'主字卡',content:'这一页，让我想到了你。'},
-  {cat:'主字卡',content:'读到这段的时候，我忍不住想和你分享。'},
-  {cat:'主字卡',content:'想和你一起把这本书读完。'},
-  {cat:'颜文字',content:'(´｡• ᵕ •｡`) ♡'},
-  {cat:'颜文字',content:'(๑•̀ㅂ•́)و✧'},
-  {cat:'颜文字',content:'(｡･ω･｡)ﾉ♡'},
-  {cat:'emoji',content:'📖✨'},
-  {cat:'emoji',content:'💫🌙'},
-  {cat:'emoji',content:'🥰💞'}
-];
-function loadReadCards(){
-  var saved=ls('ml2_read_cards');
-  if(saved&&typeof saved==='object'){
-    readCards.public=saved.public||[];
-    readCards.private=saved.private||{};
-  }else{
-    readCards.public=READ_DEFAULT_CARDS.slice();
-    readCards.private={};
-    saveReadCards();
+// ★ 书架：多本电子书
+var readBooks=[];
+function readShelfLoad(){
+  readBooks=[];
+  try{var a=ls('ml2_read_books');if(Array.isArray(a))readBooks=a;}catch(e){}
+  if(!readBooks.length){
+    try{
+      var saved=ls('ml2_read_book');
+      if(saved&&saved.name)readBooks=[saved];
+    }catch(e2){}
+    if(!readBooks.length&&window.localforage){
+      window.localforage.getItem('ml2_read_book').then(function(big){
+        if(big&&big.name&&!readBooks.length){readBooks=[big];readShelfSave();readRenderShelf();}
+      }).catch(function(){});
+    }
   }
 }
-function saveReadCards(){ls('ml2_read_cards',readCards);}
-function loadReadBook(){
-  var saved=ls('ml2_read_book');
-  if(saved&&saved.name){
-    readBook.name=saved.name;
-    readBook.content=saved.content||'';
-    readBook.pages=readSplitPages(readBook.content);
-    readBook.page=0;
+function readShelfSave(){try{ls('ml2_read_books',readBooks);}catch(e){}}
+function readRenderShelf(){
+  var list=$('read-shelf-list');
+  if(!list)return;
+  var kw=($('read-shelf-search')||{}).value||'';
+  kw=kw.trim().toLowerCase();
+  var cnt=$('read-shelf-count');
+  if(cnt)cnt.textContent=readBooks.length?(readBooks.length+' 本'):'';
+  var arr=readBooks.slice().sort(function(a,b){return (b.lastOpen||0)-(a.lastOpen||0);});
+  if(_readShelfTab==='reading')arr=arr.filter(function(b){return b.progress&&b.progress>0&&b.progress<100&&!b.finished;});
+  if(_readShelfTab==='finished')arr=arr.filter(function(b){return b.finished;});
+  if(kw)arr=arr.filter(function(b){return String(b.name||'').toLowerCase().indexOf(kw)>=0;});
+  list.innerHTML='';
+  if(!arr.length){
+    list.innerHTML='<div style="text-align:center;padding:40px 16px;color:var(--txt3);font-size:13px;line-height:2;">'+(readBooks.length?'没有找到匹配的书':'📭 书架还是空的<br>导入一本 TXT / EPUB 开始阅读')+'</div>';
+    return;
   }
-  // ★ IndexedDB 优先（大文件）
-  if(window.localforage){
-    window.localforage.getItem('ml2_read_book').then(function(big){
-      if(big&&big.name&&(!saved||!saved.name)){
-        readBook.name=big.name;
-        readBook.content=big.content||'';
-        readBook.pages=readSplitPages(readBook.content);
-        readBook.page=0;
-        var up=$('read-upload-area'),bk=$('read-book-area');
-        if(up&&bk&&up.style.display!=='none'){up.style.display='none';bk.style.display='block';$('read-book-title').textContent=readBook.name;readRenderPage();}
-      }
-    }).catch(function(){});
-  }
+  arr.forEach(function(b){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:12px;background:var(--c2);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px;cursor:pointer;';
+    var pct=b.finished?100:Math.min(100,(b.progress||0));
+    row.innerHTML='<div style="width:44px;height:58px;border-radius:6px;background:linear-gradient(160deg,#e8d5b0,#d9c39a);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.08);">'+(b.cover||'📕')+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:14px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+String(b.name||'未命名').replace(/</g,'&lt;')+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:3px;">'+(b.finished?'✓ 已读完':(b.progress&&b.progress>0?'已读 '+Math.round(b.progress)+'%':'未读'))+(b.lastOpen?' · '+new Date(b.lastOpen).toLocaleString():'')+'</div>'
+      +'<div style="margin-top:5px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--accent);"></div></div>'
+      +'</div>'
+      +'<span class="read-shelf-del" style="color:#ff4d4f;font-size:14px;flex-shrink:0;padding:4px;">🗑</span>';
+    row.onclick=function(){readOpenBookById(b.id);};
+    row.querySelector('.read-shelf-del').onclick=function(e){
+      e.stopPropagation();
+      if(confirm('删除《'+(b.name||'这本书')+'》？')){readBooks=readBooks.filter(function(x){return x.id!==b.id;});readShelfSave();readRenderShelf();}
+    };
+    list.appendChild(row);
+  });
+}
+function readOpenBookById(id){
+  var idx=readBooks.findIndex(function(x){return x.id===id;});
+  if(idx>=0)readOpenBook(idx);
+}
+var _readShelfTab='all';
+function readShelfTab(t){
+  _readShelfTab=t;
+  ['all','reading','finished'].forEach(function(x){
+    var b=$('read-tab-'+x);
+    if(b){b.style.background=x===t?'var(--accent)':'var(--c2)';b.style.color=x===t?'#fff':'var(--txt)';}
+  });
+  readRenderShelf();
 }
 function readSplitPages(content){
   var paras=String(content||'').split(/\n+/).map(function(x){return x.trim();}).filter(Boolean);
@@ -1011,82 +1028,152 @@ function readSplitPages(content){
   if(pages.length===0)pages=['（空）'];
   return pages;
 }
+function readBackShelf(){
+  readSaveBookProgress();
+  var sp=$('read-shelf-page'),bp=$('read-book-page');
+  if(sp)sp.style.display='flex';
+  if(bp)bp.style.display='none';
+  readRenderShelf();
+}
 function showReadTogether(){
-  loadReadBook();
+  readShelfLoad();
   loadReadCards();
-  var up=$('read-upload-area'),bk=$('read-book-area');
-  if(readBook.name){
-    up.style.display='none';bk.style.display='block';
-    $('read-book-title').textContent=readBook.name;
-    readRenderPage();
-  }else{
-    up.style.display='block';bk.style.display='none';
-  }
+  var sp=$('read-shelf-page'),bp=$('read-book-page');
+  if(sp)sp.style.display='flex';
+  if(bp)bp.style.display='none';
+  readRenderShelf();
   showOv('ov-read-together');
 }
 function readUploadBook(inp){
   var file=inp&&inp.files&&inp.files[0];
   if(!file)return;
+  if(/\.epub$/i.test(file.name)){readParseEpub(file);return;}
   var reader=new FileReader();
   reader.onload=function(ev){
-    var txt=String(ev.target.result||'');
-    readBook.name=file.name.replace(/\.txt$/i,'');
-    readBook.content=txt;
-    readBook.pages=readSplitPages(txt);
-    readBook.page=0;
-    // ★ 大文件存 IndexedDB（localStorage 5MB 上限装不下）；小文件双写
-    var bookData={name:readBook.name,content:txt};
-    if(window.localforage){
-      window.localforage.setItem('ml2_read_book',bookData).then(function(){
-        if(txt.length<3000000){try{ls('ml2_read_book',bookData);}catch(e){}}
-      }).catch(function(){
-        try{ls('ml2_read_book',bookData);}catch(e2){toast('文件较大，仅保存在本浏览器（IndexedDB）');}
-      });
-    }else{
-      try{ls('ml2_read_book',bookData);}catch(e3){toast('浏览器存储不足，无法保存这么大文件');}
+    // ★ 编码兼容：先按 UTF-8 严格解码，失败（GBK/ANSI 中文）自动降级 GBK
+    var txt='';
+    try{
+      var _arr=ev.target.result;
+      if(_arr&&_arr.byteLength){
+        var _d1=new TextDecoder('utf-8',{fatal:true});
+        txt=_d1.decode(_arr);
+        if(txt.indexOf('\uFFFD')>=0)throw new Error('utf8-bad');
+      }
+    }catch(e1){
+      try{txt=new TextDecoder('gbk').decode(ev.target.result);}catch(e2){
+        try{txt=new TextDecoder('utf-8').decode(ev.target.result);}catch(e3){txt='';}
+      }
     }
-    var up=$('read-upload-area'),bk=$('read-book-area');
-    up.style.display='none';bk.style.display='block';
-    $('read-book-title').textContent=readBook.name;
-    readRenderPage();
-    toast('已载入《'+readBook.name+'》');
+    if(!txt)txt=String(ev.target.result||'');
+    var bookName=file.name.replace(/\.txt$/i,'');
+    // ★ 加入书架
+    readShelfLoad();
+    var dupIdx=readBooks.findIndex(function(b){return b.name===bookName;});
+    var bookData={name:bookName,content:txt,ts:Date.now()};
+    if(dupIdx>=0)readBooks[dupIdx]=bookData;else readBooks.unshift(bookData);
+    readShelfSave();
+    // 兼容：单本同步
+    try{ls('ml2_read_book',bookData);}catch(e){}
+    if(window.localforage){try{window.localforage.setItem('ml2_read_book',bookData).catch(function(){});}catch(e2){}}
+    readOpenBook(dupIdx>=0?dupIdx:0);
+    toast('已载入《'+bookName+'》');
     inp.value='';
   };
-  reader.readAsText(file,'utf-8');
+  reader.readAsArrayBuffer(file);   // ArrayBuffer + TextDecoder 编码兼容
 }
 function readRemoveBook(){
-  if(!confirm('移除这本电子书？'))return;
+  if(!readBook.name){readBackShelf();return;}
+  if(!confirm('移除《'+readBook.name+'》？'))return;
+  var idx=readBooks.findIndex(function(b){return b.name===readBook.name;});
+  if(idx>=0){readBooks.splice(idx,1);readShelfSave();}
   readBook={name:'',content:'',pages:[],page:0,perPage:8};
   try{ls('ml2_read_book','');}catch(e){}
   if(window.localforage)window.localforage.removeItem('ml2_read_book').catch(function(){});
-  $('read-upload-area').style.display='block';
-  $('read-book-area').style.display='none';
+  readBackShelf();
   toast('已移除');
 }
 function readRenderPage(){
   if(!readBook.pages.length)return;
+  readLoadSettings();
   var content=$('read-book-content');
-  if(content)content.textContent=readBook.pages[readBook.page]||'';
+  if(content){
+    if(readBookSettings.mode==='scroll'){
+      content.innerHTML=readBook.pages.map(function(p,i){return '<p data-para="'+i+'" style="margin:0 0 1.2em;">'+String(p).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</p>';}).join('');
+      if(readBook.scrollToPara>=0&&readBook.scrollToPara<readBook.pages.length){
+        var ps=content.querySelectorAll('p');
+        if(ps[readBook.scrollToPara])ps[readBook.scrollToPara].scrollIntoView();
+        readBook.scrollToPara=-1;
+      }
+    }else{
+      content.textContent=readBook.pages[readBook.page]||'';
+    }
+  }
   var pg=$('read-book-progress');
-  if(pg)pg.textContent='第 '+(readBook.page+1)+' / '+readBook.pages.length+' 页';
+  if(pg)pg.textContent=readBookSettings.mode==='scroll'?'滚动阅读（共 '+readBook.pages.length+' 段）':'第 '+(readBook.page+1)+' / '+readBook.pages.length+' 页';
+  readApplySettings();
+}
+function readToggleFullscreen(){
+  var ov=$('ov-read-together');
+  if(!ov)return;
+  if(ov._readFs){
+    ov._readFs=false;
+    readExitRealFullscreen();
+    return;
+  }
+  ov._readFs=true;
+  try{
+    var de=document.documentElement;
+    if(de.requestFullscreen){
+      de.requestFullscreen().then(function(){
+        try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}
+        toast('已进入全屏（横屏）');
+      }).catch(function(){readFsFallback(ov);});
+    }else if(de.webkitRequestFullscreen){
+      de.webkitRequestFullscreen();
+      try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}
+    }else{
+      readFsFallback(ov);
+    }
+  }catch(e){readFsFallback(ov);}
+}
+function readFsFallback(ov){
+  ov._fsOrigStyle=ov.style.cssText;
+  ov.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;';
+  try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}
+  toast('已进入全屏');
+}
+function readExitRealFullscreen(){
+  try{
+    if(document.exitFullscreen)document.exitFullscreen().catch(function(){});
+    else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+    else if(document.webkitCancelFullScreen)document.webkitCancelFullScreen();
+  }catch(e){}
+  var ov=$('ov-read-together');
+  if(ov&&ov._fsOrigStyle!==undefined){
+    ov.style.cssText=ov._fsOrigStyle;
+    ov._fsOrigStyle=undefined;
+  }
 }
 function readNextPage(){
   if(!readBook.pages.length)return;
+  if(readBookSettings.mode==='scroll'){var c=$('read-book-content');if(c)c.scrollTop+=c.clientHeight*0.8;readUpdateProgressBar();return;}
   if(readBook.page<readBook.pages.length-1){
     readBook.page++;
     readRenderPage();
-    // ★ 翻页概率触发梦角回应（从一起看字卡库抽）
-    if(Math.random()<0.35){
-      setTimeout(function(){readTriggerTA();},600+Math.random()*1200);
+    if(readBook.page>=readBook.pages.length-1){readMarkFinished();}
+    var _now=Date.now();
+    if(readBookSettings.company!==false&&Math.random()<0.22&&(!window._lastReadDanmaku||_now-window._lastReadDanmaku>10000)){
+      window._lastReadDanmaku=_now;
+      setTimeout(function(){readDanmaku(readDanmakuText());},300+Math.random()*700);
     }
   }else{
     toast('已经读到最后一页啦');
   }
 }
 function readPrevPage(){
+  if(readBookSettings.mode==='scroll'){var c=$('read-book-content');if(c)c.scrollTop-=c.clientHeight*0.8;readUpdateProgressBar();return;}
   if(readBook.page>0){readBook.page--;readRenderPage();}
 }
-// 梦角回应：弹窗显示字卡内容，可选发送到聊天
 function readTriggerTA(){
   var card=readPickCard();
   if(!card){toast('字卡库还没有字卡，去「一起看字卡库」添加吧');return;}
@@ -1095,8 +1182,7 @@ function readTriggerTA(){
   if(r&&cid&&typeof msgs==='function'){
     try{
       var m=msgs(cid);
-      m.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:card.content,ts:new Date(),pc:false,isAuto:true,isInitiative:false,read:(cid===window.currentCid),isReadReply:true});
-      savemsgs(cid,m);
+      m.push({s:cid,t:card.content,ts:Date.now(),ty:'t',id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9)});
       if(cid===window.currentCid&&typeof renderMsgs==='function')renderMsgs(m);
       if(typeof renderChatList==='function')renderChatList();
       toast('TA 的话已发到聊天');
@@ -1214,53 +1300,365 @@ function showReadVideo(){
   }
   showOv('ov-read-video');
 }
-function readVideoRender(){
-  var setup=$('read-video-setup'),play=$('read-video-play');
-  if(!readVideo){setup.style.display='block';play.style.display='none';return;}
-  setup.style.display='none';play.style.display='block';
-  $('read-video-title').textContent=readVideo.name||'视频';
-  var player=$('read-video-player');
-  if(readVideo.type==='local'){
-    player.innerHTML='<video controls playsinline webkit-playsinline="true" x5-playsinline="true" style="width:100%;height:100%;object-fit:contain;" src="'+readVideo.dataUrl+'"></video>';
-    // ★ 全屏按钮（controls 全屏被某些环境禁用时的兜底）
-    var _fsBtn=document.createElement('div');
-    _fsBtn.textContent='⛶ 全屏';
-    _fsBtn.style.cssText='position:absolute;right:8px;bottom:8px;z-index:5;padding:4px 12px;border-radius:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;cursor:pointer;';
-    _fsBtn.onclick=function(e){e.stopPropagation();var vv=player.querySelector('video');if(!vv)return;if(vv.requestFullscreen){vv.requestFullscreen().catch(function(){});}else if(vv.webkitRequestFullscreen){vv.webkitRequestFullscreen();}};
-    if(player.style.position!=='relative')player.style.position='relative';
-    player.appendChild(_fsBtn);
-  }else{
-    var bvid=readVideo.bvid||'';
-    if(bvid){
-      player.innerHTML='<iframe src="https://player.bilibili.com/player.html?bvid='+bvid+'&page=1&high_quality=1&danmaku=1" style="width:100%;height:100%;border:none;" scrolling="no" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="fullscreen; autoplay; encrypted-media; picture-in-picture"></iframe>';
-    }else{
-      player.innerHTML='<div style="font-size:13px;color:var(--txt3);">链接解析失败</div>';
+// ★ 全屏：旋转横屏 + 原生全屏；原生不可用走 CSS 模拟全屏（均带返回按钮）
+function readVideoFullscreen(el){
+  try{
+    if(window.screen&&screen.orientation&&screen.orientation.lock&&typeof screen.orientation.lock==='function'){
+      screen.orientation.lock('landscape').catch(function(){});
     }
+  }catch(e){}
+  var usedNative=false;
+  try{
+    if(el&&el.requestFullscreen){el.requestFullscreen().catch(function(){});usedNative=true;}
+    else if(el&&el.webkitRequestFullscreen){el.webkitRequestFullscreen();usedNative=true;}
+  }catch(e){}
+  if(usedNative){
+    // 原生全屏也放悬浮返回按钮
+    if(!document.getElementById('read-fs-exit')){
+      var eb=document.createElement('div');
+      eb.id='read-fs-exit';
+      eb.textContent='✕ 退出全屏';
+      eb.style.cssText='position:fixed;top:12px;right:14px;z-index:99999;padding:6px 14px;border-radius:16px;background:rgba(0,0,0,0.6);color:#fff;font-size:13px;cursor:pointer;';
+      eb.onclick=function(){
+        if(document.exitFullscreen)document.exitFullscreen();
+        else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+        var _e=document.getElementById('read-fs-exit');
+        if(_e)_e.remove();
+      };
+      document.body.appendChild(eb);
+      document.addEventListener('fullscreenchange',function _fs2(){
+        if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+          var _e2=document.getElementById('read-fs-exit');
+          if(_e2)_e2.remove();
+          document.removeEventListener('fullscreenchange',_fs2);
+        }
+      });
+    }
+    return;
   }
-  // ★ 播放/暂停时概率触发梦角回应
-  var v=player.querySelector('video');
-  if(v&&!v._readBound){
-    v._readBound=true;
-    var _lastTrig=0;
-    v.addEventListener('play',function(){
-      var now=Date.now();
-      if(now-_lastTrig>15000&&Math.random()<0.4){
-        _lastTrig=now;
-        setTimeout(function(){if(typeof readTriggerTA==='function')readTriggerTA();},800+Math.random()*1500);
-      }
-    });
+  readSimulateFullscreen();
+}
+function readSimulateFullscreen(){
+  var ov=$('ov-read-video');
+  var exitBtn=document.getElementById('read-fs-exit');
+  if(exitBtn){try{exitBtn.remove();}catch(e){}}
+  if(ov&&ov._simFs){
+    ov._simFs=false;
+    var sheet=ov.querySelector('.sheet');
+    if(sheet&&ov._simOrig)sheet.style.cssText=ov._simOrig;
+    toast('已退出全屏');
+    return;
   }
+  if(!ov)return;
+  var sheet=ov.querySelector('.sheet');
+  if(!sheet)return;
+  // 兜底：若弹窗被直接关闭导致残留全屏样式，先还原
+  if(ov._simOrig)sheet.style.cssText=ov._simOrig;
+  ov._simFs=true;
+  ov._simOrig=sheet.style.cssText;
+  sheet.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;max-width:none;border-radius:0;display:flex;flex-direction:column;background:#000;';
+  var sh=sheet.querySelector('.sh');
+  if(sh)sh.style.display='none';
+  var sb=sheet.querySelector('.sb');
+  if(sb)sb.style.cssText='flex:1;max-height:none;overflow:hidden;padding:0;display:flex;flex-direction:column;';
+  var play=sheet.querySelector('#read-video-play');
+  if(play)play.style.cssText='flex:1;display:flex;flex-direction:column;';
+  var player=sheet.querySelector('#read-video-player');
+  if(player)player.style.cssText='flex:1;width:100%;aspect-ratio:auto;border-radius:0;overflow:hidden;background:#000;';
+  // 退出按钮
+  var exitBtn=document.createElement('div');
+  exitBtn.id='read-fs-exit';
+  exitBtn.textContent='✕ 退出全屏';
+  exitBtn.style.cssText='position:absolute;top:12px;right:14px;z-index:20;padding:6px 14px;border-radius:16px;background:rgba(0,0,0,0.6);color:#fff;font-size:13px;cursor:pointer;';
+  exitBtn.onclick=function(){readSimulateFullscreen();};
+  document.body.appendChild(exitBtn);
+  toast('竖屏全屏（再点一次退出）');
+}
+
+// ★ 弹幕：在视频/阅读区飘过 TA 的话（右→左）
+function readDanmakuText(){
+  try{
+    if(typeof globalCards!=='undefined'&&globalCards&&globalCards.length){
+      var pool=globalCards.filter(function(c){return c&&c.content&&c.category!=='stickers'&&c.category!=='voices'&&c.category!=='image'&&c.category!=='kaomoji';});
+      if(pool.length)return pool[Math.floor(Math.random()*pool.length)].content;
+    }
+  }catch(e){}
+  var fallback=['好想你呀','一起看真好','这里好棒','想牵你的手','有你在真好','这个好看','我一直在你身边','下次也一起看吧','看得入迷了','偷偷看你一眼'];
+  return fallback[Math.floor(Math.random()*fallback.length)];
+}
+function readDanmaku(text){
+  var host=$('read-video-player');
+  if(!host||host.offsetParent===null)host=$('read-book-content');
+  if(!host)return;
+  if(host.style.position!=='absolute'&&host.style.position!=='relative')host.style.position='relative';
+  var d=document.createElement('div');
+  d.textContent=text||'…';
+  d.style.cssText='position:absolute;top:'+(8+Math.random()*62)+'%;left:100%;z-index:9;white-space:nowrap;font-size:13px;color:#fff;background:rgba(0,0,0,0.5);padding:3px 12px;border-radius:12px;pointer-events:none;animation:readDanmakuMove '+(5+Math.random()*3)+'s linear forwards;';
+  host.appendChild(d);
+  setTimeout(function(){try{host.removeChild(d);}catch(e){}},9000);
+}
+// ============ 一起看视频（完整播放器） ============
+var readVideos=readVideoLoad();
+var _readCurVideo=null;
+var _readVideoCompanyOn=true;
+function readVideoLoad(){
+  var v=null;
+  try{v=ls('ml2_read_videos');}catch(e){}
+  if(!Array.isArray(v))v=[];
+  if(!v.length){
+    try{
+      var old=ls('ml2_read_video');
+      if(old&&old.name){old.id='v_'+Date.now().toString(36);v.push(old);try{ls('ml2_read_videos',v);}catch(e){}}
+    }catch(e){}
+  }
+  return v;
+}
+function readVideoSave(){
+  try{ls('ml2_read_videos',readVideos);}catch(e){}
+  if(window.localforage)window.localforage.setItem('ml2_read_videos',readVideos).catch(function(){});
+}
+function showReadVideo(){
+  var lib=$('read-video-lib'),play=$('read-video-play');
+  if(lib)lib.style.display='block';
+  if(play)play.style.display='none';
+  renderVideoLib();
+  showOv('ov-read-video');
+}
+function renderVideoLib(){
+  var list=$('read-video-list');
+  if(!list)return;
+  var cnt=$('read-video-lib-count');
+  if(cnt)cnt.textContent=readVideos.length?(readVideos.length+' 个'):'';
+  list.innerHTML='';
+  if(!readVideos.length){
+    list.innerHTML='<div style="text-align:center;padding:24px 12px;color:var(--txt3);font-size:13px;line-height:2;">🎬 视频库还是空的<br>导入本地视频或添加哔哩哔哩视频</div>';
+    return;
+  }
+  readVideos.slice().reverse().forEach(function(v){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--c2);border:1px solid var(--border);border-radius:12px;padding:9px 12px;margin-bottom:8px;cursor:pointer;';
+    row.innerHTML='<div style="width:52px;height:36px;border-radius:6px;background:linear-gradient(160deg,#2b2b33,#1a1a20);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0;">'+(v.type==='bili'?'📺':'🎞️')+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+String(v.name||'视频').replace(/</g,'&lt;')+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+(v.type==='bili'?'哔哩哔哩':'本地')+(v.progress?' · 已看 '+Math.round(v.progress)+'%':'')+(v.lastWatch?' · '+new Date(v.lastWatch).toLocaleString():'')+'</div>'
+      +'</div>'
+      +'<span style="color:var(--txt3);font-size:12px;flex-shrink:0;">▶</span>';
+    row.onclick=function(){readOpenVideo(v.id);};
+    list.appendChild(row);
+  });
+}
+function readOpenVideo(id){
+  var v=readVideos.find(function(x){return x.id===id;});
+  if(!v)return;
+  _readCurVideo=v;
+  var lib=$('read-video-lib'),play=$('read-video-play');
+  if(lib)lib.style.display='none';
+  if(play){play.style.display='block';var tt=$('read-video-title');if(tt)tt.textContent=v.name||'视频';}
+  var info=$('read-video-info');
+  if(info)info.textContent=(v.type==='bili'?'来源：哔哩哔哩'+(v.bvid?' · BV '+v.bvid:'') : '来源：本地视频')+(v.progress?' · 上次看到 '+Math.round(v.progress)+'%':'');
+  renderVideoPlayer(v);
+}
+function readVideoBackLib(){
+  var lib=$('read-video-lib'),play=$('read-video-play');
+  if(lib)lib.style.display='block';
+  if(play)play.style.display='none';
+  readVideoExitFullscreen();
+  renderVideoLib();
+}
+function renderVideoPlayer(v){
+  var player=$('read-video-player');
+  if(!player)return;
+  var el=$('read-video-el');
+  var dk=$('read-video-danmaku-layer');
+  var pop=$('read-video-pop');
+  if(dk)dk.innerHTML='';
+  if(pop)pop.style.display='none';
+  if(v.type==='local'){
+    if(el){
+      el.style.display='block';
+      el.src=v.dataUrl;
+      el.controls=false;
+      try{if(v.progressSec&&v.progressSec<el.duration)el.currentTime=v.progressSec;}catch(e){}
+      el.ontimeupdate=function(){
+        readVideoUpdateUI();
+        if(el.duration){v.progress=el.currentTime/el.duration*100;v.progressSec=el.currentTime;v.lastWatch=Date.now();}
+      };
+      el.onplay=function(){readVideoPlayBtn(true);};
+      el.onpause=function(){readVideoPlayBtn(false);};
+      el.onended=function(){readVideoOnEnd();};
+      el.onclick=function(){readVideoToggleUI();};
+      readVideoBindCompany(el);
+      readVideoBindAutoHide();
+      el.play().catch(function(){});
+    }
+  }else{
+    if(el)el.style.display='none';
+    var bvid=v.bvid||'';
+    player.innerHTML='<iframe id="read-video-bili-frame" src="https://player.bilibili.com/player.html?bvid='+bvid+'&page=1&high_quality=1&danmaku=1&as_wide=1" style="width:100%;height:auto;aspect-ratio:16/9;border:none;display:block;" scrolling="no" frameborder="0" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="fullscreen; autoplay; encrypted-media; picture-in-picture"></iframe>';
+    readVideoBindBiliCompany(player);
+  }
+}
+function readVideoPlayPause(){
+  var el=$('read-video-el');
+  if(!el)return;
+  if(el.paused){el.play();}else{el.pause();}
+}
+function readVideoPlayBtn(playing){
+  var b=$('read-video-play-btn');
+  if(b)b.textContent=playing?'⏸':'▶';
+}
+function readVideoUpdateUI(){
+  var el=$('read-video-el');
+  if(!el)return;
+  var t=$('read-video-time');
+  if(t)t.textContent=readVfmt(el.currentTime)+' / '+readVfmt(el.duration);
+  var fill=$('read-video-progress-fill'),dot=$('read-video-progress-dot');
+  var pct=el.duration?el.currentTime/el.duration*100:0;
+  if(fill)fill.style.width=pct+'%';
+  if(dot)dot.style.left=pct+'%';
+}
+function readVfmt(s){
+  s=Math.floor(s||0);
+  var m=Math.floor(s/60),ss=s%60;
+  return ('0'+m).slice(-2)+':'+('0'+ss).slice(-2);
+}
+function readVideoSeek(ev){
+  var el=$('read-video-el');
+  var bar=document.getElementById('read-video-progress-bar');
+  if(!el||!bar||!el.duration)return;
+  var rect=bar.getBoundingClientRect();
+  var ratio=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width));
+  el.currentTime=ratio*el.duration;
+  readVideoUpdateUI();
+}
+function readVideoRate(){
+  var el=$('read-video-el');
+  if(!el)return;
+  var rates=[0.5,0.75,1,1.25,1.5,2];
+  var cur=el.playbackRate||1;
+  var idx=rates.indexOf(cur);
+  el.playbackRate=rates[(idx+1)%rates.length];
+  var b=$('read-video-rate-btn');
+  if(b)b.textContent=el.playbackRate+'×';
+}
+function readVideoMute(){
+  var el=$('read-video-el');
+  if(!el)return;
+  el.muted=!el.muted;
+  var b=$('read-video-vol-btn');
+  if(b)b.textContent=el.muted?'🔇':'🔊';
+}
+function readVideoOnEnd(){
+  toast('播放结束');
+  var b=$('read-video-play-btn');
+  if(b)b.textContent='▶';
+  if(_readCurVideo){_readCurVideo.progress=100;_readCurVideo.progressSec=0;readVideoSave();}
+}
+function readVideoBindAutoHide(){
+  var ctl=$('read-video-controls');
+  var player=$('read-video-player');
+  if(!ctl||!player||player._readAutoHide)return;
+  player._readAutoHide=true;
+  var t=null;
+  function show(){ctl.style.opacity='1';clearTimeout(t);t=setTimeout(function(){if(!document.fullscreenElement&&!document.webkitFullscreenElement)ctl.style.opacity='0.12';},2600);}
+  player.onmousemove=show;
+  player.ontouchstart=show;
+  player.onclick=show;
+  show();
+}
+function readVideoToggleUI(){
+  var ctl=$('read-video-controls');
+  if(!ctl)return;
+  ctl.style.opacity=ctl.style.opacity==='0.12'?'1':'0.12';
+}
+function readVideoFullscreen2(){
+  var player=$('read-video-player');
+  var el=$('read-video-el');
+  if(!player)return;
+  if(document.fullscreenElement||document.webkitFullscreenElement){readVideoExitFullscreen();return;}
+  var ok=false;
+  try{
+    if(document.documentElement.requestFullscreen){
+      document.documentElement.requestFullscreen().then(function(){
+        try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}
+      }).catch(function(){readSimulateFullscreen(player);});
+      ok=true;
+    }else if(document.documentElement.webkitRequestFullscreen){
+      document.documentElement.webkitRequestFullscreen();
+      ok=true;
+    }
+  }catch(e){}
+  if(!ok&&el&&el.webkitEnterFullscreen){try{el.webkitEnterFullscreen();ok=true;}catch(e){}}
+  if(!ok)readSimulateFullscreen(player);
+}
+function readVideoExitFullscreen(){
+  try{
+    if(document.exitFullscreen)document.exitFullscreen().catch(function(){});
+    else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+  }catch(e){}
+  var p=$('read-video-player');
+  if(p&&p._fsSim){
+    p._fsSim=false;
+    p.style.cssText=p._fsOrig||'position:relative;background:#000;border-radius:14px;overflow:hidden;';
+    var ctl=$('read-video-controls');
+    if(ctl)ctl.style.cssText='position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.75));padding:26px 10px 8px;transition:opacity 0.3s;z-index:20;';
+  }
+}
+function readVideoToggleCompany(){
+  _readVideoCompanyOn=!_readVideoCompanyOn;
+  var b=$('read-video-company-btn');
+  if(b){b.style.background=_readVideoCompanyOn?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.05)';}
+  toast(_readVideoCompanyOn?'梦角陪看已开启':'梦角陪看已关闭');
+}
+function readVideoPop(text){
+  var pop=$('read-video-pop');
+  if(!pop)return;
+  var c=contacts.find(function(x){return x.id===cid;});
+  var name=c?c.name:'TA';
+  pop.innerHTML='<div style="background:rgba(0,0,0,0.75);border:1px solid rgba(255,255,255,0.22);border-radius:12px;padding:8px 12px;color:#fff;font-size:12px;line-height:1.7;display:flex;gap:8px;align-items:flex-start;"><span style="flex-shrink:0;">💬</span><span>'+name+'：'+String(text).replace(/</g,'&lt;')+'</span></div>';
+  pop.style.display='block';
+  clearTimeout(window._readVideoPopT);
+  window._readVideoPopT=setTimeout(function(){pop.style.display='none';},4200);
+}
+function readVideoBindCompany(el){
+  if(!el||el._readCmpBound)return;
+  el._readCmpBound=true;
+  var _last=0;
+  el.addEventListener('timeupdate',function(){
+    if(!_readVideoCompanyOn)return;
+    var now=Date.now();
+    if(now-_last>25000&&Math.random()<0.18){
+      _last=now;
+      setTimeout(function(){readVideoPop(readDanmakuText());},400+Math.random()*900);
+    }
+  });
+}
+function readVideoBindBiliCompany(player){
+  if(!player||player._readBiliCmp)return;
+  player._readBiliCmp=true;
+  var _last=0;
+  setInterval(function(){
+    var ov=$('ov-read-video');
+    if(!ov||ov.style.display==='none')return;
+    if(!_readVideoCompanyOn)return;
+    var now=Date.now();
+    if(now-_last>30000&&Math.random()<0.3){
+      _last=now;
+      readVideoPop(readDanmakuText());
+    }
+  },9000);
 }
 function readUploadVideo(inp){
   var file=inp&&inp.files&&inp.files[0];
   if(!file)return;
   var reader=new FileReader();
   reader.onload=function(ev){
-    readVideo={type:'local',name:file.name,dataUrl:ev.target.result};
-    try{ls('ml2_read_video',readVideo);}catch(e){}
-    if(window.localforage)window.localforage.setItem('ml2_read_video',readVideo).catch(function(){});
-    readVideoRender();
-    toast('已载入《'+file.name+'》');
+    var v={id:'v_'+Date.now().toString(36),type:'local',name:file.name,dataUrl:ev.target.result,progress:0,progressSec:0,lastWatch:Date.now()};
+    readVideos.push(v);
+    readVideoSave();
+    renderVideoLib();
+    readOpenVideo(v.id);
+    toast('已导入《'+file.name+'》');
     inp.value='';
   };
   reader.readAsDataURL(file);
@@ -1269,25 +1667,394 @@ function readSetBili(){
   var inp=$('read-bili-url');
   var url=inp?inp.value.trim():'';
   if(!url){toast('请粘贴哔哩哔哩链接');return;}
-  var bvid='';
   var m1=url.match(/[Bb][Vv][0-9A-Za-z]{8,10}/);
-  if(m1)bvid=m1[0];
+  var bvid=m1?m1[0]:'';
   if(!bvid){toast('没识别到 BV 号，请确认是哔哩哔哩视频链接');return;}
-  readVideo={type:'bili',name:'哔哩哔哩视频',url:url,bvid:bvid};
-  try{ls('ml2_read_video',readVideo);}catch(e){}
-  if(window.localforage)window.localforage.setItem('ml2_read_video',readVideo).catch(function(){});
-  readVideoRender();
-  toast('已载入哔哩哔哩视频');
+  var v={id:'v_'+Date.now().toString(36),type:'bili',name:'哔哩哔哩视频 '+bvid,url:url,bvid:bvid,progress:0,progressSec:0,lastWatch:Date.now()};
+  readVideos.push(v);
+  readVideoSave();
+  renderVideoLib();
+  readOpenVideo(v.id);
+  toast('已添加哔哩哔哩视频');
   if(inp)inp.value='';
 }
 function readRemoveVideo(){
-  if(!confirm('移除这个视频？'))return;
-  readVideo=null;
-  try{ls('ml2_read_video','');}catch(e){}
-  if(window.localforage)window.localforage.removeItem('ml2_read_video').catch(function(){});
-  $('read-video-setup').style.display='block';
-  $('read-video-play').style.display='none';
+  if(!_readCurVideo){toast('没有正在播放的视频');return;}
+  if(!confirm('移除《'+_readCurVideo.name+'》？'))return;
+  readVideos=readVideos.filter(function(x){return x.id!==_readCurVideo.id;});
+  readVideoSave();
+  readVideoBackLib();
   toast('已移除');
+}
+
+
+
+// ==================== 完整阅读器增强 ====================
+function readDetectChapters(paras){
+  var chs=[];
+  for(var i=0;i<paras.length;i++){
+    if(/^(第[一二三四五六七八九十百千万0-9]+[章节回卷部篇]|Chapter\s*\d+|第[0-9一二三四五六七八九十百千]+章)/.test(paras[i])){
+      chs.push({title:paras[i],paraStart:i});
+    }
+  }
+  return chs;
+}
+function readShowToc(){
+  if(!readBook)return;
+  var chs=readBook.chapters||[];
+  var ov=$('ov-read-toc');
+  if(!ov)return;
+  var html='<div class="sh"><h3>📑 目录</h3><button class="btn-close" onclick="hideOv(\'ov-read-toc\')">✕</button></div><div class="sb" style="padding:10px 0;max-height:60vh;overflow-y:auto;">';
+  if(!chs.length)html+='<div style="padding:20px 14px;color:var(--txt3);font-size:12px;text-align:center;">本书没有检测到章节</div>';
+  chs.forEach(function(c,idx){
+    html+='<div onclick="readGotoChapter('+idx+')" style="padding:10px 14px;font-size:13px;color:var(--txt);cursor:pointer;border-bottom:1px solid var(--border);">'+c.title+'</div>';
+  });
+  html+='</div>';
+  ov.innerHTML=html;
+  showOv('ov-read-toc');
+}
+function readGotoChapter(idx){
+  var chs=readBook.chapters||[];
+  if(!chs[idx])return;
+  hideOv('ov-read-toc');
+  var pi=Math.min(readBook.pages.length-1,Math.floor(chs[idx].paraStart/readBook.perPage));
+  if(readBookSettings.mode==='scroll'){
+    readBook.scrollToPara=pi;
+    readRenderPage();
+  }else{
+    readBook.page=pi;
+    readRenderPage();
+  }
+  toast('已跳转：'+chs[idx].title);
+}
+function readAddBookmark(){
+  if(!readBook)return;
+  var text=(readBook.pages[readBook.page]||'').replace(/\s+/g,' ').slice(0,24);
+  var bm=ls('ml2_read_bookmarks')||{};
+  if(!bm[readBook.id])bm[readBook.id]=[];
+  bm[readBook.id].push({page:readBook.page,mode:readBookSettings.mode,text:text,ts:Date.now()});
+  ls('ml2_read_bookmarks',bm);
+  toast('已添加书签：'+text+'…');
+}
+function readShowBookmarks(){
+  if(!readBook)return;
+  var bm=ls('ml2_read_bookmarks')||{};
+  var arr=bm[readBook.id]||[];
+  var html='<div class="sh"><h3>🔖 书签</h3><button class="btn-close" onclick="hideOv(\'ov-read-bookmarks\')">✕</button></div><div class="sb" style="padding:10px 0;max-height:55vh;overflow-y:auto;">';
+  if(!arr.length)html+='<div style="padding:24px 14px;text-align:center;color:var(--txt3);font-size:13px;">还没有书签<br>阅读时点「🔖 书签」添加</div>';
+  arr.slice().reverse().forEach(function(b,i){
+    var idx=arr.length-1-i;
+    html+='<div onclick="readGotoBookmark('+idx+')" style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;">'
+      +'<div style="font-size:13px;color:var(--txt);">第 '+(b.page+1)+' 段 · '+b.text+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+new Date(b.ts).toLocaleString()+'</div></div>';
+  });
+  html+='</div>';
+  $('ov-read-bookmarks').innerHTML=html;
+  showOv('ov-read-bookmarks');
+}
+function readGotoBookmark(idx){
+  var bm=ls('ml2_read_bookmarks')||{};
+  var arr=bm[readBook.id]||[];
+  var b=arr[idx];
+  if(!b)return;
+  hideOv('ov-read-bookmarks');
+  if(b.mode==='scroll'){
+    readBookSettings.mode='scroll';readSaveSettings();
+    readBook.scrollToPara=b.page;
+    readRenderPage();
+  }else{
+    readBook.page=Math.min(readBook.pages.length-1,b.page);
+    readRenderPage();
+  }
+}
+function readOpenSettings(){
+  readLoadSettings();
+  var fs=$('rs-fontsize-val');if(fs)fs.textContent=readBookSettings.fontSize+'px';
+  var lh=$('rs-lineheight-val');if(lh)lh.textContent=readBookSettings.lineHeight.toFixed(1);
+  var mg=$('rs-margin-val');if(mg)mg.textContent=readBookSettings.margin+'px';
+  var ff=$('rs-fontfamily');if(ff)ff.value=readBookSettings.fontFamily;
+  var mb=$('rs-mode-btn');if(mb)mb.textContent=readBookSettings.mode==='scroll'?'滚动':'分页';
+  var th=$('rs-theme-val');if(th)th.textContent=readThemeNames[readBookSettings.theme]||'';
+  var cb=$('rs-company-btn');if(cb)cb.textContent=readBookSettings.company===false?'关':'开';
+  showOv('ov-read-settings');
+}
+function readLineHeight(d){
+  readBookSettings.lineHeight=Math.min(2.8,Math.max(1.2,Math.round((readBookSettings.lineHeight+d)*10)/10));
+  readSaveSettings();readApplySettings();
+  var lh=$('rs-lineheight-val');if(lh)lh.textContent=readBookSettings.lineHeight.toFixed(1);
+}
+function readMargin(d){
+  readBookSettings.margin=Math.min(40,Math.max(4,readBookSettings.margin+d));
+  readSaveSettings();readApplySettings();
+  var mg=$('rs-margin-val');if(mg)mg.textContent=readBookSettings.margin+'px';
+}
+function readSetFontFamily(v){
+  readBookSettings.fontFamily=v;readSaveSettings();readApplySettings();
+}
+function readToggleMode(){
+  readBookSettings.mode=readBookSettings.mode==='scroll'?'page':'scroll';
+  readSaveSettings();
+  readRenderPage();
+  var mb=$('rs-mode-btn');if(mb)mb.textContent=readBookSettings.mode==='scroll'?'滚动':'分页';
+  toast(readBookSettings.mode==='scroll'?'已切换为滚动模式':'已切换为分页模式');
+}
+function readToggleCompany(){
+  readBookSettings.company=readBookSettings.company===false?true:false;
+  readSaveSettings();
+  readRenderCompanyBtn();
+  var cb=$('rs-company-btn');if(cb)cb.textContent=readBookSettings.company===false?'关':'开';
+  toast(readBookSettings.company===false?'已关闭梦角陪读':'已开启梦角陪读');
+}
+function readRenderCompanyBtn(){
+  var b=$('read-company-btn');
+  if(b)b.style.background=readBookSettings.company===false?'#e5e5e5':'var(--c2)';
+}
+function readJumpProgress(ev){
+  if(!readBook||!ev)return;
+  var bar=document.getElementById('read-progress-bar');
+  if(!bar)return;
+  var rect=bar.getBoundingClientRect();
+  var ratio=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width));
+  if(readBookSettings.mode==='scroll'){
+    var c=$('read-book-content');
+    if(c)c.scrollTop=ratio*c.scrollHeight;
+  }else{
+    readBook.page=Math.round(ratio*(readBook.pages.length-1));
+    readRenderPage();
+  }
+  readUpdateProgressBar();
+}
+function readUpdateProgressBar(){
+  var fill=$('read-progress-fill'),dot=$('read-progress-dot');
+  if(!fill||!dot||!readBook)return;
+  var ratio=0;
+  if(readBookSettings.mode==='scroll'){
+    var c=$('read-book-content');
+    if(c&&c.scrollHeight>c.clientHeight)ratio=c.scrollTop/(c.scrollHeight-c.clientHeight);
+  }else{
+    ratio=readBook.pages.length?readBook.page/(readBook.pages.length-1):0;
+  }
+  fill.style.width=(ratio*100)+'%';
+  dot.style.left=(ratio*100)+'%';
+}
+function readSaveBookProgress(){
+  if(!readBook)return;
+  var b=readBooks.find(function(x){return x.id===readBook.id;});
+  if(!b)return;
+  var ratio=0;
+  if(readBookSettings.mode==='scroll'){
+    var c=$('read-book-content');
+    if(c&&c.scrollHeight>c.clientHeight)ratio=c.scrollTop/(c.scrollHeight-c.clientHeight);
+  }else{
+    ratio=readBook.pages.length?readBook.page/(readBook.pages.length-1):0;
+  }
+  b.progress=Math.round(ratio*100);
+  b.lastOpen=Date.now();
+  if(!b.finished&&readBook.page>=readBook.pages.length-1&&readBookSettings.mode!=='scroll')b.finished=true;
+  readShelfSave();
+}
+function readMarkFinished(){
+  var b=readBooks.find(function(x){return x.id===readBook.id;});
+  if(b&&!b.finished){b.finished=true;readShelfSave();toast('🎉 已读完本书');}
+}
+async function readParseEpub(file){
+  try{
+    toast('正在解析 EPUB…');
+    var buf=await file.arrayBuffer();
+    var z=await zipEntries(buf);
+    var dec=new TextDecoder();
+    var cont=dec.decode(z['META-INF/container.xml']||new Uint8Array(0));
+    var m=cont.match(/full-path="([^"]+)"/);
+    if(!m)throw new Error('EPUB 结构错误（缺 container.xml）');
+    var opfPath=m[1];
+    var opf=dec.decode(z[opfPath]||new Uint8Array(0));
+    var xp=new DOMParser().parseFromString(opf,'application/xml');
+    var base=opfPath.split('/').slice(0,-1).join('/');
+    var items={};
+    var mn=xp.querySelectorAll('manifest item');
+    for(var i=0;i<mn.length;i++){
+      var id=mn[i].getAttribute('id'),href=mn[i].getAttribute('href');
+      if(id&&href)items[id]=(base?base+'/':'')+href;
+    }
+    var order=[];
+    var sp=xp.querySelectorAll('spine itemref');
+    for(var j=0;j<sp.length;j++){
+      var ir=sp[j].getAttribute('idref');
+      if(items[ir])order.push(items[ir]);
+    }
+    if(!order.length)throw new Error('EPUB 没有阅读顺序（spine）');
+    var full='',chapters=[],paraCnt=0;
+    order.forEach(function(href){
+      var key=href.replace(/^\.\//,'');
+      var raw=z[key]||z[key.replace(/^.*?\//,'')]||null;
+      if(!raw)return;
+      var html=dec.decode(raw);
+      var div=document.createElement('div');
+      div.innerHTML=html;
+      var h=div.querySelector('h1,h2,h3,h4,h5');
+      var title=h?h.textContent.trim():'第'+(chapters.length+1)+'节';
+      var txt=div.textContent.replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+      if(!txt)return;
+      chapters.push({title:title,paraStart:paraCnt});
+      full+=(full?'\n\n':'')+txt;
+      paraCnt+=txt.split('\n').length;
+    });
+    if(!full)throw new Error('EPUB 内容为空');
+    var bk={id:'b_'+Date.now().toString(36),name:file.name.replace(/\.epub$/i,''),author:'',cover:'📕',content:full,chapters:chapters,lastOpen:Date.now(),progress:0,finished:false,size:Math.round(file.size/1024)};
+    readBooks.unshift(bk);
+    readShelfSave();
+    toast('已导入：'+bk.name);
+    readRenderShelf();
+  }catch(e){
+    console.error('epub parse error:',e);
+    toast('EPUB 解析失败：'+(e.message||'未知错误'));
+  }
+}
+async function zipEntries(buf){
+  var u8=new Uint8Array(buf),dv=new DataView(buf);
+  var eocd=-1;
+  for(var i=u8.length-22;i>=0;i--){
+    if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}
+  }
+  if(eocd<0)throw new Error('不是有效的 ZIP/EPUB');
+  var count=dv.getUint16(eocd+10,true);
+  var cdOff=dv.getUint32(eocd+16,true);
+  var out={},p=cdOff,dec=new TextDecoder();
+  for(var n=0;n<count;n++){
+    if(dv.getUint32(p,true)!==0x02014b50)break;
+    var method=dv.getUint16(p+10,true);
+    var compSize=dv.getUint32(p+20,true);
+    var nameLen=dv.getUint16(p+28,true);
+    var extraLen=dv.getUint16(p+30,true);
+    var commentLen=dv.getUint16(p+32,true);
+    var localOff=dv.getUint32(p+42,true);
+    var name=dec.decode(u8.subarray(p+46,p+46+nameLen));
+    var lNameLen=dv.getUint16(localOff+26,true);
+    var lExtraLen=dv.getUint16(localOff+28,true);
+    var dataStart=localOff+30+lNameLen+lExtraLen;
+    var comp=u8.subarray(dataStart,dataStart+compSize);
+    if(method===0){
+      out[name]=comp.slice();
+    }else if(method===8){
+      try{
+        var ds=new DecompressionStream('deflate-raw');
+        var st=new Blob([comp]).stream().pipeThrough(ds);
+        var ab=await new Response(st).arrayBuffer();
+        out[name]=new Uint8Array(ab);
+      }catch(e2){
+        out[name]=comp.slice();
+      }
+    }
+    p+=46+nameLen+extraLen+commentLen;
+  }
+  return out;
+}
+
+try{
+  document.addEventListener('fullscreenchange',function(){
+    if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+      var ov=$('ov-read-together');
+      if(ov&&ov._readFs){
+        ov._readFs=false;
+        if(ov._fsOrigStyle!==undefined){ov.style.cssText=ov._fsOrigStyle;ov._fsOrigStyle=undefined;}
+      }
+    }
+  });
+}catch(e){}
+
+// ============ 一起看字卡库（恢复被误删的加载逻辑） ============
+var readCards={public:[],private:{}};
+var readCardsTabNow='public';
+var readCardsCatNow='主字卡';
+function loadReadCards(){
+  try{var d=ls('ml2_read_cards');if(d){readCards=d;}}catch(e){}
+  if(!readCards||typeof readCards!=='object')readCards={public:[],private:{}};
+  if(!readCards.public||!Array.isArray(readCards.public))readCards.public=[];
+  if(!readCards.private||typeof readCards.private!=='object')readCards.private={};
+  if(!readCardsTabNow)readCardsTabNow='public';
+  if(!readCardsCatNow)readCardsCatNow='主字卡';
+  return readCards;
+}
+function saveReadCards(){
+  try{ls('ml2_read_cards',readCards);}catch(e){}
+  if(window.localforage)window.localforage.setItem('ml2_read_cards',readCards).catch(function(){});
+}
+
+
+function readOpenBook(idx){
+  var b=readBooks[idx];
+  if(!b)return;
+  var paras=String(b.content||'').split(/\n+/).map(function(x){return x.trim();}).filter(Boolean);
+  readBook={id:b.id||('b_'+idx),name:b.name,content:b.content||'',paras:paras,pages:readSplitPages(b.content||''),page:0,perPage:8,chapters:b.chapters||readDetectChapters(paras),scrollToPara:-1};
+  if(b.progress&&b.progress>0&&b.progress<100&&!b.finished){
+    readBook.page=Math.max(0,Math.min(readBook.pages.length-1,Math.round(b.progress/100*(readBook.pages.length-1))));
+  }
+  readLoadSettings();
+  b.lastOpen=Date.now();readShelfSave();
+  var sp=$('read-shelf-page'),bp=$('read-book-page');
+  if(sp)sp.style.display='none';
+  if(bp){bp.style.display='flex';var tt=$('read-book-title');if(tt)tt.textContent=readBook.name;}
+  readRenderPage();
+  if(b.finished)toast('本书已读完，重新从上次位置打开');
+}
+
+
+// ============ 阅读器设置与入口（恢复被误删） ============
+var readBookSettings={fontSize:16,theme:'paper',lineHeight:1.9,margin:16,fontFamily:'default',mode:'page',company:true};
+var readThemes={white:{bg:'#FFFFFF',color:'#3a3a3a'},paper:{bg:'#F8F4EC',color:'#4a3f35'},beige:{bg:'#EFE6D5',color:'#5a4a35'},gray:{bg:'#E7E7E5',color:'#333333'},night:{bg:'#202020',color:'#cfcfcf'}};
+var readThemeNames={white:'纯白',paper:'暖白',beige:'米色',gray:'浅灰',night:'深色'};
+function readLoadSettings(){
+  try{var s2=ls('ml2_read_book_settings');if(s2){if(s2.fontSize)readBookSettings.fontSize=s2.fontSize;if(s2.theme)readBookSettings.theme=s2.theme;if(s2.lineHeight)readBookSettings.lineHeight=s2.lineHeight;if(s2.margin!==undefined)readBookSettings.margin=s2.margin;if(s2.fontFamily)readBookSettings.fontFamily=s2.fontFamily;if(s2.mode)readBookSettings.mode=s2.mode;if(s2.company!==undefined)readBookSettings.company=s2.company;}}catch(e){}
+}
+function readSaveSettings(){try{ls('ml2_read_book_settings',readBookSettings);}catch(e){}}
+function readApplySettings(){
+  var content=$('read-book-content');
+  if(!content)return;
+  var th=readThemes[readBookSettings.theme]||readThemes.paper;
+  content.style.fontSize=readBookSettings.fontSize+'px';
+  content.style.lineHeight=readBookSettings.lineHeight;
+  content.style.background=th.bg;
+  content.style.color=th.color;
+  content.style.padding=readBookSettings.margin+'px';
+  content.style.boxSizing='border-box';
+  var ffs={default:'',serif:'\'Songti SC\',\'SimSun\',serif',hei:'\'Heiti SC\',\'SimHei\',sans-serif',kai:'\'Kaiti SC\',\'KaiTi\',serif',yuan:'\'Yuanti SC\',\'PingFang SC\',sans-serif'};
+  content.style.fontFamily=ffs[readBookSettings.fontFamily]||'';
+  content.style.transition='background 0.2s,color 0.2s';
+  var tn=$('read-theme-name');
+  if(tn)tn.textContent=readThemeNames[readBookSettings.theme]||'';
+  var bp=$('read-book-page');
+  if(bp)bp.style.background=th.bg;
+  readRenderCompanyBtn();
+  readUpdateProgressBar();
+}
+function readFontSize(d){
+  readBookSettings.fontSize=Math.min(28,Math.max(12,readBookSettings.fontSize+d));
+  readSaveSettings();
+  readApplySettings();
+  var fs=$('rs-fontsize-val');if(fs)fs.textContent=readBookSettings.fontSize+'px';
+}
+function readThemeNext(){
+  var keys=['white','paper','beige','gray','night'];
+  var i=keys.indexOf(readBookSettings.theme);
+  readBookSettings.theme=keys[(i+1)%keys.length];
+  readSaveSettings();
+  readApplySettings();
+  var th=$('rs-theme-val');if(th)th.textContent=readThemeNames[readBookSettings.theme]||'';
+  var tn=$('read-theme-name');if(tn)tn.textContent=readThemeNames[readBookSettings.theme]||'';
+}
+function showReadTogether(){
+  readShelfLoad();
+  loadReadCards();
+  var sp=$('read-shelf-page'),bp=$('read-book-page');
+  if(sp)sp.style.display='flex';
+  if(bp)bp.style.display='none';
+  readRenderShelf();
+  showOv('ov-read-together');
+}
+function readShowReadCards(){
+  loadReadCards();
+  readCardsRenderList();
+  showOv('ov-read-cards');
 }
 
 </script>
