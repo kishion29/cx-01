@@ -665,7 +665,7 @@ function showOv(id){var el=$(id);if(!el)return;el.classList.add('show');if(el.qu
   if(id==='ov-contact-profile'){removeProfileSwipeBack();}
   var el=$(id);if(!el)return;requestAnimationFrame(function(){el.classList.remove('show');el.classList.remove('sheet-overlay')})
 }
-['ov-add','ov-edit','ov-speed','ov-letter-settings','ov-chat-more','ov-emoji','ov-decision','ov-group-decision','ov-divine','ov-divine-history','ov-moments-publish','ov-contact-touch','ov-search-chat','ov-beautify','ov-call','ov-call-settings','ov-contact-letter','ov-contact-letter-detail','ov-group-settings','ov-add-group-member','ov-survey','ov-survey-batch','ov-survey-detail','ov-contact-chatbar','ov-ta-favorites-settings','ov-copy-msg','ov-group-contact-filter','ov-pomodoro','ov-pomodoro-settings','ov-redpacket-balance','ov-redpacket-opened','ov-redpacket','ov-gift-send','ov-gift-detail','ov-gift-view','ov-giftbox'].forEach(function(id){
+['ov-add','ov-edit','ov-speed','ov-letter-settings','ov-chat-more','ov-emoji','ov-decision','ov-group-decision','ov-divine','ov-divine-history','ov-moments-publish','ov-contact-touch','ov-search-chat','ov-beautify','ov-call','ov-call-settings','ov-contact-letter','ov-contact-letter-detail','ov-group-settings','ov-add-group-member','ov-survey','ov-survey-batch','ov-survey-detail','ov-contact-chatbar','ov-ta-favorites-settings','ov-copy-msg','ov-group-contact-filter','ov-pomodoro','ov-pomodoro-settings','ov-redpacket-balance','ov-redpacket-opened','ov-redpacket','ov-gift-send','ov-gift-detail','ov-gift-view','ov-giftbox','ov-journey-records'].forEach(function(id){
   var el=$(id);
   if(el){
     el.addEventListener('click',function(e){if(e.target===this)hideOv(id)});

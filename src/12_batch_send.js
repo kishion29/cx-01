@@ -625,7 +625,7 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
   var _replyCount=1;
   if(!forceSingle){
     var _rMin=parseInt(getSpeed('reply-min',senderId))||1;
-    var _rMax=parseInt(getSpeed('reply-max',senderId))||5;
+    var _rMax=parseInt(getSpeed('reply-max',senderId))||2;
     if(_rMax<_rMin)_rMax=_rMin;
     if(_rMin<1)_rMin=1;
     if(_rMax>10)_rMax=10;

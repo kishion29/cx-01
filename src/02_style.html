@@ -1271,7 +1271,7 @@ canvas{-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit-tra
 .btn-outline.danger{color:var(--danger);border-color:rgba(255,77,79,.2)}
 .set-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--c3)}
 .set-row:last-child{border-bottom:none}
-.set-row span{font-size:16px}
+.set-row span{font-size:16px;white-space:nowrap;flex-shrink:0}
 .tsw{position:relative;width:46px;height:26px;flex-shrink:0;touch-action:manipulation}
 .tsw input{display:none}
 .tsw .sl{position:absolute;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:13px;cursor:pointer;transition:background .2s}
@@ -3020,5 +3020,32 @@ input:checked+.slider:before{transform:translateX(20px)}
 }
 
 @keyframes readDanmakuMove{from{left:100%}to{left:-40%}}
+
+/* ===== 星言旅途 v2：旅行手账风 ===== */
+.jrn-card{background:#fffdf8;border:1px solid rgba(139,115,85,0.18);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(90,74,58,0.05);position:relative;}
+.jrn-card-label{font-size:12px;font-weight:600;color:#b58a4a;letter-spacing:1px;}
+.jrn-divider{border-top:1px dashed rgba(139,115,85,0.28);margin:12px 0;}
+.jrn-route{display:flex;align-items:center;gap:4px;overflow-x:auto;padding:12px 2px;-webkit-overflow-scrolling:touch;}
+.jrn-dot{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:#f5efe4;border:2px solid rgba(139,115,85,0.25);display:flex;align-items:center;justify-content:center;font-size:14px;color:#8a7a6a;transition:all 0.2s;}
+.jrn-dot.on{background:linear-gradient(135deg,#e8d4b8,#d8c4e8);border-color:#b58a4a;box-shadow:0 0 10px rgba(181,138,74,0.35);transform:scale(1.12);}
+.jrn-link{flex-shrink:0;width:10px;height:2px;background:rgba(139,115,85,0.3);}
+.jrn-records{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.jrn-record{font-size:12px;color:#6b5a4a;line-height:1.7;padding:8px 12px;background:rgba(245,239,228,0.6);border-radius:10px;border-left:3px solid rgba(181,138,74,0.45);}
+.jrn-btn{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#e8d4b8,#d8c4e8);color:#5a4a3a;font-size:15px;font-weight:600;cursor:pointer;display:block;}
+.jrn-btn-ghost{background:rgba(255,253,248,0.9);color:#9a8a7a;border:1px solid rgba(139,115,85,0.2);}
+.jrn-choice{flex:1;}
+.jrn-rec-item{background:#fffdf8;border:1px solid rgba(139,115,85,0.18);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+.jrn-rec-item:active{background:#f5efe4;}
+@media (max-width:480px){.jrn-dot{width:30px;height:30px;font-size:13px;}}
+/* ===== 星言旅途 v2：事件沉浸展示 ===== */
+.jrn-ev-scene{font-size:13px;color:#6b5a4a;line-height:1.9;}
+.jrn-ev-action{margin-top:8px;font-size:13px;color:#6b5a4a;line-height:1.9;padding-left:10px;border-left:2px solid rgba(181,138,74,0.35);}
+.jrn-ev-line{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:10px 12px;background:rgba(232,212,184,0.18);border-radius:12px;}
+.jrn-who{flex-shrink:0;font-size:12px;font-weight:700;color:#8a6a3a;background:#f5efe4;border-radius:10px;padding:2px 8px;margin-top:2px;}
+.jrn-quote{font-size:13px;color:#6b5a4a;line-height:1.8;}
+.jrn-ev-memory{margin-top:10px;font-size:12px;color:#8a6a3a;line-height:1.8;padding:8px 10px;background:rgba(255,253,248,0.7);border-radius:10px;border:1px dashed rgba(181,138,74,0.4);}
+.jrn-ev-memory span{color:#5a4a3a;}
+.jrn-ev-gain{margin-top:8px;font-size:12px;color:#8a6a3a;}
+.jrn-ev-move{font-size:12px;color:#9a8a7a;margin-bottom:8px;letter-spacing:0.2px;}
 </style>
 
