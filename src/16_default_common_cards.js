@@ -522,54 +522,6 @@ async function loadGlobalCards(){
   }
   
   // 过滤掉与默认通用字卡内容重复的字卡，避免在公用字卡页面显示重复
-  if(_defaultCommonCards.length>0&&globalCards.length>0){
-    var dcContents=new Set(_defaultCommonCards.map(function(c){return c.content;}));
-    var originalCount=globalCards.length;
-    globalCards=globalCards.filter(function(card){
-      if(!card)return false;
-      // 只过滤公用字卡（type: 'public'），保留专享字卡
-      if(card.type==='public'||!card.type){
-        var content=card.content||card.text||'';
-        return !dcContents.has(content);
-      }
-      return true;
-    });
-    var removedCount=originalCount-globalCards.length;
-    if(removedCount>0){
-      console.log('已过滤掉 '+removedCount+' 张与默认通用字卡重复的字卡');
-      // 同时清理 cardGroups 中已无对应字卡的空分组（避免默认通用字卡的分组混入公用字卡）
-      if(typeof cardGroups!=='undefined'&&Array.isArray(cardGroups)&&cardGroups.length>0){
-        var dcGroupNames=new Set((_defaultCommonGroups||[]).map(function(g){return g.name}));
-        var originalGroupCount=cardGroups.length;
-        cardGroups=cardGroups.filter(function(g){
-          if(!g||!g.id||!g.name)return false;
-          // 只清理公用类型(type='public'或为空)的空分组
-          var gType=g.type||'public';
-          if(gType!=='public')return true;
-          // 检查该分组是否还有对应的公用字卡
-          var hasCards=globalCards.some(function(c){
-            return c&&c.groupId===g.id&&(c.type==='public'||!c.type);
-          });
-          if(hasCards)return true;
-          // 如果是空分组且名称与默认通用字卡分组相同，则清理
-          if(dcGroupNames.has(g.name))return false;
-          // 其他空分组保留（用户手动创建的）
-          return true;
-        });
-        var removedGroupCount=originalGroupCount-cardGroups.length;
-        if(removedGroupCount>0){
-          console.log('已清理 '+removedGroupCount+' 个与默认通用字卡重复的空分组');
-          saveCardGroups();
-        }
-      }
-      // 保存过滤后的结果到内存缓存
-      memoryCache['ml2_global_cards']=globalCards;
-      // 异步保存到存储
-      saveGlobalCardsDebounced();
-    }
-    console.log('字卡数据统计: 默认通用字卡 '+_defaultCommonCards.length+' 张, 用户公用/专享字卡 '+globalCards.length+' 张');
-  }
-
   var migratedCards=[];
   if(contacts&&contacts.length){
     contacts.forEach(function(contact){
@@ -1495,9 +1447,8 @@ async function importCardsJSON(rawData,options){
     return true;
   });
   
-  // ★ 公用字卡自动去重：
-  // overwrite=true（覆盖导入）：仅去除导入文件内部的重复公用字卡
-  // overwrite=false（合并导入）：与现有库中已有公用字卡按内容去重 + 文件内部去重
+  // ★ 公用字卡去重：仅在合并导入（overwrite=false）时，与现有库按内容去重；
+  // 覆盖导入（overwrite=true）完整保留文件全部字卡，不吞卡
   var dupCount=0;
   var existingPublicContent=new Set();
   if(!opts.overwrite){
@@ -1506,18 +1457,18 @@ async function importCardsJSON(rawData,options){
         existingPublicContent.add((ec.content||'').trim());
       }
     });
+    var seenContent=new Set();
+    filteredCards=filteredCards.filter(function(card){
+      if(card.type==='private'||card.type==='personal')return true;
+      var key=(card.content||'').trim();
+      if(existingPublicContent.has(key)||seenContent.has(key)){
+        dupCount++;
+        return false;
+      }
+      seenContent.add(key);
+      return true;
+    });
   }
-  var seenContent=new Set();
-  filteredCards=filteredCards.filter(function(card){
-    if(card.type==='private'||card.type==='personal')return true;
-    var key=(card.content||'').trim();
-    if(existingPublicContent.has(key)||seenContent.has(key)){
-      dupCount++;
-      return false;
-    }
-    seenContent.add(key);
-    return true;
-  });
   if(dupCount>0){
     toast('已自动去重 '+dupCount+' 张重复公用字卡');
   }
