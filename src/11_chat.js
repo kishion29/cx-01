@@ -1707,6 +1707,69 @@ function _doRenderMsgs(messages){
       var colAmt=x.redpacketCollectedAmount||'0';
       var colText=x.redpacketCollectedText||'红包已领取';
       contentHtml='<div class="message-redpacket-collected" style="background:linear-gradient(135deg,#f5e6d3,#e8d0b8);border-radius:12px;padding:14px;max-width:280px;box-shadow:0 2px 10px rgba(138,109,59,0.1);border:1px solid rgba(138,109,59,0.08);"><div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8a6d3b;"><span style="font-size:20px;flex-shrink:0;">🧧</span><span style="flex:1;min-width:0;font-weight:500;">'+colText+'</span><span style="font-weight:600;font-size:16px;flex-shrink:0;">¥'+colAmt+'</span></div></div>';
+    }else if(x.isInvite===true||x.isInvite==='true'){
+      var invStatus=x.inviteStatus||'pending';
+      var invStatusMap={pending:['等待回应','#8a6d3b','#fdf6e9','rgba(201,169,110,0.25)'],accept:['已接受','#4e7a54','#f0f7ef','rgba(78,122,84,0.15)'],reject:['已拒绝','#8a8a8a','#f5f5f5','rgba(0,0,0,0.08)'],noresponse:['未回应','#8a8a8a','#f5f5f5','rgba(0,0,0,0.08)']};
+      var invConf=invStatusMap[invStatus]||invStatusMap.pending;
+      var invContent=String(x.inviteContent||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      // ★ 居中卡片，不带聊天气泡
+      var invDir=x.s===SELF?'邀请TA':'TA邀请你';
+      var invD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var invTime=('0'+invD.getHours()).slice(-2)+':'+('0'+invD.getMinutes()).slice(-2);
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+        +'<div class="message-invite" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#f7efe0,#fdf6e9);display:flex;align-items:center;gap:8px;">'
+        +'<span style="font-size:18px;">🤝</span><span style="font-size:13px;font-weight:600;color:#8a6d3b;">'+invDir+'</span><span style="margin-left:auto;font-size:11px;color:#b09a70;">'+invTime+'</span></div>'
+        +'<div style="padding:12px 14px;">'
+        +'<div style="font-size:13px;color:var(--txt);line-height:1.6;">邀请内容：'+invContent+'</div>'
+        +'</div>'
+        +'<div style="padding:6px 14px;background:'+invConf[3]+';font-size:11px;color:'+invConf[1]+';text-align:center;">'+invConf[0]+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
+    }else if(x.isSurveyCard===true||x.isSurveyCard==='true'){
+      var svT=String(x.surveyTitle||'问卷').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var svQs=x.surveyQuestions||[];
+      var svD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var svTime=('0'+svD.getHours()).slice(-2)+':'+('0'+svD.getMinutes()).slice(-2);
+      var svHtml='';
+      svQs.forEach(function(sq,si){
+        var sqT=String(sq.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var sqA=String(sq.answer||'未作答').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var ansCol=sq.answer?'#5a4a3a':'#b0a08a';
+        svHtml+='<div style="padding:8px 0;border-top:1px solid rgba(0,0,0,0.05);">'
+          +'<div style="font-size:13px;color:var(--txt);line-height:1.6;">'+(si+1)+'. '+sqT+'</div>'
+          +'<div style="font-size:12px;color:'+ansCol+';margin-top:2px;">→ '+sqA+'</div>'
+          +'</div>';
+      });
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:320px;margin:0 auto;text-align:left;">'
+        +'<div class="message-survey-card" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#f2ead8,#faf4e6);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">📝</span><span style="font-size:13px;font-weight:600;color:#8a6d3b;">问卷</span><span style="margin-left:auto;font-size:11px;color:#b09a70;">'+svTime+'</span></div>'
+        +'<div style="padding:12px 14px;"><div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:4px;">'+svT+'</div>'+svHtml+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
+    }else if(x.isAskCard===true||x.isAskCard==='true'){
+      var askSt=x.askStatus||'pending';
+      var askMine=x.s===SELF;
+      var askConf=askSt==='answered'?['已回答','#4e7a54','#f0f7ef']:[askMine?'等待TA回答':'等待你的回答','#8a6d3b','#fdf6e9'];
+      var askQ=String(x.askQuestion||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var askA=String(x.askAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      // ★ 居中卡片，不带聊天气泡
+      var askDir=askMine?'我的提问':'TA的提问';
+      var askAnsLabel=askMine?'TA的回答：':'你的回答：';
+      var askClick=askMine?'':' onclick="openTAAskAnswer(\''+x.id+'\')"';
+      var askHint=askMine?'':'<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击回答</div>';
+      var askD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var askTime=('0'+askD.getHours()).slice(-2)+':'+('0'+askD.getMinutes()).slice(-2);
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+        +'<div class="message-ta-ask"'+askClick+' style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);'+(askMine?'':'cursor:pointer;')+'">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#e8e2f5,#f4f0fb);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">💬</span><span style="font-size:13px;font-weight:600;color:#6b5ca8;">'+askDir+'</span><span style="margin-left:auto;font-size:11px;color:#a89ac8;">'+askTime+'</span></div>'
+        +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+askQ+'</div>'+(askSt==='answered'?'<div style="font-size:12px;color:var(--txt2);margin-top:6px;">'+askAnsLabel+askA+'</div>':askHint)+'</div>'
+        +'<div style="padding:6px 14px;background:'+askConf[2]+';font-size:11px;color:'+askConf[1]+';text-align:center;">'+askConf[0]+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
     }else if(x.isRedpacket===true||x.isRedpacket==='true'){
       isRedpacketMsg=true;
       var rpAmount=x.redpacketAmount||'0';
@@ -2077,7 +2140,7 @@ function _doRenderMsgs(messages){
     }
     
     var ssCheckboxHtml='';
-    if(longScreenshotMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isCall||x.isRedpacket||x.voice)){
+    if(longScreenshotMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isCall||x.isRedpacket||x.voice||x.isInvite||x.isAskCard||x.isSurveyCard)){
       var isChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
       ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
     }else if(favMsgMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isRedpacket||x.voice)){

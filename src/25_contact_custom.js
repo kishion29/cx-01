@@ -1,4 +1,4 @@
-// ---------- Per-Contact Chatbar Customization ----------
+﻿// ---------- Per-Contact Chatbar Customization ----------
 var contactChatbarWorkingCopy=null;
 
 function getContactChatbarEnabled(contactId){
@@ -696,15 +696,27 @@ function exportFavVoicesZip(){
     (myFavs[cid2]||[]).forEach(function(f,idx){
       if(!f.msgData)return;
       var _base=cname+'_'+String(f.msgText||('语音'+idx)).slice(0,12);
-      if(f.msgData.mmAudioUrl){
-        entries.push({name:_base+'.mp3',url:f.msgData.mmAudioUrl,fallback:f.msgData.voice});
-      }else if(f.msgData.voice){
+      var _v=f.msgData.voice;
+      var _url=f.msgData.mmAudioUrl;
+      // ★ 优先本地语音数据（dataURL / IndexedDB 引用键），远程 mmAudioUrl 跨域不可靠
+      if(_v&&(_v.indexOf('data:')===0||_v.indexOf('ml2_')===0)){
         var _ext='.webm';
-        var _v=f.msgData.voice;
         if(/audio\/(mp4|m4a|aac)/i.test(_v))_ext='.m4a';
         else if(/audio\/mp3/i.test(_v))_ext='.mp3';
         else if(/audio\/ogg/i.test(_v))_ext='.ogg';
-        entries.push({name:_base+_ext,data:_v});
+        entries.push({name:_base+_ext,data:_v,ts:f.timestamp});
+      }else if(_v&&_v.indexOf('http')===0){
+        var _ext2='.mp3';
+        if(/audio\/(mp4|m4a|aac)/i.test(_v))_ext2='.m4a';
+        else if(/audio\/ogg/i.test(_v))_ext2='.ogg';
+        else if(/audio\/webm/i.test(_v))_ext2='.webm';
+        entries.push({name:_base+_ext2,url:_v,fallback:_url&&_url!==_v?_url:null,ts:f.timestamp});
+      }else if(_url){
+        var _ext3='.mp3';
+        if(/audio\/(mp4|m4a|aac)/i.test(_url))_ext3='.m4a';
+        else if(/audio\/ogg/i.test(_url))_ext3='.ogg';
+        else if(/audio\/webm/i.test(_url))_ext3='.webm';
+        entries.push({name:_base+_ext3,url:_url,fallback:_v||null,ts:f.timestamp});
       }
     });
   });
@@ -719,8 +731,17 @@ function exportFavVoicesZip(){
         if(d.indexOf('ml2_msg_voice_')===0||d.indexOf('ml2_')===0){
           if(window.localforage&&typeof window.localforage.getItem==='function'){
             window.localforage.getItem(d).then(function(big){
-              if(big&&typeof big==='string'){try{res(dataUrlToU8(big));}catch(err){res(null);}}
-              else res(null);
+              if(!big){res(null);return;}
+              if(typeof big==='string'){
+                if(big.indexOf('data:')===0){try{res(dataUrlToU8(big));}catch(err){res(null);}}
+                else{try{res(dataUrlToU8('data:audio/mpeg;base64,'+big));}catch(err){res(null);}}
+              }else if(big instanceof ArrayBuffer){
+                res(new Uint8Array(big));
+              }else if(big&&big.byteLength!==undefined){
+                res(new Uint8Array(big.buffer||big));
+              }else if(big&&typeof big.arrayBuffer==='function'){
+                big.arrayBuffer().then(function(ab){res(new Uint8Array(ab));}).catch(function(){res(null);});
+              }else{res(null);}
             }).catch(function(){res(null);});
           }else{res(null);}
           return;
@@ -730,6 +751,22 @@ function exportFavVoicesZip(){
       });
     }
     var _primary=e.data||(e.url&&e.url.indexOf('data:')===0?e.url:null);
+    // ★ 兜底：从聊天记录按时间匹配找回原消息语音
+    function _chatVoiceFallback(ts2,name){
+      try{
+        var _ms=msgs(cid2);
+        if(!_ms)return null;
+        for(var i2=0;i2<_ms.length;i2++){
+          var _x=_ms[i2];
+          if(!_x||!(_x.voice||_x.mmAudioUrl))continue;
+          var _tv=_x.ts instanceof Date?_x.ts.getTime():new Date(_x.ts).getTime();
+          if(Math.abs(_tv-(ts2||0))<4000){
+            return getData(_x.voice||_x.mmAudioUrl).then(function(f){return f?{name:name,u8:f}:null;});
+          }
+        }
+      }catch(e){}
+      return null;
+    }
     return getData(_primary).then(function(u8){
       if(u8)return {name:e.name,u8:u8};
       if(e.url&&e.url.indexOf('http')===0){
@@ -737,11 +774,11 @@ function exportFavVoicesZip(){
           .then(function(ab){return {name:e.name,u8:new Uint8Array(ab)};})
           .catch(function(){
             if(e.fallback)return getData(e.fallback).then(function(f){return f?{name:e.name,u8:f}:null;});
-            return null;
+            return _chatVoiceFallback(e.ts,e.name);
           });
       }
       if(e.fallback)return getData(e.fallback).then(function(f){return f?{name:e.name,u8:f}:null;});
-      return null;
+      return _chatVoiceFallback(e.ts,e.name);
     });
   })).then(function(results){
     var files=results.filter(Boolean);

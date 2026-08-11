@@ -14,7 +14,7 @@
 <!-- 即时加载动画：在页面解析期间显示，减少手机端白屏/卡顿感 -->
 <div id="early-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;">
   <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:9px;color:#c4b39c;line-height:1.7;letter-spacing:0.5px;padding:0 16px;">星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入 AI。AI 为附带功能，可在设置的 api 接口中按需接入（可选）。不接入 AI 也能正常使用全部核心功能。<br>内容参考：AI 生成的所有内容仅供参考，不代表任何事实，请理性看待。</div>
-  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-11 18:01</div>
+  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-11 21:14</div>
   <div style="font-size:32px;color:#c9a96e;margin-bottom:24px;animation:splashPulse 1.5s ease-in-out infinite">✦</div>
   <div style="display:flex;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></span></div>
   <div style="font-size:13px;color:#b0a08a;letter-spacing:2px;margin-top:20px;" id="splash-status">星言加载中...</div>
@@ -1941,6 +1941,28 @@ function showUsageNoticeFromSplash() {
 </div>
 
 <!-- My -->
+
+<!-- Piggy Bank Page（星言存钱罐） -->
+<div class="page" id="pg-piggy">
+  <div class="nav">
+    <div class="nl"><button class="btn-nav" onclick="piggyBack()">←</button></div>
+    <span class="tt">✨ 星言存钱罐</span>
+    <div class="nr"><button class="btn-nav" onclick="showPiggyCreate()" style="font-size:20px;">＋</button></div>
+  </div>
+  <div id="piggy-body" style="flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;"></div>
+</div>
+
+<!-- Piggy Modal（星言存钱罐表单） -->
+<div class="overlay" id="ov-piggy-modal">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3 id="piggy-modal-title">✨ 星言存钱罐</h3><button class="btn-close" onclick="hideOv('ov-piggy-modal')">✕</button></div>
+    <div class="sb" id="piggy-modal-fields" style="padding:16px;"></div>
+    <div class="modal-footer" style="padding:14px 16px;">
+      <button class="btn" onclick="submitPiggyForm()" style="background:var(--accent);">确认</button>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="pg-my">
   <div class="nav"><span class="tt">设置</span></div>
   <div id="my-scroll">
@@ -2774,7 +2796,88 @@ function showUsageNoticeFromSplash() {
   </div>
 </div>
 
+
+<!-- TA's Daily Modal（TA的日常） -->
+
+<!-- TA's Ask Answer Modal（TA的询问回答） -->
+<div class="overlay" id="ov-ta-ask-answer">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>💬 回答TA</h3><button class="btn-close" onclick="hideOv('ov-ta-ask-answer')">✕</button></div>
+    <div class="sb" style="padding:16px;">
+      <div style="font-size:13px;color:var(--txt);line-height:1.6;margin-bottom:12px;background:var(--c2);border-radius:10px;padding:10px 12px;" id="ta-ask-answer-question"></div>
+      <input id="ta-ask-answer-input" type="text" placeholder="输入你的回答..." style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
+      <button class="btn" onclick="submitTAAskAnswer()" style="margin-top:14px;background:var(--accent);">发送回答</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Ask Manage Modal（TA的询问管理） -->
+<div class="overlay" id="ov-ta-ask-manage">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>❓ TA的询问 · 管理</h3><button class="btn-close" onclick="hideOv('ov-ta-ask-manage')">✕</button></div>
+    <div class="sb" id="ta-ask-manage-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+
+<!-- Ask/Invite Records Modal（提问和邀请记录） -->
+<div class="overlay" id="ov-ask-invite-records">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>🗂️ 提问和邀请记录</h3><button class="btn-close" onclick="hideOv('ov-ask-invite-records')">✕</button></div>
+    <div class="sb" id="ask-invite-records-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-footer" style="padding:12px 16px;">
+      <button class="btn" onclick="clearAskInvRec()" style="background:var(--c3);color:var(--txt);">清空记录</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Ask TA Modal（向TA提问） -->
+<div class="overlay" id="ov-ask-ta">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>🙋 向TA提问</h3><button class="btn-close" onclick="hideOv('ov-ask-ta')">✕</button></div>
+    <div class="sb" style="padding:16px;">
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">想问TA什么？</div>
+      <input id="ask-ta-input" type="text" placeholder="例如：你喜欢什么颜色？" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
+      <button class="btn" onclick="sendAskTa()" style="margin-top:14px;background:var(--accent);">发送提问</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-ta-daily">
+  <div class="modal" style="width:90%;max-width:480px;">
+    <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:16px;font-weight:600;">🌙 TA的日常</div>
+    </div>
+    <div id="ta-daily-body" style="max-height:70vh;overflow-y:auto;padding:16px;"></div>
+    <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="hideOv('ov-ta-daily')" style="flex:1;background:#6E6A64;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Daily Manage Modal（TA的日常管理：地点库/行动库/字卡库 - 全屏） -->
+<div class="overlay" id="ov-ta-daily-manage">
+  <div class="sheet" style="max-width:100vw;width:100vw;height:100dvh;margin:0;border-radius:0;">
+    <div class="sh" style="padding-top:calc(env(safe-area-inset-top) + 12px);"><h3>🌙 TA的日常字卡库</h3><button class="btn-close" onclick="hideOv('ov-ta-daily-manage')">✕</button></div>
+    <div class="sb" id="ta-daily-manage-body" style="padding:16px;max-height:calc(100dvh - 60px);overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);"></div>
+  </div>
+</div>
+
 <!-- TA's Distance Modal（TA与你的距离） -->
+
+<!-- Invite Modal（邀请） -->
+<div class="overlay" id="ov-invite">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>🤝 邀请TA</h3><button class="btn-close" onclick="hideOv('ov-invite')">✕</button></div>
+    <div class="sb" style="padding:16px;">
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">想邀请TA做什么？</div>
+      <input id="invite-input" type="text" placeholder="例如：一起睡觉" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
+      <button class="btn" onclick="sendInvite()" style="margin-top:14px;background:var(--accent);">发送邀请</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="ov-ta-distance">
   <div class="modal" style="width:90%;max-width:480px;">
     <div class="modal-head" style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
@@ -4486,7 +4589,7 @@ function showUsageNoticeFromSplash() {
         <div class="set-row"><span>图片回复概率</span><div class="stepper" data-k="image-prob"><button>−</button><input type="number" class="sv" id="image-prob-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
         <div class="set-row"><span>语音消息回复概率</span><div class="stepper" data-k="voice-prob"><button>−</button><input type="number" class="sv" id="voice-prob-val" value="10"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
         <div class="set-row"><span>引用消息概率</span><div class="stepper" data-k="quote-prob"><button>−</button><input type="number" class="sv" id="quote-prob-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
-        <div class="set-row"><span>撤回消息概率</span><div class="stepper" data-k="rc-prob"><button>−</button><input type="number" class="sv" id="rc-prob-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span>
+        <div class="set-row"><span>撤回消息概率</span><div class="stepper" data-k="rc-prob"><button>−</button><input type="number" class="sv" id="rc-prob-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
         <div class="set-row"><span>撤回后补发概率</span><div class="stepper" data-k="rc-refix"><button>−</button><input type="number" class="sv" id="rc-refix-val" value="35"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
         <div class="set-row"><span>拍一拍概率</span><div class="stepper" data-k="touch-prob"><button>−</button><input type="number" class="sv" id="touch-prob-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
         <div class="set-row"><span>Emoji回复概率</span><div class="stepper" data-k="emoji-prob"><button>−</button><input type="number" class="sv" id="emoji-prob-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
@@ -4497,7 +4600,7 @@ function showUsageNoticeFromSplash() {
         <div style="font-size:13px;color:var(--txt);margin-bottom:10px;font-weight:600">回复消息条数</div>
         <div class="set-row"><span style="color:var(--txt3);font-size:12px;">当我发送1条消息，联系人每次回复消息条数</span></div>
         <div class="set-row"><span>最少</span><div class="stepper" data-k="reply-min"><button>−</button><input type="number" class="sv" id="reply-min-val" value="1"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">条</span></div>
-        <div class="set-row"><span>最多</span><div class="stepper" data-k="reply-max"><button>−</button><input type="number" class="sv" id="reply-max-val" value="5"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">条</span></div>
+        <div class="set-row"><span>最多</span><div class="stepper" data-k="reply-max"><button>−</button><input type="number" class="sv" id="reply-max-val" value="2"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">条</span></div>
       </div>
 
       <div style="margin-bottom:16px;padding:12px;background:var(--c2);border-radius:10px;">

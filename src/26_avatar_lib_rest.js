@@ -1848,8 +1848,9 @@ function migrateSettings(){
     speedData.reply_min = 1;
     updated = true;
   }
-  if (speedData.reply_max === undefined) {
-    speedData.reply_max = 5;
+  // ★ 回复条数：旧默认 5 强制升级到 2
+  if (speedData.reply_max === undefined || speedData.reply_max === 5) {
+    speedData.reply_max = 2;
     updated = true;
   }
   if (speedData.rn_prob === undefined) {
@@ -1906,6 +1907,23 @@ function migrateSettings(){
     ls('ml2_speed', speedData);
     if (window.localforage) {
       try { window.localforage.setItem('ml2_speed', speedData); } catch(e) {}
+    }
+  }
+  // ★ 迁移每个联系人的旧默认 reply_max=5 → 2
+  if (speedData.contacts) {
+    var contactUpdated = false;
+    Object.keys(speedData.contacts).forEach(function(cid) {
+      var c = speedData.contacts[cid];
+      if (c && c.reply_max === 5) {
+        c.reply_max = 2;
+        contactUpdated = true;
+      }
+    });
+    if (contactUpdated) {
+      ls('ml2_speed', speedData);
+      if (window.localforage) {
+        try { window.localforage.setItem('ml2_speed', speedData); } catch(e) {}
+      }
     }
   }
   
@@ -3299,8 +3317,36 @@ var SurveyApp = (function() {
         html+='</div>';
       });
       html+='</div>';
+      html+='<div style="padding:12px;"><button class="btn" onclick="SurveyApp.sendSurveyToChat('+index+')" style="background:var(--accent);">发送至当前联系人聊天</button></div>';
       content.innerHTML=html;
       showOv('ov-survey-detail');
+    });
+  }
+  
+  // ★ 问卷记录发送至当前联系人聊天
+  function sendSurveyToChat(index){
+    if(!cid){toast('请先进入聊天');return;}
+    loadSurveyRecords().then(function(records){
+      if(!records||!records[index]){toast('记录不存在');return;}
+      var r=records[index];
+      // ★ 以完整问卷卡片形式发送
+      var qList=(r.questions||[]).map(function(q,i){
+        var rawAns=r.answers&&r.answers[i]?r.answers[i]:null;
+        var answer='';
+        if(rawAns){
+          if(typeof rawAns==='string')answer=rawAns;
+          else if(rawAns.answer!=null)answer=rawAns.answer;
+          else if(rawAns.value!=null)answer=rawAns.value;
+        }
+        if(answer==='(未回答)'||answer==='未回答')answer='';
+        return {text:q.text||'',answer:answer||''};
+      });
+      var m=msgs(cid);
+      m.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),s:SELF,isSurveyCard:true,surveyTitle:r.title||'问卷',surveyQuestions:qList,ts:new Date(),read:true});
+      savemsgs(cid,m);
+      renderMsgs(m);
+      hideOv('ov-survey-detail');
+      toast('已发送至当前聊天');
     });
   }
   
@@ -3904,6 +3950,7 @@ var SurveyApp = (function() {
     adjustSkipProb:adjustSkipProb,
     setSkipProbDirect:setSkipProbDirect,
     showSurveyDetail:showSurveyDetail,
+    sendSurveyToChat:sendSurveyToChat,
     _loadRecords:loadSurveyRecords
   };
 })();
@@ -6358,7 +6405,70 @@ async function generateLongScreenshot(){
       
       // Content
       var contentHtml='';
-      if(x.retracted){
+      if(x.isInvite===true||x.isInvite==='true'){
+        var invSt=x.inviteStatus||'pending';
+        var invStTxt={pending:'等待回应',accept:'已接受',reject:'已拒绝',noresponse:'未回应'}[invSt]||'等待回应';
+        var invD2=x.ts instanceof Date?x.ts:new Date(x.ts);
+        var invTm2=('0'+invD2.getHours()).slice(-2)+':'+('0'+invD2.getMinutes()).slice(-2);
+        var invC2=String(x.inviteContent||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var invBg2=invSt==='accept'?'#f0f7ef':(invSt==='pending'?'#fdf6e9':'#f5f5f5');
+        var invCol2=invSt==='accept'?'#4e7a54':(invSt==='pending'?'#8a6d3b':'#8a8a8a');
+        // ★ 居中卡片，不带聊天气泡
+        var invDir2=x.s===SELF?'邀请TA':'TA邀请你';
+        var invD3=x.ts instanceof Date?x.ts:new Date(x.ts);
+        var invTime2=('0'+invD3.getHours()).slice(-2)+':'+('0'+invD3.getMinutes()).slice(-2);
+        htmlParts.push('<div class="message-system-row" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+          +'<div class="message-invite" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);">'
+          +'<div style="padding:12px 14px;background:linear-gradient(135deg,#f7efe0,#fdf6e9);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">🤝</span><span style="font-size:13px;font-weight:600;color:#8a6d3b;">'+invDir2+'</span><span style="margin-left:auto;font-size:11px;color:#b09a70;">'+invTime2+'</span></div>'
+          +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">邀请内容：'+invC2+'</div></div>'
+          +'<div style="padding:6px 14px;background:'+invBg2+';font-size:11px;color:'+invCol2+';text-align:center;">'+invStTxt+'</div>'
+          +'</div></div></div>');
+        lt=d.getTime();
+        continue;
+      }else if(x.isSurveyCard===true||x.isSurveyCard==='true'){
+        var svT2=String(x.surveyTitle||'问卷').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var svQs2=x.surveyQuestions||[];
+        var svD2=x.ts instanceof Date?x.ts:new Date(x.ts);
+        var svTime2=('0'+svD2.getHours()).slice(-2)+':'+('0'+svD2.getMinutes()).slice(-2);
+        var svHtml2='';
+        svQs2.forEach(function(sq2,si2){
+          var sqT2=String(sq2.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          var sqA2=String(sq2.answer||'未作答').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          var ansCol2=sq2.answer?'#5a4a3a':'#b0a08a';
+          svHtml2+='<div style="padding:8px 0;border-top:1px solid rgba(0,0,0,0.05);">'
+            +'<div style="font-size:13px;color:var(--txt);line-height:1.6;">'+(si2+1)+'. '+sqT2+'</div>'
+            +'<div style="font-size:12px;color:'+ansCol2+';margin-top:2px;">→ '+sqA2+'</div>'
+            +'</div>';
+        });
+        htmlParts.push('<div class="message-system-row" style="margin:24px 0;"><div style="max-width:320px;margin:0 auto;text-align:left;">'
+          +'<div class="message-survey-card" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);">'
+          +'<div style="padding:12px 14px;background:linear-gradient(135deg,#f2ead8,#faf4e6);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">📝</span><span style="font-size:13px;font-weight:600;color:#8a6d3b;">问卷</span><span style="margin-left:auto;font-size:11px;color:#b09a70;">'+svTime2+'</span></div>'
+          +'<div style="padding:12px 14px;"><div style="font-size:15px;font-weight:600;color:var(--txt);margin-bottom:4px;">'+svT2+'</div>'+svHtml2+'</div>'
+          +'</div></div></div>');
+        lt=d.getTime();
+        continue;
+      }else if(x.isAskCard===true||x.isAskCard==='true'){
+        var askSt2=x.askStatus||'pending';
+        var askMine2=x.s===SELF;
+        var askTxt2=askSt2==='answered'?'已回答':(askMine2?'等待TA回答':'等待你的回答');
+        var askCol2=askSt2==='answered'?'#4e7a54':'#8a6d3b';
+        var askBg2=askSt2==='answered'?'#f0f7ef':'#fdf6e9';
+        var askQ2=String(x.askQuestion||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var askA2=String(x.askAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        // ★ 居中卡片，不带聊天气泡
+        var askDir2=askMine2?'我的提问':'TA的提问';
+        var askAnsLabel2=askMine2?'TA的回答：':'你的回答：';
+        var askD2=x.ts instanceof Date?x.ts:new Date(x.ts);
+        var askTime2=('0'+askD2.getHours()).slice(-2)+':'+('0'+askD2.getMinutes()).slice(-2);
+        htmlParts.push('<div class="message-system-row" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+          +'<div class="message-ta-ask" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);">'
+          +'<div style="padding:12px 14px;background:linear-gradient(135deg,#e8e2f5,#f4f0fb);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">💬</span><span style="font-size:13px;font-weight:600;color:#6b5ca8;">'+askDir2+'</span><span style="margin-left:auto;font-size:11px;color:#a89ac8;">'+askTime2+'</span></div>'
+          +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+askQ2+'</div>'+(askSt2==='answered'?'<div style="font-size:12px;color:var(--txt2);margin-top:6px;">'+askAnsLabel2+askA2+'</div>':'')+'</div>'
+          +'<div style="padding:6px 14px;background:'+askBg2+';font-size:11px;color:'+askCol2+';text-align:center;">'+askTxt2+'</div>'
+          +'</div></div></div>');
+        lt=d.getTime();
+        continue;
+      }else if(x.retracted){
         contentHtml='<div class="message-retracted">对方撤回了一条消息</div>';
       }else if(x.img||(x.t&&typeof x.t==='string'&&x.t.startsWith('data:image/'))){
         var imgUrl=x.img||x.t;
