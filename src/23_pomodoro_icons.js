@@ -6100,7 +6100,7 @@ function showAiInterpretPanel(){
       ov.style.setProperty('z-index','99998','important');
     }catch(e){try{ov.style.zIndex='99998';}catch(e2){}}
   }
-  showAiInterpretPanel();
+  showOv('ov-ai-interpret');
 }
 function aiChatMsgsKey(){
   // ★ v2: 全局存储。按联系人分 key 会导致刷新后打开时 cid 不同而"丢失"历史；
