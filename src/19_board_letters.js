@@ -860,21 +860,24 @@ function bindMyPageEvents(){
       try{
         var confirmed=await customConfirm('确定清除所有数据？包括联系人、聊天记录、信箱、朋友圈等，且无法恢复。');
         if(!confirmed){window._clearingData=false;return;}
-        try{if(window.indexedDB)indexedDB.deleteDatabase('StarDB')}catch(e){}
+        // ★ v2: deleteDatabase 必须 await 完成，否则 location.reload() 会打断删除，IndexedDB 数据"复活"
+        var _delDB=function(n){return new Promise(function(res){
+          try{
+            if(!window.indexedDB){res();return;}
+            var rq=window.indexedDB.deleteDatabase(n);
+            rq.onsuccess=function(){res();};
+            rq.onerror=function(){res();};
+            rq.onblocked=function(){res();};
+          }catch(e){res();}
+        });};
+        await _delDB('Star');
+        await _delDB('StarDB');
         if(window.localforage){
           await window.localforage.clear().catch(function(){});
-          localStorage.clear();
-          sessionStorage.clear();
-          try{if(window.indexedDB)indexedDB.deleteDatabase('StarDB')}catch(e){}
-          try{if(window.indexedDB)indexedDB.deleteDatabase('Star')}catch(e){}
-          location.reload();
-        }else{
-          localStorage.clear();
-          sessionStorage.clear();
-          try{if(window.indexedDB)indexedDB.deleteDatabase('StarDB')}catch(e){}
-          try{if(window.indexedDB)indexedDB.deleteDatabase('Star')}catch(e){}
-          location.reload();
         }
+        try{localStorage.clear();}catch(e){}
+        try{sessionStorage.clear();}catch(e){}
+        location.reload();
       }catch(e){window._clearingData=false;}
     }],
     ['keep-alive-btn',toggleKeepAlive],

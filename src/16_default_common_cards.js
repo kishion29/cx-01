@@ -1677,7 +1677,7 @@ async function importCardsJSON(rawData,options){
   },300);
   renderCardGroups();
   renderCardList();
-  toast('字卡数据已导入');
+  toast('已导入 '+filteredCards.length+' 张字卡'+(dupCount>0?'（自动去重 '+dupCount+' 张）':'')+', 当前共 '+globalCards.length+' 张');
 }
 
 async function openCardSettings(){

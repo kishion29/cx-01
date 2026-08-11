@@ -4326,7 +4326,7 @@ function statsCardSection(icon,title,countMap,topLabel,emptyText){
   return html;
 }
 
-// ---------- 星音陪伴 ----------
+// ---------- 星音相伴 ----------
 var starMusicLibrary=[];
 var starMusicPlaylists=[];
 var starMusicCurrentId=null;
@@ -5943,7 +5943,7 @@ function getAllContacts(){
   return [];
 }
 
-// ---------- 星音陪伴说明弹窗 ----------
+// ---------- 星音相伴说明弹窗 ----------
 function showStarMusicInfo(){
   loadStarMusicData();
   $('sm-info-prob-slider').value=starMusicGlobalSettings.requestProb||5;
@@ -6017,7 +6017,7 @@ function saveStarMusicInfoSettings(){
 }
 
 
-// ---------- 自定义歌曲（星音陪伴） ----------
+// ---------- 自定义歌曲（星音相伴） ----------
 var starMusicCustomSongs=[];
 var starMusicCustomAudio=null;
 

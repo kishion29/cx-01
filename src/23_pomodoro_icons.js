@@ -1,4 +1,4 @@
-// ---------- Pomodoro Timer (番茄钟) v2 ----------
+﻿// ---------- Pomodoro Timer (番茄钟) v2 ----------
 var pomodoroState = {
   phase: 'work',
   remaining: 25 * 60,
@@ -1536,7 +1536,7 @@ var chatbarItems=[
   {id:'divine',name:'占卜',icon:'🔮',fixed:false,category:'聊天互动'},
   {id:'call',name:'通话',icon:'📞',fixed:false,category:'聊天互动'},
   {id:'survey',name:'调查问卷',icon:'📝',fixed:false,category:'更多'},
-  {id:'star_music',name:'星音陪伴',icon:'🎵',fixed:false,category:'聊天互动'},
+  {id:'star_music',name:'星音相伴',icon:'🎵',fixed:false,category:'更多'},
   {id:'giftbox',name:'礼物盒',icon:'🎁',fixed:false,category:'聊天互动'},
   {id:'letters',name:'信箱',icon:'✉️',fixed:false,category:'更多'},
   {id:'board',name:'我的留言板',icon:'📋',fixed:false,category:'更多'},
@@ -1547,18 +1547,18 @@ var chatbarItems=[
   {id:'contact-profile',name:'梦角主页',icon:'🏠',category:'梦角',fixed:false},
   {id:'favorites',name:'TA的收藏夹',icon:'⭐',fixed:false,category:'梦角'},
   {id:'ta_highlights',name:'TA想说的重点',icon:'💬',fixed:false,category:'梦角'},
-  {id:'ai_card_records',name:'AI解读字卡记录',icon:'📚',fixed:false,category:'消息工具'},
+  {id:'ai_card_records',name:'AI解读字卡记录',icon:'📚',fixed:false,category:'AI'},
   {id:'chat_stats',name:'聊天统计',icon:'📊',fixed:false,category:'消息工具'},
   {id:'star_cal',name:'星言日历',icon:'✨',fixed:false,category:'梦角'},
   {id:'ta_distance',name:'TA与你的距离',icon:'📍',fixed:false,category:'梦角'},
   {id:'ta_touch',name:'TA的触碰',icon:'💫',fixed:false,category:'梦角'},
-  {id:'ai_card_memory',name:'AI解读记忆库',icon:'📔',fixed:false,category:'梦角'},
-  {id:'read_together',name:'一起阅读',icon:'📖',fixed:false,category:'更多'},
-  {id:'read_video',name:'一起看视频',icon:'🎬',fixed:false,category:'更多'},
+  {id:'ai_card_memory',name:'AI解读记忆库',icon:'📔',fixed:false,category:'AI'},
+  {id:'read_together',name:'星阅相伴',icon:'📖',fixed:false,category:'更多'},
+  {id:'read_video',name:'星影相伴',icon:'🎬',fixed:false,category:'更多'},
   {id:'meals',name:'一日三餐',icon:'🍽️',fixed:false,category:'更多'},
     {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
-  {id:'ai_chat',name:'AI聊天',icon:'💬',fixed:false,category:'更多'},
-  {id:'ai_diviner',name:'AI占卜师',icon:'🔮',fixed:false,category:'更多'},
+  {id:'ai_chat',name:'AI聊天',icon:'💬',fixed:false,category:'AI'},
+  {id:'ai_diviner',name:'AI占卜师',icon:'🔮',fixed:false,category:'AI'},
   
   {id:'add',name:'添加好友',icon:'+',fixed:false,category:'其他'},
   {id:'search',name:'搜索',icon:'🔍',fixed:false,category:'其他'},
@@ -1567,7 +1567,7 @@ var chatbarItems=[
   {id:'send',name:'发送',icon:'📤',fixed:false,category:'其他'},
   {id:'more_action',name:'更多操作',icon:'⋯',fixed:false,category:'其他'}
 ];
-var chatbarCategoryOrder=['消息工具','聊天互动','更多','梦角','字卡库','底部导航','其他'];
+var chatbarCategoryOrder=['消息工具','聊天互动','更多','梦角','字卡库','AI','底部导航','其他'];
 var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','moments','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','ta_distance','ta_touch','diary','giftbox'];
 
 // ★ TA与你的距离：梦角存在感可视化（随机生成，非地图定位）
@@ -1624,6 +1624,20 @@ function taPickWeighted(arr){
 }
 function showTADistance(){
   if(!cid){toast('请先进入聊天');return;}
+  // ★ 雾蓝夜配色（空间感/陪伴感）：弹窗级 CSS 变量，只影响本弹窗
+  try{
+    var _ovd=document.getElementById('ov-ta-distance');
+    if(_ovd){
+      _ovd.style.setProperty('--c1','#FBF6EE');
+      _ovd.style.setProperty('--c2','#FFFDF8');
+      _ovd.style.setProperty('--c3','#FFFDF8');
+      _ovd.style.setProperty('--txt','#4B4138');
+      _ovd.style.setProperty('--txt2','#85796B');
+      _ovd.style.setProperty('--txt3','#A39A8E');
+      _ovd.style.setProperty('--accent','#6E6A64');
+      _ovd.style.setProperty('--border','rgba(110,106,100,0.22)');
+    }
+  }catch(e){}
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
   var data=ls('ml2_ta_distance')||{};
   if(!data.records)data.records={};
@@ -1784,11 +1798,12 @@ function showTADistance(){
     else _lcTxt=Math.floor(_lcMs/86400000)+'天前';
     lastChange=_lcTxt+'，'+( _lc.text||'TA的位置发生了变化。');
   }
-  var moodBg='';
-  if(level.key==='贴近'||level.key==='很近')moodBg='linear-gradient(160deg,rgba(255,200,150,0.25),rgba(255,255,255,0))';
-  else if(level.key==='稍远')moodBg='linear-gradient(160deg,rgba(150,170,200,0.18),rgba(255,255,255,0))';
-  else if(level.key==='远')moodBg='linear-gradient(160deg,rgba(160,150,160,0.12),rgba(255,255,255,0))';
-  else moodBg='linear-gradient(160deg,rgba(255,220,180,0.18),rgba(255,255,255,0))';
+  var moodBg='#FBF6EE';
+  // ★ 距离变化视觉温度：统一暖色系，仅深浅区分
+  if(level.key==='贴近'||level.key==='很近')moodBg='#F3E4C8';
+  else if(level.key==='稍远')moodBg='#F6EDD9';
+  else if(level.key==='远')moodBg='#F6EDD9';
+  else moodBg='#F3E7D0';
   var titleEl=document.querySelector('#ov-ta-distance .modal-title');
   if(titleEl)titleEl.textContent='📍 '+contact.name+'与你的距离';
   var html='';
@@ -1798,12 +1813,12 @@ function showTADistance(){
   // 当前感知描述（组合句）
   html+='<div style="border-radius:16px;padding:22px;background:'+moodBg+';border:1px solid rgba(255,190,130,0.35);margin-bottom:14px;box-shadow:0 4px 18px rgba(255,180,120,0.12);">';
   html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前感知</div>';
-  html+='<div style="font-size:18px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.5;">'+level.key+' · '+dir+'</div>';
+  html+='<div style="font-size:18px;font-weight:700;color:var(--txt);margin:6px 0 2px;line-height:1.5;">'+level.key+' · '+dir+'</div>';
   html+='<div style="font-size:13px;color:var(--txt2);">'+pos.desc+' '+level.sense+'</div>';
   var _perT=new Date(nowTs);
   html+='<div style="font-size:11px;color:var(--txt3);margin-top:8px;">感知于 '+('0'+_perT.getHours()).slice(-2)+':'+('0'+_perT.getMinutes()).slice(-2)+'</div>';
   html+='</div>';
-  html+='<div style="text-align:center;margin:-6px 0 14px;"><button onclick="taDistanceRefresh()" style="padding:8px 24px;border:1px solid var(--accent);border-radius:20px;background:var(--c2);color:var(--accent);font-size:13px;cursor:pointer;">🔮 刷新感知</button></div>';
+  
   // 距离 / 方向 两卡
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);box-shadow:0 3px 12px rgba(0,0,0,0.05);">';
@@ -1833,11 +1848,11 @@ function showTADistance(){
   // 感知强度 / 距离趋势 / 停留时间 / 变化原因
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);margin-bottom:14px;">';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
-  html+='<div><div style="font-size:12px;color:var(--txt3);">感知强度</div><div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;">'+(perceive?perceive.key:'温和')+'</div><div style="font-size:11px;color:var(--txt2);">'+(perceive?perceive.desc:'')+'</div></div>';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">感知强度</div><div style="font-size:18px;font-weight:700;color:var(--txt);margin-top:4px;">'+(perceive?perceive.key:'温和')+'</div><div style="font-size:11px;color:var(--txt2);">'+(perceive?perceive.desc:'')+'</div></div>';
   html+='<div><div style="font-size:12px;color:var(--txt3);">距离趋势</div><div style="font-size:18px;font-weight:700;color:var(--txt);margin-top:4px;">'+(trend==='正在靠近'?'↑ 正在靠近':(trend==='正在远离'?'↓ 正在远离':'→ 保持稳定'))+'</div><div style="font-size:11px;color:var(--txt2);">'+(trend||'')+'</div></div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">';
-  html+='<div><div style="font-size:12px;color:var(--txt3);">停留稳定度</div><div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:4px;">'+stability+'</div><div style="font-size:11px;color:var(--txt2);">'+(stability==='稳定'?'TA目前保持着这个状态。':(stability==='波动'?'TA的距离正在轻微变化。':'TA可能会改变位置。'))+'</div></div>';
+  html+='<div><div style="font-size:12px;color:var(--txt3);">停留稳定度</div><div style="font-size:18px;font-weight:700;color:var(--txt);margin-top:4px;">'+stability+'</div><div style="font-size:11px;color:var(--txt2);">'+(stability==='稳定'?'TA目前保持着这个状态。':(stability==='波动'?'TA的距离正在轻微变化。':'TA可能会改变位置。'))+'</div></div>';
   html+='<div><div style="font-size:12px;color:var(--txt3);">变化原因</div><div style="font-size:13px;color:var(--txt2);margin-top:4px;line-height:1.5;">'+reason+'</div></div>';
   html+='</div>';
   html+='</div>';
@@ -1846,7 +1861,7 @@ function showTADistance(){
     html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);margin-bottom:14px;">';
     if(lastChange)html+='<div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">最近变化</div><div style="font-size:13px;color:var(--txt);margin-bottom:10px;">'+lastChange+'</div>';
     if(lastApproach)html+='<div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">最近一次靠近</div><div style="font-size:13px;color:var(--txt);margin-bottom:10px;">'+lastApproach+'</div>';
-    if(hiddenNote)html+='<div style="font-size:13px;color:var(--accent);font-weight:600;">✦ '+hiddenNote+'</div>';
+    if(hiddenNote)html+='<div style="font-size:13px;color:var(--txt2);font-weight:600;">✦ '+hiddenNote+'</div>';
     if(sceneNote)html+='<div style="font-size:12px;color:var(--txt2);margin-top:4px;">'+sceneNote+'</div>';
     html+='</div>';
   }
@@ -1903,7 +1918,7 @@ function showTADistanceHistory(){
       html+='<div onclick="showTADistanceDetail('+r.ts+')" style="border-radius:12px;padding:12px 14px;background:var(--c3);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;">';
       html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
       html+='<div style="font-size:12px;color:var(--txt3);">'+r.time+'</div>';
-      html+='<div style="font-size:11px;color:var(--accent);background:rgba(0,0,0,0.05);padding:2px 8px;border-radius:8px;">'+r.reason+'</div>';
+      html+='<div style="font-size:11px;color:var(--accent);background:rgba(110,106,100,0.1);padding:2px 8px;border-radius:8px;">'+r.reason+'</div>';
       html+='</div>';
       html+='<div style="font-size:14px;color:var(--txt);line-height:1.6;word-break:break-all;">'+r.text+'</div>';
       html+='<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击查看完整信息 ›</div>';
@@ -1925,14 +1940,14 @@ function showTADistanceDetail(ts){
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
   var titleEl=document.querySelector('#ov-ta-distance-detail .modal-title');
   if(titleEl)titleEl.textContent='📍 '+contact.name+' · '+rec.time;
-  var moodBg='linear-gradient(160deg,rgba(255,220,180,0.18),rgba(255,255,255,0))';
-  if(rec.level==='贴近'||rec.level==='很近')moodBg='linear-gradient(160deg,rgba(255,200,150,0.25),rgba(255,255,255,0))';
-  else if(rec.level==='稍远')moodBg='linear-gradient(160deg,rgba(150,170,200,0.18),rgba(255,255,255,0))';
-  else if(rec.level==='远')moodBg='linear-gradient(160deg,rgba(160,150,160,0.12),rgba(255,255,255,0))';
+  var moodBg='linear-gradient(160deg,rgba(243,228,200,0.5),rgba(255,255,255,0))';
+  if(rec.level==='贴近'||rec.level==='很近')moodBg='linear-gradient(160deg,rgba(243,228,200,0.6),rgba(255,255,255,0))';
+  else if(rec.level==='稍远')moodBg='linear-gradient(160deg,rgba(246,237,217,0.5),rgba(255,255,255,0))';
+  else if(rec.level==='远')moodBg='linear-gradient(160deg,rgba(246,237,217,0.5),rgba(255,255,255,0))';
   var html='';
   html+='<div style="border-radius:14px;padding:20px;background:'+moodBg+';border:1px solid var(--border);margin-bottom:14px;">';
   html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前连接状态</div>';
-  html+='<div style="font-size:20px;font-weight:700;color:var(--accent);margin:6px 0 2px;">'+(rec.state||'稳定')+'</div>';
+  html+='<div style="font-size:20px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+(rec.state||'稳定')+'</div>';
   html+='<div style="font-size:13px;color:var(--txt2);">'+(rec.stateDesc||'TA与你保持着连接。')+'</div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
@@ -2002,6 +2017,20 @@ var TA_TOUCH_MOOD=['宠溺','安心','想念','依恋','安慰'];
 var TA_TOUCH_REASONS=['聊天互动','你想起TA','特定日期','情绪变化'];
 function showTATouch(){
   if(!cid){toast('请先进入聊天');return;}
+  // ★ 奶油暖粉配色（亲密/温度感）：弹窗级 CSS 变量，只影响本弹窗
+  try{
+    var _ovt=document.getElementById('ov-ta-touch');
+    if(_ovt){
+      _ovt.style.setProperty('--c1','#FBF6EE');
+      _ovt.style.setProperty('--c2','#FFFDF8');
+      _ovt.style.setProperty('--c3','#FFFDF8');
+      _ovt.style.setProperty('--txt','#4B4138');
+      _ovt.style.setProperty('--txt2','#85796B');
+      _ovt.style.setProperty('--txt3','#A39A8E');
+      _ovt.style.setProperty('--accent','#6E6A64');
+      _ovt.style.setProperty('--border','rgba(110,106,100,0.22)');
+    }
+  }catch(e){}
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
   var data=ls('ml2_ta_touch')||{};
   if(!data.records)data.records={};
@@ -2084,7 +2113,7 @@ function showTATouch(){
     html+='<div style="border-radius:12px;padding:10px 14px;background:rgba(0,0,0,0.04);border:1px dashed var(--border);margin-bottom:12px;font-size:13px;color:var(--txt2);">'+tNote+'</div>';
   }
   // 当前感知：整体状态句 + 副描述
-  html+='<div style="border-radius:14px;padding:20px;background:linear-gradient(160deg,rgba(255,190,200,0.22),rgba(255,255,255,0));border:1px solid var(--border);margin-bottom:14px;">';
+  html+='<div style="border-radius:14px;padding:20px;background:linear-gradient(160deg,rgba(243,228,200,0.5),rgba(255,255,255,0));border:1px solid var(--border);margin-bottom:14px;">';
   html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前感知</div>';
   html+='<div style="font-size:20px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.4;">'+perceive+'</div>';
   html+='<div style="font-size:13px;color:var(--txt2);">'+desc+'</div>';
@@ -2097,7 +2126,7 @@ function showTATouch(){
   html+='</div>';
   html+='<div style="border-radius:14px;padding:16px;background:var(--c3);border:1px solid var(--border);">';
   html+='<div style="font-size:12px;color:var(--txt3);">触碰类型</div>';
-  html+='<div style="font-size:22px;font-weight:700;color:var(--accent);margin:6px 0 2px;">'+ttype+'</div>';
+  html+='<div style="font-size:22px;font-weight:700;color:var(--txt);margin:6px 0 2px;">'+ttype+'</div>';
   html+='</div>';
   html+='</div>';
   // 当前动作：标题 + 描述
@@ -2175,7 +2204,7 @@ function showTATouchHistory(range){
       html+='<div onclick="showTATouchDetail('+r.ts+')" style="border-radius:12px;padding:12px 14px;background:var(--c3);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;">';
       html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
       html+='<div style="font-size:12px;color:var(--txt3);">'+r.time+'</div>';
-      html+='<div style="font-size:11px;color:var(--accent);background:rgba(0,0,0,0.05);padding:2px 8px;border-radius:8px;">'+r.reason+'</div>';
+      html+='<div style="font-size:11px;color:var(--accent);background:rgba(110,106,100,0.1);padding:2px 8px;border-radius:8px;">'+r.reason+'</div>';
       html+='</div>';
       html+='<div style="font-size:14px;color:var(--txt);line-height:1.6;word-break:break-all;">TA'+r.act+'。 '+r.desc+'</div>';
       html+='<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击查看完整信息 ›</div>';
@@ -2198,9 +2227,9 @@ function showTATouchDetail(ts){
   var titleEl=document.querySelector('#ov-ta-touch-detail .modal-title');
   if(titleEl)titleEl.textContent='💫 '+contact.name+' · '+rec.time;
   var html='';
-  html+='<div style="border-radius:14px;padding:20px;background:linear-gradient(160deg,rgba(255,190,200,0.22),rgba(255,255,255,0));border:1px solid var(--border);margin-bottom:14px;">';
+  html+='<div style="border-radius:14px;padding:20px;background:linear-gradient(160deg,rgba(243,228,200,0.5),rgba(255,255,255,0));border:1px solid var(--border);margin-bottom:14px;">';
   html+='<div style="font-size:12px;color:var(--txt3);letter-spacing:1px;">当前感知</div>';
-  html+='<div style="font-size:20px;font-weight:700;color:var(--accent);margin:6px 0 2px;line-height:1.4;">TA正在'+rec.act+'。</div>';
+  html+='<div style="font-size:20px;font-weight:700;color:var(--txt);margin:6px 0 2px;line-height:1.4;">TA正在'+rec.act+'。</div>';
   html+='<div style="font-size:13px;color:var(--txt2);">'+rec.desc+'</div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">';
@@ -2484,7 +2513,7 @@ function aiInterpretText(text,title,contactId){
   if(body)body.innerHTML='<div style="text-align:center;padding:40px;color:var(--txt3);"><div style="font-size:28px;margin-bottom:10px;">🌙</div><div style="font-size:13px;">TA正在解读...</div></div>';
   var titleEl=document.querySelector('#ov-ai-interpret .modal-title');
   if(titleEl)titleEl.textContent='📜 '+ (title||'AI 解读');
-  showOv('ov-ai-interpret');
+  showAiInterpretPanel();
   fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.apiKey},
@@ -2941,11 +2970,24 @@ function openAiChat(){
   var _aik=aiChatMsgsKey();
   aiChatMsgs=ls(_aik)||[];
   if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
-  if(!aiChatMsgs.length&&_aik!=='ml2_ai_chat_msgs'){
-    var _old=null;
-    try{var _raw=localStorage.getItem('ml2_lf_ml2_ai_chat_msgs');if(_raw){_old=JSON.parse(_raw);}}catch(e){}
-    if(!_old||!_old.length){try{var _m=window.memoryCache||{};if(_m['ml2_ai_chat_msgs'])_old=_m['ml2_ai_chat_msgs'];}catch(e){}}
-    if(_old&&_old.length){aiChatMsgs=_old;try{ls('ml2_ai_chat_msgs',[]);}catch(e){}try{ls(_aik,aiChatMsgs);}catch(e){}}
+  if(!aiChatMsgs.length){
+    // ★ v2: 一次性迁移——把此前按联系人分 key(ml2_ai_chat_msgs_*)存的历史合并回全局，避免"消失"
+    try{
+      var _parts=[];
+      for(var _li=0;_li<localStorage.length;_li++){
+        var _lk=localStorage.key(_li);
+        if(_lk&&_lk.indexOf('ml2_lf_ml2_ai_chat_msgs_')===0){
+          try{var _pv=JSON.parse(localStorage.getItem(_lk));if(Array.isArray(_pv)&&_pv.length)_parts.push(_pv);}catch(e){}
+        }
+      }
+      if(_parts.length){
+        _parts.sort(function(a,b){return ((b[b.length-1]&&b[b.length-1].ts)||0)-((a[a.length-1]&&a[a.length-1].ts)||0);});
+        aiChatMsgs=_parts[0];
+        for(var _pi=1;_pi<_parts.length;_pi++){_parts[_pi].forEach(function(_m){aiChatMsgs.push(_m);});}
+        aiChatMsgs.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+        try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+      }
+    }catch(e){}
   }
   if(!aiChatMsgs.length&&window.localforage){
     window.localforage.getItem(aiChatMsgsKey()).then(function(v){
@@ -3292,11 +3334,24 @@ function openAiChat(){
   var _aik=aiChatMsgsKey();
   aiChatMsgs=ls(_aik)||[];
   if(!Array.isArray(aiChatMsgs))aiChatMsgs=[];
-  if(!aiChatMsgs.length&&_aik!=='ml2_ai_chat_msgs'){
-    var _old=null;
-    try{var _raw=localStorage.getItem('ml2_lf_ml2_ai_chat_msgs');if(_raw){_old=JSON.parse(_raw);}}catch(e){}
-    if(!_old||!_old.length){try{var _m=window.memoryCache||{};if(_m['ml2_ai_chat_msgs'])_old=_m['ml2_ai_chat_msgs'];}catch(e){}}
-    if(_old&&_old.length){aiChatMsgs=_old;try{ls('ml2_ai_chat_msgs',[]);}catch(e){}try{ls(_aik,aiChatMsgs);}catch(e){}}
+  if(!aiChatMsgs.length){
+    // ★ v2: 一次性迁移——把此前按联系人分 key(ml2_ai_chat_msgs_*)存的历史合并回全局，避免"消失"
+    try{
+      var _parts=[];
+      for(var _li=0;_li<localStorage.length;_li++){
+        var _lk=localStorage.key(_li);
+        if(_lk&&_lk.indexOf('ml2_lf_ml2_ai_chat_msgs_')===0){
+          try{var _pv=JSON.parse(localStorage.getItem(_lk));if(Array.isArray(_pv)&&_pv.length)_parts.push(_pv);}catch(e){}
+        }
+      }
+      if(_parts.length){
+        _parts.sort(function(a,b){return ((b[b.length-1]&&b[b.length-1].ts)||0)-((a[a.length-1]&&a[a.length-1].ts)||0);});
+        aiChatMsgs=_parts[0];
+        for(var _pi=1;_pi<_parts.length;_pi++){_parts[_pi].forEach(function(_m){aiChatMsgs.push(_m);});}
+        aiChatMsgs.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+        try{ls('ml2_ai_chat_msgs',aiChatMsgs);}catch(e){}
+      }
+    }catch(e){}
   }
   if(!aiChatMsgs.length&&window.localforage){
     window.localforage.getItem(aiChatMsgsKey()).then(function(v){
@@ -4087,15 +4142,14 @@ function d2AiInterpret(){  var s=getApiSettings();
   var extraEl=$('d2-extraInput');
   if(extraEl&&extraEl.value.trim())extraText='\n【补充信息】'+extraEl.value.trim();
   var userPrompt='这是我的占卜结果（牌面）：\n'+resultText+extraText+'\n请务必逐张解读上面列出的每一张牌，再给出整体解读和指引。';
-  var area=$('d2-ai-area');
+  var area=$('ai-interpret-body');
   if(area){
-    area.style.display='block';
-    // ★ 修复：解读区限高可滚动，避免撑开弹窗把牌面挤出可视区
-    area.style.maxHeight='38vh';
-    area.style.overflowY='auto';
-    area.style.marginTop='8px';
-    area.innerHTML='<div style="text-align:center;padding:20px;color:var(--txt3);"><span style="display:inline-block;animation:aiPulse 1s ease-in-out infinite;">📜 TA正在解读牌面...</span></div>';
-    area.scrollIntoView({behavior:'smooth',block:'nearest'});
+    // ★ v2: 复用全局 AI 解读大面板（底部弹出 88vh 可滚动），不再用占卜弹窗内的 38vh 小框
+    area.style.cssText='flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;';
+    var _titleEl=document.querySelector('#ov-ai-interpret .modal-title');
+    if(_titleEl)_titleEl.textContent='🔮 AI 占卜解读';
+    area.innerHTML='<div style="text-align:center;padding:40px;color:var(--txt3);"><div style="font-size:28px;margin-bottom:10px;">🌙</div><div style="font-size:13px;">TA正在解读牌面...</div></div>';
+    showAiInterpretPanel();
   }
   fetch(s.baseUrl.replace(/\/+$/,'')+'/chat/completions',{
     method:'POST',
@@ -4111,7 +4165,7 @@ function d2AiInterpret(){  var s=getApiSettings();
     if(area)area.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">📜 <b>AI 占卜解读</b><br><br>'+esc+'</div>';
     window._aiFixCtxs=window._aiFixCtxs||{};
     window._aiFixCtxs['d2']={systemPrompt:systemPrompt,userPrompt:userPrompt,lastReply:text,onDone:function(t){
-      var a=$('d2-ai-area');
+      var a=$('ai-interpret-body');
       if(a){var esc2=String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');a.innerHTML='<div style="font-size:13px;color:var(--txt);line-height:1.8;word-break:break-all;">📜 <b>AI 占卜解读</b><br><br>'+esc2+'</div>';}
       attachAiFixBtns(document);
     }};
@@ -5009,7 +5063,11 @@ function renderChatMorePanel(){
       html+='<span class="chat-more-label">'+item.name+'</span>';
       html+='</div>';
     });
-    html+='</div></div>';
+    html+='</div>';
+    if(activeCat==='AI'){
+      html+='<div style="margin:10px 14px 6px;padding:10px 12px;border-radius:10px;background:var(--c2);font-size:11px;color:var(--txt3);line-height:1.8;">星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入AI。AI为附带功能，可在设置的api接口中按需接入（可选）。不接入AI也能正常使用全部核心功能。<br>内容参考：AI生成的所有内容仅供参考，不代表任何事实，请理性看待。</div>';
+    }
+    html+='</div>';
   }
   if(html){list.innerHTML=html;}
 
@@ -5416,7 +5474,7 @@ var STORAGE_CATEGORIES=[
   {id:'giftbox',icon:'🎁',name:'礼物盒',desc:'礼物记录、每日礼物状态'},
   {id:'divine',icon:'🔮',name:'占卜',desc:'占卜历史记录'},
   {id:'starcal',icon:'🗓️',name:'星言日历',desc:'日历留言数据'},
-  {id:'music',icon:'🎵',name:'星音陪伴',desc:'音乐库、播放列表、播放历史、单曲数据'},
+  {id:'music',icon:'🎵',name:'星音相伴',desc:'音乐库、播放列表、播放历史、单曲数据'},
   {id:'call',icon:'📞',name:'通话',desc:'通话设置、通话历史、通话背景'},
   {id:'redpacket',icon:'🧧',name:'红包',desc:'红包钱包、红包记录、每日红包'},
   {id:'decision',icon:'🎲',name:'帮我决定',desc:'单人决定历史、多人决定历史与成员、决定设置'},
@@ -5492,7 +5550,7 @@ function categorizeStorageKey(actualKey){
   if(k.indexOf('ml2_star_cal')===0){
     return 'starcal';
   }
-  // 星音陪伴: 音乐库、播放列表、播放历史、单曲数据
+  // 星音相伴: 音乐库、播放列表、播放历史、单曲数据
   if(k.indexOf('ml2_star_music')===0){
     return 'music';
   }
@@ -5759,25 +5817,47 @@ function openMealsPanel(){
 }
 function renderMealsPanel(){
   var day=mealsTodayRecs(),cnt=0;
-  var html='<div style="padding:16px 14px 6px;display:flex;align-items:baseline;justify-content:space-between;"><div style="font-size:18px;font-weight:700;color:#5C4A3D;">🍽 一日三餐记录</div><div style="font-size:13px;color:#9A8878;">'+mealDateStr()+'</div></div>';
+  var html='<div style="padding:16px 14px 2px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#5C4A3D;">🍽 一日三餐记录</div><div style="font-size:12px;color:#9A8878;margin-top:4px;">今天也要好好吃饭</div><div style="font-size:12px;color:#B9A48F;margin-top:4px;">'+mealDateStr()+'</div></div>';
   MEAL_SLOTS.forEach(function(sl){
-    var rec=day[sl.key],status='未记录',detail='还没有记录',tagBg='#F3E6D5',tagColor='#9A8878';
-    if(rec&&rec.status==='recorded'){status='已记录';tagBg='#E8C8A9';tagColor='#8a5a33';detail=(rec.time||'')+(rec.content?' · '+rec.content:'');cnt++;}
-    else if(rec&&rec.status==='eaten'){status='已吃';tagColor='#B96F58';detail=(rec.time||'已吃')+(rec.content?' · '+rec.content:'');}
-    else if(rec&&rec.status==='skipped'){status='没吃';detail='这一餐没有吃';}
+    var rec=day[sl.key];
+    var status='未记录',tagBg='#F3E6D5',tagColor='#9A8878';
+    var detail='';
+    var _unrecMsg={breakfast:'还没有吃早餐吗？',lunch:'午餐时间到了吗？',dinner:'等你记录今天的晚餐。'}[sl.key]||'今天还没有记录这一餐。';
+    var _recMsg={breakfast:'今天吃了早餐。',lunch:'午餐已经记录。',dinner:'今天的晚餐也完成啦。'}[sl.key]||'这一餐已经记录。';
+    if(rec&&rec.status==='recorded'){status='已记录';tagBg='#E8C8A9';tagColor='#8a5a33';cnt++;detail=_recMsg+(rec.time?'（记录时间：'+rec.time+'）':'')+(rec.content?'<br>'+rec.content:'');}
+    else if(rec&&rec.status==='eaten'){status='已吃';tagBg='#F0DFC8';tagColor='#B96F58';detail=(rec.time?'记录时间：'+rec.time+'':'')+(rec.content?'<br>'+rec.content:'这一餐已经吃过了');}
+    else if(rec&&rec.status==='skipped'){status='没吃';tagBg='#EFE7DA';tagColor='#9A8878';detail='这一餐没有吃';}
+    else{detail=_unrecMsg;}
     html+='<div style="margin:8px 14px;padding:14px;background:#FFFDF8;border-radius:14px;box-shadow:0 1px 6px rgba(90,74,61,0.07);border:1px solid #EFE4D5;">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;">'
       +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">'+sl.icon+'</span><span style="font-size:15px;font-weight:700;color:#5C4A3D;">'+sl.name+'</span></div>'
       +'<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:'+tagBg+';color:'+tagColor+';font-weight:600;">'+status+'</span></div>'
-      +'<div style="margin-top:8px;font-size:13px;color:#9A8878;line-height:1.6;">'+detail+'</div>'
+      +'<div style="margin-top:8px;font-size:13px;color:#9A8878;line-height:1.7;">'+detail+'</div>'
       +'<div style="display:flex;gap:8px;margin-top:12px;">'
-      +'<button onclick="openMealEdit(\''+sl.key+'\')" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:#C98F62;color:#FFFDF8;font-size:13px;font-weight:600;cursor:pointer;">'+(rec?'修改这一餐':'＋ 记录这一餐')+'</button>'
-      +'<button onclick="mealQuickEat(\''+sl.key+'\')" style="flex:1;padding:10px 0;border:1px solid #E8C8A9;border-radius:10px;background:#FFFDF8;color:#B96F58;font-size:13px;font-weight:600;cursor:pointer;">✓ 已吃</button>'
+      +'<button onclick="openMealEdit(\''+sl.key+'\')" style="flex:1;padding:10px 0;border:none;border-radius:10px;background:#C98F62;color:#FFFDF8;font-size:13px;font-weight:600;cursor:pointer;">'+(rec?'修改记录':'记录'+sl.name)+'</button>'
+      +(!rec?'<button onclick="mealQuickSkip(\''+sl.key+'\')" style="flex:1;padding:10px 0;border:1px solid #E8C8A9;border-radius:10px;background:#FFFDF8;color:#B96F58;font-size:13px;font-weight:600;cursor:pointer;">还没吃</button>':'')
       +'</div></div>';
   });
-  html+='<div style="margin:8px 14px 14px;padding:12px 14px;background:#F3E6D5;border-radius:12px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;color:#5C4A3D;">今日已记录：<b style="color:#B96F58;">'+cnt+'</b> / 3</span><button onclick="openMealHistory()" style="padding:7px 14px;border:none;border-radius:10px;background:#FFFDF8;color:#C98F62;font-size:12px;font-weight:600;cursor:pointer;">历史记录</button></div>';
+  var dots=MEAL_SLOTS.map(function(sl){var r=day[sl.key];return (r&&(r.status==='recorded'||r.status==='eaten'))?'●':'○';}).join(' ');
+  var doneAll=cnt>=3;
+  html+='<div style="margin:8px 14px 14px;padding:14px;background:#F3E6D5;border-radius:12px;">'
+    +'<div style="font-size:13px;font-weight:700;color:#5C4A3D;">今日饮食记录</div>'
+    +'<div style="font-size:12px;color:#9A8878;margin-top:4px;line-height:1.7;">'+(doneAll?'今天的三餐都记录好了，也有好好照顾自己。':'今天已经好好照顾自己 <b style="color:#B96F58;">'+cnt+'</b> 次，还差 '+(3-cnt)+' 餐。')+'</div>'
+    +'<div style="font-size:12px;color:#B96F58;margin-top:6px;letter-spacing:3px;">'+dots+'</div>'
+    +'<div style="text-align:center;margin-top:10px;"><button onclick="openMealHistory()" style="padding:7px 16px;border:none;border-radius:10px;background:#FFFDF8;color:#C98F62;font-size:12px;font-weight:600;cursor:pointer;">看看以前吃过什么</button></div>'
+    +'</div>';
   $('ov-meals-content').innerHTML=html;
 }
+function mealQuickSkip(key){
+  var st=mealsStore(),d=mealDateStr();
+  if(!st[d])st[d]={};
+  st[d][key]={status:'skipped',time:mealTimeStr(),ts:Date.now()};
+  ls('ml2_meals',st);
+  var sl=MEAL_SLOTS.filter(function(s){return s.key===key;})[0];
+  toast(sl.name+'已记下（这一餐没有吃）');
+  renderMealsPanel();
+}
+
 function mealQuickEat(key){
   var st=mealsStore(),d=mealDateStr();
   if(!st[d])st[d]={};
@@ -5828,8 +5908,8 @@ function mealDelete(){
 function openMealHistory(){
   var st=mealsStore();
   var dates=Object.keys(st).sort().reverse();
-  var html='<div style="padding:16px 14px 6px;display:flex;align-items:center;gap:8px;"><button onclick="renderMealsPanel()" style="border:none;background:none;font-size:16px;color:#C98F62;cursor:pointer;">←</button><div style="font-size:18px;font-weight:700;color:#5C4A3D;">📖 历史记录</div></div>';
-  if(!dates.length)html+='<div style="padding:30px;text-align:center;color:#9A8878;font-size:13px;">还没有记录</div>';
+  var html='<div style="padding:16px 14px 6px;display:flex;align-items:center;gap:8px;"><button onclick="renderMealsPanel()" style="border:none;background:none;font-size:16px;color:#C98F62;cursor:pointer;">←</button><div style="font-size:18px;font-weight:700;color:#5C4A3D;">📖 我的饮食回忆</div></div>';
+  if(!dates.length)html+='<div style="padding:30px;text-align:center;color:#9A8878;font-size:13px;line-height:2;">还没有记录<br>记下你的第一餐吧</div>';
   dates.forEach(function(d){
     var day=st[d];
     html+='<div style="margin:8px 14px;padding:12px 14px;background:#FFFDF8;border-radius:12px;border:1px solid #EFE4D5;">'
@@ -5892,13 +5972,20 @@ function triggerMealRemind(slotKey,contactId){
   var name=c?c.name:'梦角';
   var text=MEAL_REMIND_MSGS[Math.floor(Math.random()*MEAL_REMIND_MSGS.length)];
   var sl=MEAL_SLOTS.filter(function(s){return s.key===slotKey;})[0];
-  var html='<div style="padding:16px 16px 6px;display:flex;align-items:center;gap:10px;">'
-    +'<div style="width:40px;height:40px;border-radius:50%;background:#E8C8A9;display:flex;align-items:center;justify-content:center;font-size:18px;color:#8a5a33;">'+(c&&c.avatar?c.avatar:'💫')+'</div>'
-    +'<div><div style="font-size:15px;font-weight:700;color:#5C4A3D;">'+name+'</div><div style="font-size:11px;color:#9A8878;">'+sl.name+'时间到</div></div></div>'
-    +'<div style="padding:8px 16px;font-size:14px;color:#5C4A3D;line-height:1.8;">'+text+'</div>'
-    +'<div style="padding:12px 16px 16px;display:flex;gap:8px;">'
-    +'<button onclick="mealRemindGo(\''+slotKey+'\',\''+contactId+'\')" style="flex:1;padding:11px 0;border:none;border-radius:10px;background:#C98F62;color:#FFFDF8;font-size:14px;font-weight:600;cursor:pointer;">去记录</button>'
-    +'<button onclick="hideOv(\'ov-meal-remind\')" style="flex:1;padding:11px 0;border:1px solid #E8C8A9;border-radius:10px;background:#FFFDF8;color:#9A8878;font-size:14px;font-weight:600;cursor:pointer;">稍后</button>'
+  // ★ 梦角关心的暖色弹窗：普通/特殊/节日三种底色随机，不像系统通知
+  var _bg=['#FFF8F0','#F8E8DF','#F5E8C8'][Math.floor(Math.random()*3)];
+  try{
+    var _m=document.querySelector('#ov-meal-remind .modal');
+    if(_m){_m.style.background=_bg;_m.style.border='1px solid #E8CDB5';}
+  }catch(e){}
+  var html='<div style="padding:18px 16px 2px;text-align:center;"><div style="font-size:11px;color:#D4A574;letter-spacing:3px;">✦ 星 光 提 醒 ✦</div></div>'
+    +'<div style="padding:12px 16px 2px;display:flex;align-items:center;justify-content:center;gap:10px;">'
+    +'<div style="width:42px;height:42px;border-radius:50%;background:#E8CDB5;display:flex;align-items:center;justify-content:center;font-size:19px;color:#8B6A58;">'+(c&&c.avatar?c.avatar:'💫')+'</div>'
+    +'<div><div style="font-size:15px;font-weight:700;color:#8B6A58;">'+name+'</div><div style="font-size:11px;color:#B9A48F;">'+sl.name+'时间到</div></div></div>'
+    +'<div style="padding:10px 16px 4px;font-size:14px;color:#594A40;line-height:1.9;text-align:center;">'+text+'</div>'
+    +'<div style="padding:14px 16px 16px;display:flex;gap:8px;">'
+    +'<button onclick="mealRemindGo(\''+slotKey+'\',\''+contactId+'\')" style="flex:1;padding:11px 0;border:none;border-radius:10px;background:#D4A574;color:#FFFDF8;font-size:14px;font-weight:600;cursor:pointer;">去记录</button>'
+    +'<button onclick="hideOv(\'ov-meal-remind\')" style="flex:1;padding:11px 0;border:1px solid #E8CDB5;border-radius:10px;background:rgba(255,255,255,0.6);color:#9A8878;font-size:14px;font-weight:600;cursor:pointer;">稍后</button>'
     +'</div>';
   $('ov-meal-remind-content').innerHTML=html;
   showOv('ov-meal-remind');
@@ -5917,9 +6004,20 @@ function mealPushMsg(contactId,text){
 }
 try{setInterval(mealRemindTick,60000);mealRemindTick();}catch(e){}
 
+function showAiInterpretPanel(){
+  var ov=document.getElementById('ov-ai-interpret');
+  if(ov){
+    try{
+      if(ov.parentNode&&ov.parentNode!==document.body){document.body.appendChild(ov);}
+      ov.style.setProperty('z-index','99998','important');
+    }catch(e){try{ov.style.zIndex='99998';}catch(e2){}}
+  }
+  showAiInterpretPanel();
+}
 function aiChatMsgsKey(){
-  var _c=aiChatSettings&&aiChatSettings.contactId;
-  return 'ml2_ai_chat_msgs'+(_c&&_c!=='none'?'_'+_c:'');
+  // ★ v2: 全局存储。按联系人分 key 会导致刷新后打开时 cid 不同而"丢失"历史；
+  // 联系人仅用于设定（人设/音色），消息统一存一份
+  return 'ml2_ai_chat_msgs';
 }
 function aiChatContactIdForVoice(){
   var _c=aiChatSettings&&aiChatSettings.contactId;

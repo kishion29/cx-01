@@ -949,6 +949,25 @@ function initPushNotify(){
   var saved=ls('pushNotifyEnabled');
   pushNotifyEnabled=saved!==undefined?saved:true;
   updatePushNotifyStatusUI();
+  // ★ 首次用户交互时自动请求通知权限（浏览器要求权限请求必须在点击/触摸手势内，
+  // 不能页面加载时自动弹；此前只有手动开关时才请求，导致"已开启却从没弹过权限框"）
+  if(pushNotifyEnabled && ('Notification' in window) && Notification.permission==='default'){
+    var _reqOnce=function(){
+      try{
+        Notification.requestPermission().then(function(_p){
+          if(_p==='granted'){
+            try{new Notification('通知已开启',{body:'后台消息提醒将正常弹窗'});}catch(e){}
+          }else if(_p==='denied'){
+            try{if(typeof toast==='function')toast('通知权限被拒绝，可在浏览器设置中手动开启');}catch(e){}
+          }
+        }).catch(function(){});
+      }catch(e){}
+    };
+    try{
+      document.addEventListener('click',_reqOnce,{once:true,passive:true});
+      document.addEventListener('touchend',_reqOnce,{once:true,passive:true});
+    }catch(e){}
+  }
 }
 
 function updatePushNotifyStatusUI(){

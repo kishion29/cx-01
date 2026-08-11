@@ -1,7 +1,7 @@
 // 星言 Service Worker - 离线缓存支持
 // ★ 版本号随应用更新：每次部署改这里（与 27_pwa.js 的 APP_VERSION 对应），
 // 强制浏览器重新安装 SW 并清理旧缓存，避免一直用旧缓存导致 PWA 异常
-var CACHE_NAME = 'xingyan-v1.7';
+var CACHE_NAME = 'xingyan-v1.8';
 var CORE_ASSETS = [
   './',
   './index.html',
@@ -87,14 +87,26 @@ self.addEventListener('fetch', function(event) {
   // 跨域请求: 直接走网络
 });
 
-// 消息: 接收前端刷新指令
+// 消息: 接收前端刷新指令 + 通知显示
 self.addEventListener('message', function(event) {
-  if (event.data === 'skipWaiting') {
+  var data = event.data;
+  if (!data) return;
+  if (data === 'skipWaiting') {
     self.skipWaiting();
   }
-  if (event.data === 'clearCache') {
+  if (data === 'clearCache') {
     caches.delete(CACHE_NAME).then(function() {
       event.source && event.source.postMessage && event.source.postMessage('cacheCleared');
     });
+  }
+  // ★ 修复：处理 SHOW_NOTIFICATION 消息——此前只收消息不显示，
+  // 页面端 postMessage 后直接 return 导致通知被吞（手机端后台弹窗失效的回归根因）
+  if (data && data.type === 'SHOW_NOTIFICATION') {
+    try {
+      var opts = { body: data.body || '', renotify: true };
+      if (data.icon) { opts.icon = data.icon; opts.badge = data.icon; }
+      if (data.tag) { opts.tag = data.tag; }
+      self.registration.showNotification(data.title || '星言', opts);
+    } catch (e) {}
   }
 });

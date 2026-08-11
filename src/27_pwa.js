@@ -2,7 +2,7 @@
 // PWA Service Worker 注册 + 自动更新（部署新版本后自动刷新一次，避免一直跑旧缓存）
 (function(){
   if(!('serviceWorker' in navigator))return;
-  var APP_VERSION='1.7';
+  var APP_VERSION='1.8';
   window.__APP_VERSION=APP_VERSION;
 
   function doRegister(){

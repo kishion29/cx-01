@@ -189,7 +189,7 @@ var Storage = (function(){
     if(!isLargeDataKey){
       var serialized = (typeof v === 'object') ? JSON.stringify(v) : v;
       var lsKey = 'ml2_lf_' + k;
-      if(serialized.length < 600000){
+      if(serialized.length < 2000000){
         try{
           localStorage.setItem(lsKey, serialized);
         }catch(e){
@@ -433,7 +433,7 @@ var Storage = (function(){
             var cached=cache[k];
             if(cached===null||cached===undefined)needsLoad=true;
             else if(Array.isArray(cached)&&cached.length===0)needsLoad=true;
-            else if(Array.isArray(cached)&&k.indexOf(LM)===0)needsLoad=true; // Bug1修复：消息key即使有数据也从IndexedDB重载，防止初始化竞态污染
+            else if(Array.isArray(cached)&&(k.indexOf(LM)===0||k==='ml2_global_cards'))needsLoad=true; // Bug1修复：消息key/全局字卡库即使有缓存也从IndexedDB重载，防止大值(超localStorage阈值)时旧缓存挡住新数据
             else if(!Array.isArray(cached)&&typeof cached==='object'&&cached!==null&&Object.keys(cached).length===0)needsLoad=true;
           }
           if(needsLoad){
