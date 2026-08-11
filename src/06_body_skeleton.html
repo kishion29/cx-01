@@ -14,7 +14,7 @@
 <!-- 即时加载动画：在页面解析期间显示，减少手机端白屏/卡顿感 -->
 <div id="early-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;">
   <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:9px;color:#c4b39c;line-height:1.7;letter-spacing:0.5px;padding:0 16px;">星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入 AI。AI 为附带功能，可在设置的 api 接口中按需接入（可选）。不接入 AI 也能正常使用全部核心功能。<br>内容参考：AI 生成的所有内容仅供参考，不代表任何事实，请理性看待。</div>
-  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-11 12:53</div>
+  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-11 18:01</div>
   <div style="font-size:32px;color:#c9a96e;margin-bottom:24px;animation:splashPulse 1.5s ease-in-out infinite">✦</div>
   <div style="display:flex;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></span></div>
   <div style="font-size:13px;color:#b0a08a;letter-spacing:2px;margin-top:20px;" id="splash-status">星言加载中...</div>
@@ -124,12 +124,12 @@ try{
     
     <!-- 底部按钮 - 默认首次访问：只显示阅读须知按钮 -->
     <div id="splash-buttons" style="padding:12px 0 30px;flex-shrink:0;display:flex;gap:12px;width:100%;">
-      <button onclick="showUsageNoticeFromSplash()" id="splash-notice-btn" style="flex:1;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg, #3d3429 0%, #2c2416 100%);color:#fff;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:2px;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 8px rgba(44,36,22,0.15);transition:all 0.2s;">请先阅读使用须知</button>
-      <div style="text-align:center;font-size:11px;color:#7a6a58;line-height:1.9;letter-spacing:0.5px;margin-top:16px;padding:12px 14px;background:rgba(255,255,255,0.7);border-radius:10px;border:1px solid rgba(201,169,110,0.35);box-shadow:0 1px 6px rgba(0,0,0,0.04);">
+    <button onclick="showUsageNoticeFromSplash()" id="splash-notice-btn" style="flex:1;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg, #3d3429 0%, #2c2416 100%);color:#fff;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:2px;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 8px rgba(44,36,22,0.15);transition:all 0.2s;">请先阅读使用须知</button>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#7a6a58;line-height:1.9;letter-spacing:0.5px;margin-top:16px;padding:12px 14px;background:rgba(255,255,255,0.7);border-radius:10px;border:1px solid rgba(201,169,110,0.35);box-shadow:0 1px 6px rgba(0,0,0,0.04);">
         ⓘ 星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入 AI。AI 为附带功能，可在设置的 api 接口中按需接入（可选）。不接入 AI 也能正常使用全部核心功能。<br>
         内容参考：AI 生成的所有内容仅供参考，不代表任何事实，请理性看待。
       </div>
-    </div>
     <script>
     (function(){var b=document.getElementById('splash-notice-btn');if(b){b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();showUsageNoticeFromSplash();});}})();
     </script>
@@ -1922,7 +1922,10 @@ function showUsageNoticeFromSplash() {
       <div style="font-size:16px;font-weight:300;color:#2c2416;letter-spacing:4px;font-family:serif;">星言</div>
       <div style="font-size:12px;color:#9c8b7b;margin-top:6px;letter-spacing:2px;">让想说的话，被看见。</div>
     </div>
-    <!-- 首次访问：开始使用按钮 -->
+    
+
+  </div>
+<!-- 首次访问：开始使用按钮 -->
     <div id="usage-notice-start-btn" style="display:none;padding:0 16px 20px;">
       <button onclick="finishFirstTimeNotice()" style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg, #3d3429 0%, #2c2416 100%);color:#fff;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:2px;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 8px rgba(44,36,22,0.15);">我已阅读，开始使用</button>
       <div style="text-align:center;font-size:11px;color:#8c7b6b;line-height:1.9;letter-spacing:0.5px;margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.55);border-radius:10px;border:1px solid rgba(0,0,0,0.04);">
@@ -1930,7 +1933,6 @@ function showUsageNoticeFromSplash() {
         内容参考：AI生成的所有内容仅供参考，不代表任何事实，请理性看待。
       </div>
     </div>
-  </div>
   <div class="tabs" id="usage-notice-tabs"></div>
 </div>
 
