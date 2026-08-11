@@ -1,4 +1,4 @@
-// ---------- Chat ----------
+﻿// ---------- Chat ----------
 function openConv(id,type){
   var c=contacts.find(function(x){return x.id===id});
   var g=groups.find(function(x){return x.id===id});
@@ -1618,13 +1618,13 @@ function _doRenderMsgs(messages){
       var touchCheckboxHtml='';
       if(longScreenshotMode){
         var isTouchChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
-        touchCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isTouchChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+        touchCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isTouchChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
       }else if(favMsgMode){
         var isFavTouchChecked=selectedFavMsgIds.indexOf(x.id)>=0;
-        touchCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isFavTouchChecked?'checked':'')+' onclick="event.stopPropagation();toggleFavMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+        touchCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isFavTouchChecked?'checked':'')+' onclick="event.stopPropagation();toggleFavMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
       }else if(copyMsgMode){
         var isCopyTouchChecked=selectedCopyMsgIds.indexOf(x.id)>=0;
-        touchCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isCopyTouchChecked?'checked':'')+' onclick="event.stopPropagation();toggleCopyMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+        touchCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isCopyTouchChecked?'checked':'')+' onclick="event.stopPropagation();toggleCopyMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
       }
       html.push('<div class="mr'+((longScreenshotMode||favMsgMode||copyMsgMode)?' mr-ss':'')+' touch-msg '+(x.s===SELF?'self':'other')+'" data-mid="'+x.id+'">'+touchCheckboxHtml+'<div class="message-touch">'+touchContent+'</div></div>');
       lt=d.getTime();
@@ -1635,7 +1635,7 @@ function _doRenderMsgs(messages){
       var callCheckboxHtml='';
       if(longScreenshotMode){
         var isCallChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
-        callCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isCallChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+        callCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isCallChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
       }
       var callMsgText=x.callMessage||'通话记录';
       // 优化：使用预计算的 _preHideSysNames
@@ -1677,7 +1677,7 @@ function _doRenderMsgs(messages){
       var giftCheckHtml='';
       if(longScreenshotMode){
         var isGiftChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
-        giftCheckHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isGiftChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+        giftCheckHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isGiftChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
       }
       html.push('<div class="mr'+((longScreenshotMode||favMsgMode||copyMsgMode)?' mr-ss':'')+' gift-msg-row '+(x.s===SELF?'self':'other')+'" data-mid="'+x.id+'">'+giftCheckHtml+giftHtml+'</div>');
       lt=d.getTime();
@@ -1694,7 +1694,7 @@ function _doRenderMsgs(messages){
       var hlCheckboxHtml='';
       if(longScreenshotMode){
         var isHLChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
-        hlCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isHLChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+        hlCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isHLChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
       }
       html.push('<div class="message-call-row'+(longScreenshotMode?' mr-ss':'')+'" data-mid="'+x.id+'">'+hlCheckboxHtml+'<div class="message-call" style="font-size:12px;color:var(--txt3);text-align:center;padding:8px 16px;background:rgba(0,0,0,0.04);border-radius:20px;display:inline-block;max-width:80%;">✏️ '+_hlText+'</div></div>');
       lt=d.getTime();
@@ -2079,13 +2079,13 @@ function _doRenderMsgs(messages){
     var ssCheckboxHtml='';
     if(longScreenshotMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isCall||x.isRedpacket||x.voice)){
       var isChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
-      ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+      ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
     }else if(favMsgMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isRedpacket||x.voice)){
       var isFavChecked=selectedFavMsgIds.indexOf(x.id)>=0;
-      ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isFavChecked?'checked':'')+' onclick="event.stopPropagation();toggleFavMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+      ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isFavChecked?'checked':'')+' onclick="event.stopPropagation();toggleFavMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
     }else if(copyMsgMode&&!x.retracted&&(x.t||x.isTouch)){
       var isCopyChecked=selectedCopyMsgIds.indexOf(x.id)>=0;
-      ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" '+(isCopyChecked?'checked':'')+' onclick="event.stopPropagation();toggleCopyMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
+      ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isCopyChecked?'checked':'')+' onclick="event.stopPropagation();toggleCopyMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
     }
     var isLetterMsg=x.isLetter&&x.letterId;
     var isCollectedMsg=x.isRedpacketCollected===true;

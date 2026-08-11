@@ -6379,6 +6379,27 @@ async function generateLongScreenshot(){
         }
       }else if(x.voice){
         contentHtml='<div class="voice-message-player">🎤 <span style="font-size:11px;opacity:0.7;">'+(x.voiceText||'语音消息')+'</span></div>';
+      }else if((x.moodCard&&x.moodCard.content)||(x.heartCard&&x.heartCard.content)||(x.intentCard&&x.intentCard.content)){
+        // ★ 情绪/心意/意图字卡
+        var _escLS=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+        var _rccLS=x.retractedCards||[];
+        var _pillColorLS=x.s===SELF?'var(--txt2)':'var(--txt3)';
+        var _pillStyleLS='display:inline-flex;align-items:center;font-size:11px;color:'+_pillColorLS+';white-space:nowrap;';
+        var _pillsLS=[];
+        if(x.moodCard&&x.moodCard.content&&_rccLS.indexOf('mood')<0)_pillsLS.push('<span class="message-mood-pill" style="'+_pillStyleLS+'">💭 '+_escLS(x.moodCard.content)+'</span>');
+        if(x.heartCard&&x.heartCard.content&&_rccLS.indexOf('heart')<0)_pillsLS.push('<span class="message-mood-pill" style="'+_pillStyleLS+'">❤️ '+_escLS(x.heartCard.content)+'</span>');
+        if(x.intentCard&&x.intentCard.content&&_rccLS.indexOf('intent')<0)_pillsLS.push('<span class="message-mood-pill" style="'+_pillStyleLS+'">💬 '+_escLS(x.intentCard.content)+'</span>');
+        contentHtml='';
+        if(_pillsLS.length){contentHtml='<div class="message-mood-card" style="display:inline-flex;flex-direction:row;flex-wrap:nowrap;gap:8px;margin-top:4px;padding:4px 10px;background:rgba(255,255,255,0.85);border-radius:12px;border:1px solid rgba(0,0,0,0.06);flex-shrink:0;">'+_pillsLS.join('')+'</div>';}
+        if(x.retractedCardData&&x.retractedCardData.length){
+          var _subHtmlLS='';
+          x.retractedCardData.forEach(function(d){
+            var _icLS={mood:'💭',heart:'❤️',intent:'💬'}[d.type]||'💬';
+            _subHtmlLS+='<div>'+_icLS+' '+_escLS(d.content)+'</div>';
+          });
+          var _subTxtLS=x.s===SELF?'已撤回 '+x.retractedCardData.length+' 条字卡':'对方撤回了 '+x.retractedCardData.length+' 条字卡';
+          contentHtml+='<div style="margin-top:6px;text-align:left;"><span style="display:inline-flex;align-items:center;font-size:11px;color:var(--txt2);background:#ffffff;border:1px solid rgba(0,0,0,0.1);box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:3px 12px;border-radius:14px;">'+_subTxtLS+'</span><div style="display:none;margin-top:6px;padding:10px 14px;border-radius:12px;background:#ffffff;border:1px solid rgba(0,0,0,0.1);box-shadow:0 2px 8px rgba(0,0,0,0.06);font-size:12px;color:var(--txt);line-height:1.8;">'+_subHtmlLS+'</div></div>';
+        }
       }else{
         // 修复：确保 x.t 是字符串后再调用 .replace()，避免非字符串类型导致渲染崩溃
         var _plainText=typeof x.t==='string'?x.t:(x.t!=null?String(x.t):'');
