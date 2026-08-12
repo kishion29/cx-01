@@ -1631,6 +1631,19 @@ async function importCardsJSON(rawData,options){
   toast('已导入 '+filteredCards.length+' 张字卡'+(dupCount>0?'（自动去重 '+dupCount+' 张）':'')+', 当前共 '+globalCards.length+' 张');
 }
 
+// ★ 默认通用字卡独立入口：直接打开字卡库页面的"默认通用字卡"分类（全局，不依赖联系人）
+async function openDefaultCommonCards(){
+  if(!globalCards||globalCards.length===0){
+    try{await loadGlobalCards();}catch(e){}
+  }
+  currentCardType='default_common';
+  currentCardCategory='custom';
+  try{document.querySelectorAll('.card-type-tab').forEach(function(t){t.classList.toggle('sel',t.dataset.type==='default_common');});}catch(e){}
+  try{$('private-contact-sel').style.display='none';}catch(e){}
+  renderDefaultCommonCards();
+  showPg('pg-cards');
+}
+
 async function openCardSettings(){
   // 确保 globalCards 已加载，避免打开后显示0字卡
   if(!globalCards||globalCards.length===0){

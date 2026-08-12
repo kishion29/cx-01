@@ -43,9 +43,9 @@ var pomodoroSettings = {
   autoMsgProb: 30,
   autoMsgMinDelay: 1,
   autoMsgMaxDelay: 300,
-  sendBtnBg: '#e8a87c',
+  sendBtnBg: '#a07955',
   sendBtnText: '#ffffff',
-  startBtnBg: '#e8a87c',
+  startBtnBg: '#a07955',
   startBtnText: '#ffffff'
 };
 var pomodoroNoiseCtx = null;
@@ -1320,9 +1320,9 @@ function restorePomodoroDefaults() {
     autoMsgProb: 30,
     autoMsgMinDelay: 1,
     autoMsgMaxDelay: 300,
-    sendBtnBg: '#e8a87c',
+    sendBtnBg: '#a07955',
     sendBtnText: '#ffffff',
-    startBtnBg: '#e8a87c',
+    startBtnBg: '#a07955',
     startBtnText: '#ffffff'
   };
   savePomodoroSettings();
@@ -1515,7 +1515,6 @@ function loadPomodoroMessages() {
 // ---------- Custom Chatbar Settings ----------
 var chatbarItems=[
   {id:'chat',name:'聊天',icon:'💬',fixed:true,category:'底部导航',isNav:true},
-  {id:'moments',name:'朋友圈',icon:'📸',fixed:false,category:'更多'},
   {id:'more',name:'更多',icon:'⭐',fixed:true,category:'底部导航',isNav:true},
   {id:'settings',name:'设置',icon:'⚙️',fixed:true,category:'底部导航',isNav:true},
   {id:'image',name:'发送图片',icon:'🖼️',fixed:true,category:'消息工具'},
@@ -1527,56 +1526,62 @@ var chatbarItems=[
   {id:'fav_msg',name:'收藏聊天消息',icon:'⭐',fixed:false,category:'消息工具'},
   {id:'my_favs',name:'我的收藏夹',icon:'📁',fixed:false,category:'消息工具'},
   {id:'cards',name:'聊天字卡库',icon:'📖',fixed:true,category:'字卡库'},
+  {id:'default_common_cards',name:'默认通用字卡',icon:'🌐',fixed:false,category:'字卡库'},
   {id:'topbar_cards',name:'顶部栏字卡库',icon:'📌',fixed:false,category:'字卡库'},
   {id:'search_chat',name:'搜索聊天记录',icon:'🔍',fixed:false,category:'消息工具'},
   {id:'date_search',name:'切换聊天日期',icon:'📅',fixed:false,category:'消息工具'},
-  {id:'touch',name:'拍一拍',icon:'👋',fixed:false,category:'聊天互动'},
-  {id:'redpacket',name:'红包',icon:'🧧',fixed:false,category:'聊天互动'},
-  {id:'decision',name:'帮我决定',icon:'🎲',fixed:false,category:'聊天互动'},
-  {id:'group_decision',name:'多人决定',icon:'👥',fixed:false,category:'聊天互动'},
-  {id:'divine',name:'占卜',icon:'🔮',fixed:false,category:'聊天互动'},
-  {id:'call',name:'通话',icon:'📞',fixed:false,category:'聊天互动'},
-  {id:'survey',name:'调查问卷',icon:'📝',fixed:false,category:'更多'},
-  {id:'piggy',name:'星言存钱罐',icon:'✨',fixed:false,category:'更多'},
-  {id:'star_flip',name:'星言翻牌',icon:'🎴',fixed:false,category:'小游戏'},
-  {id:'star_journey',name:'星言旅途',icon:'🧭',fixed:false,category:'小游戏'},
-  {id:'star_music',name:'星音相伴',icon:'🎵',fixed:false,category:'更多'},
-  {id:'giftbox',name:'礼物盒',icon:'🎁',fixed:false,category:'聊天互动'},
-  {id:'invite',name:'邀请',icon:'🤝',fixed:false,category:'聊天互动'},
-  {id:'ask_ta',name:'向TA提问',icon:'🙋',fixed:false,category:'聊天互动'},
-  {id:'letters',name:'信箱',icon:'✉️',fixed:false,category:'更多'},
-  {id:'board',name:'我的留言板',icon:'📋',fixed:false,category:'更多'},
-  {id:'period',name:'经期记录',icon:'🌸',category:'更多',fixed:false},
-  {id:'pomodoro',name:'番茄钟',icon:'🍅',category:'更多',fixed:false},
   {id:'mood_cards_library',name:'聊天情绪系统',icon:'💭',category:'字卡库',fixed:false},
-  {id:'read_cards',name:'一起看字卡库',icon:'📚',category:'字卡库',fixed:false},
+  {id:'chat_followup',name:'梦角聊天回应系统',icon:'🔗',category:'字卡库',fixed:false},
+  {id:'read_cards',name:'星阅相伴字卡库',icon:'📚',category:'字卡库',fixed:false},
+  {id:'read_video_cards',name:'星影相伴字卡库',icon:'🎬',category:'字卡库',fixed:false},
+  {id:'ta_daily_cards',name:'TA的日常字卡库',icon:'🌙',category:'字卡库',fixed:false},
   {id:'contact-profile',name:'梦角主页',icon:'🏠',category:'梦角',fixed:false},
   {id:'favorites',name:'TA的收藏夹',icon:'⭐',fixed:false,category:'梦角'},
   {id:'ta_highlights',name:'TA想说的重点',icon:'💬',fixed:false,category:'梦角'},
   {id:'ai_card_records',name:'AI解读字卡记录',icon:'📚',fixed:false,category:'AI'},
   {id:'chat_stats',name:'聊天统计',icon:'📊',fixed:false,category:'消息工具'},
   {id:'star_cal',name:'星言日历',icon:'⭐',fixed:false,category:'梦角'},
+  {id:'star_memory',name:'星言纪念',icon:'📅',fixed:false,category:'梦角'},
   {id:'ta_distance',name:'TA与你的距离',icon:'📍',fixed:false,category:'梦角'},
   {id:'ta_touch',name:'TA的触碰',icon:'💫',fixed:false,category:'梦角'},
-  {id:'ta_daily',name:'TA的日常字卡库',icon:'🌙',fixed:false,category:'字卡库'},
+  {id:'ta_daily',name:'TA的日常字卡库',icon:'🌙',fixed:false,category:'梦角'},
   {id:'ai_card_memory',name:'AI解读记忆库',icon:'📔',fixed:false,category:'AI'},
-  {id:'read_together',name:'星阅相伴',icon:'📖',fixed:false,category:'更多'},
-  {id:'read_video',name:'星影相伴',icon:'🎬',fixed:false,category:'更多'},
-  {id:'meals',name:'一日三餐',icon:'🍽️',fixed:false,category:'更多'},
-    {id:'diary',name:'我的日记',icon:'✍️',fixed:false,category:'更多'},
   {id:'ai_chat',name:'AI聊天',icon:'💬',fixed:false,category:'AI'},
   {id:'ai_diviner',name:'AI占卜师',icon:'🔮',fixed:false,category:'AI'},
   {id:'ta_ask',name:'TA的询问',icon:'❓',fixed:false,category:'AI'},
-  
   {id:'add',name:'添加好友',icon:'+',fixed:false,category:'其他'},
   {id:'search',name:'搜索',icon:'🔍',fixed:false,category:'其他'},
   {id:'back',name:'返回',icon:'←',fixed:false,category:'其他'},
   {id:'emoji',name:'表情',icon:'😊',fixed:false,category:'其他'},
   {id:'send',name:'发送',icon:'📤',fixed:false,category:'其他'},
-  {id:'more_action',name:'更多操作',icon:'⋯',fixed:false,category:'其他'}
+  {id:'more_action',name:'更多操作',icon:'⋯',fixed:false,category:'其他'},
+  {id:'letters',name:'星言信箱',icon:'✉️',fixed:false,category:'更多'},
+  {id:'moments',name:'星言动态',icon:'📸',fixed:false,category:'更多'},
+    {id:'diary',name:'星言日记',icon:'✍️',fixed:false,category:'更多'},
+  {id:'board',name:'星言留言',icon:'📋',fixed:false,category:'更多'},
+  {id:'meals',name:'一日三餐',icon:'🍽️',fixed:false,category:'更多'},
+  {id:'piggy',name:'星言存钱罐',icon:'✨',fixed:false,category:'更多'},
+  {id:'period',name:'星言周期',icon:'🌸',category:'更多',fixed:false},
+  {id:'pomodoro',name:'星言专注',icon:'🍅',category:'更多',fixed:false},
+  {id:'star_flip',name:'星言翻牌',icon:'🎴',fixed:false,category:'更多'},
+  {id:'star_journey',name:'星言旅途',icon:'🧭',fixed:false,category:'更多'},
+  {id:'read_together',name:'星阅相伴',icon:'📖',fixed:false,category:'更多'},
+  {id:'read_video',name:'星影相伴',icon:'🎬',fixed:false,category:'更多'},
+  {id:'touch',name:'拍一拍',icon:'👋',fixed:false,category:'聊天互动'},
+  {id:'redpacket',name:'红包',icon:'🧧',fixed:false,category:'聊天互动'},
+  {id:'decision',name:'帮我决定',icon:'🎲',fixed:false,category:'聊天互动'},
+  {id:'group_decision',name:'多人决定',icon:'👥',fixed:false,category:'聊天互动'},
+  {id:'divine',name:'占卜',icon:'🔮',fixed:false,category:'聊天互动'},
+  {id:'call',name:'通话',icon:'📞',fixed:false,category:'聊天互动'},
+  {id:'invite',name:'邀请TA',icon:'🤝',fixed:false,category:'聊天互动'},
+  {id:'ask_ta',name:'问问TA',icon:'🙋',fixed:false,category:'聊天互动'},
+  {id:'giftbox',name:'礼物盒',icon:'🎁',fixed:false,category:'聊天互动'},
+  {id:'star_music',name:'星音相伴',icon:'🎵',fixed:false,category:'聊天互动'},
+  {id:'survey',name:'心意问卷',icon:'📝',fixed:false,category:'聊天互动'},
+  {id:'soul_qa',name:'默契问答',icon:'🤝',fixed:false,category:'聊天互动'},
 ];
 var chatbarCategoryOrder=['消息工具','聊天互动','更多','梦角','字卡库','AI','小游戏','底部导航','其他'];
-var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','moments','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','ta_distance','ta_touch','diary','giftbox'];
+var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','soul_qa','moments','letters','board','period','pomodoro','mood_cards_library','chat_followup','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','star_memory','ta_distance','ta_touch','diary','giftbox'];
 
 // ★ TA与你的距离：梦角存在感可视化（随机生成，非地图定位）
 // ★ 卡片配色体系（星言日历同款柔和渐变）
@@ -1650,8 +1655,8 @@ function showTADistance(){
       _ovd.style.setProperty('--txt','#5a4a3a');
       _ovd.style.setProperty('--txt2','#8a7a6a');
       _ovd.style.setProperty('--txt3','#a89a8a');
-      _ovd.style.setProperty('--accent','#8FA6D8');
-      _ovd.style.setProperty('--border','rgba(143,166,216,0.25)');
+      _ovd.style.setProperty('--accent','#A07955');
+      _ovd.style.setProperty('--border','rgba(160,121,85,0.25)');
     }
   }catch(e){}
   var contact=contacts.find(function(c){return c.id===cid})||groups.find(function(g){return g.id===cid})||{name:'未知联系人'};
@@ -1919,8 +1924,8 @@ function showTADistanceHistory(){
       _ovh.style.setProperty('--txt','#5a4a3a');
       _ovh.style.setProperty('--txt2','#8a7a6a');
       _ovh.style.setProperty('--txt3','#a89a8a');
-      _ovh.style.setProperty('--accent','#8FA6D8');
-      _ovh.style.setProperty('--border','rgba(143,166,216,0.25)');
+      _ovh.style.setProperty('--accent','#A07955');
+      _ovh.style.setProperty('--border','rgba(160,121,85,0.25)');
     }
   }catch(e){}
   if(!cid){toast('请先进入聊天');return;}
@@ -1966,8 +1971,8 @@ function showTADistanceDetail(ts){
       _ovh.style.setProperty('--txt','#5a4a3a');
       _ovh.style.setProperty('--txt2','#8a7a6a');
       _ovh.style.setProperty('--txt3','#a89a8a');
-      _ovh.style.setProperty('--accent','#8FA6D8');
-      _ovh.style.setProperty('--border','rgba(143,166,216,0.25)');
+      _ovh.style.setProperty('--accent','#A07955');
+      _ovh.style.setProperty('--border','rgba(160,121,85,0.25)');
     }
   }catch(e){}
   if(!cid){toast('请先进入聊天');return;}
@@ -2556,6 +2561,60 @@ function saveApiSettings(){
   }
   toast('API 设置已保存');
 }
+// ★ 拉取当前 API 服务商的可用模型列表（OpenAI 兼容 /models 接口），填入模型输入框
+function fetchApiModels(){
+  var bs=$('api-base-url')?$('api-base-url').value.trim():'';
+  var k=$('api-key')?$('api-key').value.trim():'';
+  var btn=$('api-fetch-models-btn');
+  var result=$('api-test-result');
+  if(!bs||!k){
+    if(result){result.style.display='block';result.innerHTML='<span style="color:#ff4d4f;">请先填写 API 地址和 Key，再拉取模型</span>';}
+    return;
+  }
+  if(btn){btn.disabled=true;}
+  if(result){result.style.display='block';result.innerHTML='<span style="color:var(--txt2);">正在拉取模型列表...</span>';}
+  var done=function(){
+    if(btn){btn.disabled=false;}
+  };
+  fetch(bs.replace(/\/+$/,'')+'/models',{
+    method:'GET',
+    headers:{'Authorization':'Bearer '+k}
+  }).then(function(res){
+    if(!res.ok){throw new Error('HTTP '+res.status);}
+    return res.json();
+  }).then(function(data){
+    var list=(data&&data.data&&Array.isArray(data.data))?data.data:null;
+    if(!list||!list.length){throw new Error('返回的模型列表为空');}
+    var ids=[];
+    list.forEach(function(m){if(m&&m.id&&ids.indexOf(m.id)<0)ids.push(m.id);});
+    if(!ids.length){throw new Error('返回的模型列表为空');}
+    var dl=$('api-model-list');
+    if(dl){
+      dl.innerHTML='';
+      ids.forEach(function(id){
+        var o=document.createElement('option');
+        o.value=id;o.textContent=id;
+        dl.appendChild(o);
+      });
+    }
+    var inp=$('api-model');
+    if(inp){
+      var cur=inp.value.trim();
+      if(cur&&ids.indexOf(cur)>=0){inp.value=cur;}
+      else if(ids.length){inp.value=ids[0];}
+    }
+    if(result){
+      result.style.display='block';
+      result.innerHTML='<span style="color:#2ecc71;">✅ 已获取 '+ids.length+' 个模型：'+ids.slice(0,6).join('、')+(ids.length>6?' 等':'')+'</span>';
+    }
+    toast('已拉取 '+ids.length+' 个模型');
+  }).catch(function(e){
+    if(result){
+      result.style.display='block';
+      result.innerHTML='<span style="color:#ff4d4f;">❌ 拉取模型失败：'+String(e.message||e).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'<br><span style="color:var(--txt3);font-size:12px;">部分服务商不支持 /models 接口，可手动在模型框输入模型名</span></span>';
+    }
+  }).then(done);
+}
 // ★ 通用 AI 解读：解读任意文本（朋友圈动态/信箱信件复用），结果展示在弹窗
 // contactId 可选：指定该内容属于哪个联系人（用其独立人设/性别），缺省用当前聊天联系人
 function aiInterpretText(text,title,contactId){
@@ -2806,6 +2865,7 @@ try{initAiFixObserver();}catch(e){}
 
 // ================= AI 占卜师：独立对话页面 =================
 var aiDivinerMsgs=[];
+var aiDivinerCurSessionId=null;   // ★ 修复：先前未声明（隐式全局），直接打开占卜师→保存设定时读取未定义变量抛 ReferenceError 导致"保存失败"
 var aiDivinerSettings={instruction:'',worldviewMode:'default',customWorldview:'',contactId:'',memory:[]};
 // ★ AI 占卜师历史会话：新对话自动归档，可切换回看
 function aiDivinerSessionsLoad(){try{var a=ls('ml2_ai_diviner_sessions');return Array.isArray(a)?a:[];}catch(e){return [];}}
@@ -3126,7 +3186,7 @@ function renderAiChatMsgs(){
   }
   box.innerHTML='';
   if(!aiChatMsgs.length){
-    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#999;font-size:13px;line-height:2.2;"><div style="color:#bbb;margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
+    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#6f6a62;font-size:13px;line-height:2.2;"><div style="color:#948e85;margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
     return;
   }
   var _taAva=_beauty.taAvatar
@@ -3134,7 +3194,7 @@ function renderAiChatMsgs(){
     :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c9a961,#e8c88a);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#7a5a30;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>';
   var _myAva=_beauty.myAvatar
     ?'<img src="'+_beauty.myAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
-    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8ec5e8,#6fa8d9);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg></div>';
+    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#C9B49A,#A07955);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg></div>';
   var _myBubble=_beauty.myBubble||'var(--my-bubble-bg, #e3d9f5)';
   var _taBubble=_beauty.taBubble||'var(--other-bubble-bg, #ffffff)';
   var _myText=_beauty.myText||'var(--my-bubble-text, #666666)';
@@ -3428,36 +3488,39 @@ function openAiChat(){
       if(v&&Array.isArray(v)&&v.length){aiChatMsgs=v;try{ls(aiChatMsgsKey(),aiChatMsgs);}catch(e){}if(typeof renderAiChatMsgs==='function')renderAiChatMsgs();}
     }).catch(function(){});
   }
-  var ov=document.getElementById('ai-chat-page');
+    var ov=document.getElementById('ai-chat-page');
   if(ov&&ov.getAttribute('data-v')==='2'){ov.style.display='flex';renderAiChatMsgs();return;}
   if(ov){try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(e){}}
   ov=document.createElement('div');
   ov.id='ai-chat-page';
   ov.setAttribute('data-v','2');
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:linear-gradient(180deg,#fbfcfe 0%,#f3f6fb 100%);display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
-  head.innerHTML='<div id="ai-chat-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="flex:1;"></div>'
-    +'<div id="ai-chat-new" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
-    +'<div id="ai-chat-sess" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
-    +'<div id="ai-chat-beauty" title="美化聊天页面" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
-    +'<div id="ai-chat-set" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
-    +'<div style="width:8px;flex-shrink:0;"></div>';
+  head.style.cssText='display:flex;align-items:center;gap:6px;padding:12px 14px;border-bottom:1px solid rgba(90,120,200,0.10);flex-shrink:0;z-index:10;position:relative;background:rgba(251,252,254,0.9);backdrop-filter:blur(8px);';
+  head.innerHTML='<div id="ai-chat-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:#8A7A6A;padding:7px;flex-shrink:0;border-radius:10px;background:rgba(90,120,200,0.08);">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="flex:1;"></div>'
+    +'<div id="ai-chat-new" title="新对话" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8A7A6A;width:32px;height:32px;border-radius:10px;background:rgba(90,120,200,0.08);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-chat-sess" title="历史会话" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8A7A6A;width:32px;height:32px;border-radius:10px;background:rgba(90,120,200,0.08);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-chat-beauty" title="美化聊天页面" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8A7A6A;width:32px;height:32px;border-radius:10px;background:rgba(90,120,200,0.08);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-chat-set" title="设定" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8A7A6A;width:32px;height:32px;border-radius:10px;background:rgba(90,120,200,0.08);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div style="width:2px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
   box.id='ai-chat-box';
-  box.style.cssText='flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;';
+  box.style.cssText='flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;';
   ov.appendChild(box);
   var foot=document.createElement('div');
-  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end;';
+  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(90,120,200,0.10);flex-shrink:0;align-items:flex-end;background:rgba(251,252,254,0.9);backdrop-filter:blur(8px);';
   var inp=document.createElement('textarea');
   inp.id='ai-chat-inp';
   inp.rows=1;
   inp.placeholder='和 TA 聊聊这个 if 线里的故事…';
-  inp.style.cssText='flex:1;border:1px solid #e0e0e0;border-radius:12px;background:#f7f7f7;color:#1a1a1a;font-size:14px;padding:10px 13px;resize:none;box-sizing:border-box;max-height:120px;';
+  inp.style.cssText='flex:1;border:1.5px solid rgba(90,120,200,0.18);border-radius:16px;background:#ffffff;color:#3a4a6a;font-size:14px;padding:10px 14px;resize:none;box-sizing:border-box;max-height:120px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;';
+  inp.onfocus=function(){inp.style.borderColor='rgba(90,120,200,0.55)';inp.style.boxShadow='0 0 0 3px rgba(90,120,200,0.12)';};
+  inp.onblur=function(){inp.style.borderColor='rgba(90,120,200,0.18)';inp.style.boxShadow='none';};
   var send=document.createElement('button');
-  send.textContent='➤';
-  send.style.cssText='width:40px;height:38px;border:none;border-radius:12px;background:#1a1a1a;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;';
+  send.title='发送';
+  send.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+  send.style.cssText='width:40px;height:40px;border:none;border-radius:50%;background:linear-gradient(135deg,#A07955,#8A6848);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(90,120,200,0.3);';
   foot.appendChild(inp);foot.appendChild(send);
   ov.appendChild(foot);
   document.body.appendChild(ov);
@@ -3491,27 +3554,40 @@ function renderAiChatMsgs(){
   }
   box.innerHTML='';
   if(!aiChatMsgs.length){
-    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#999;font-size:13px;line-height:2.2;"><div style="color:#bbb;margin-bottom:10px;">'+"<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg>"+'</div>开始你们的 if 线故事吧<br>点击右上角设定背景 / 关联梦角</div>';
+    box.innerHTML='<div style="text-align:center;padding:60px 20px;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#8ec5e8,#8a7fd4);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(110,150,210,0.28);margin-bottom:18px;">'
+      +'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+      +'</div>'
+      +'<div style="font-size:15px;font-weight:600;color:#3a4a6a;letter-spacing:0.5px;">开始你们的 if 线故事吧</div>'
+      +'<div style="font-size:12px;color:#9aa8c0;margin-top:6px;line-height:1.8;">右上角可设定背景 / 关联梦角</div>'
+      +'</div>';
     return;
   }
   var _taAva=_beauty.taAvatar
-    ?'<img src="'+_beauty.taAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
-    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c9a961,#e8c88a);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#7a5a30;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>';
+    ?'<img src="'+_beauty.taAvatar+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
+    :'<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#e0c07a,#d4a94f);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.08);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>';
   var _myAva=_beauty.myAvatar
-    ?'<img src="'+_beauty.myAvatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
-    :'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8ec5e8,#6fa8d9);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg></div>';
-  var _myBubble=_beauty.myBubble||'var(--my-bubble-bg, #e3d9f5)';
+    ?'<img src="'+_beauty.myAvatar+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);">'
+    :'<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#C9B49A,#A07955);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.08);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7L5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg></div>';
+  var _myBubble=_beauty.myBubble||'linear-gradient(135deg,#e8edfa,#dde5f7)';
   var _taBubble=_beauty.taBubble||'var(--other-bubble-bg, #ffffff)';
-  var _myText=_beauty.myText||'var(--my-bubble-text, #666666)';
-  var _taText=_beauty.taText||'var(--other-bubble-text, #666666)';
+  var _myText=_beauty.myText||'var(--my-bubble-text, #5C5246)';
+  var _taText=_beauty.taText||'var(--other-bubble-text, #5C5246)';
   var _lastTs=0;
   aiChatMsgs.forEach(function(m){
     var isUser=m.role==='user';
     if(m.ts&&_lastTs&&m.ts-_lastTs>300000){
       var _tl=document.createElement('div');
-      _tl.style.cssText='text-align:center;font-size:11px;color:var(--txt3);padding:8px 0 2px;';
+      _tl.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 0 4px;';
+      var _lnL=document.createElement('span');
+      _lnL.style.cssText='flex:1;height:1px;background:rgba(90,120,200,0.14);';
+      var _lnR=document.createElement('span');
+      _lnR.style.cssText='flex:1;height:1px;background:rgba(90,120,200,0.14);';
+      var _dt=document.createElement('span');
+      _dt.style.cssText='font-size:10px;color:#9aa8c0;letter-spacing:1px;';
       var _d=new Date(m.ts);
-      _tl.textContent=('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2);
+      _dt.textContent=('0'+_d.getHours()).slice(-2)+':'+('0'+_d.getMinutes()).slice(-2);
+      _tl.appendChild(_lnL);_tl.appendChild(_dt);_tl.appendChild(_lnR);
       box.appendChild(_tl);
     }
     if(m.ts)_lastTs=m.ts;
@@ -3520,7 +3596,7 @@ function renderAiChatMsgs(){
     var av=document.createElement('div');
     av.innerHTML=isUser?_myAva:_taAva;
     var b=document.createElement('div');
-    b.style.cssText='max-width:72%;padding:10px 14px;border-radius:'+(isUser?'14px 14px 4px 14px':'14px 14px 14px 4px')+';background:'+(isUser?_myBubble:_taBubble)+';color:'+(isUser?_myText:_taText)+';font-size:var(--bubble-font-size,14px);line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.05);opacity:var(--bubble-opacity,1);';
+    b.style.cssText='max-width:72%;padding:10px 14px;border-radius:'+(isUser?'18px 18px 6px 18px':'18px 18px 18px 6px')+';background:'+(isUser?_myBubble:_taBubble)+';color:'+(isUser?_myText:_taText)+';font-size:var(--bubble-font-size,14px);line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 10px rgba(90,120,200,0.08);border:1px solid '+(isUser?'rgba(90,120,200,0.10)':'rgba(90,120,200,0.06)')+';opacity:var(--bubble-opacity,1);animation:aiChatBubbleIn 0.25s ease both;';
     b.textContent=m.content;
     row.appendChild(av);
     row.appendChild(b);
@@ -3778,34 +3854,36 @@ function openAiDiviner(){
   ov=document.createElement('div');
   ov.id='ai-diviner-page';
   ov.setAttribute('data-v','2');
-  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:#ffffff;display:flex;flex-direction:column;';
+  ov.style.cssText='position:fixed;inset:0;z-index:9997;background:linear-gradient(180deg,#fdfcfb 0%,#f8f1e6 100%);display:flex;flex-direction:column;';
   var head=document.createElement('div');
-  head.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #ececec;flex-shrink:0;z-index:10;position:relative;background:#fafafa;';
-  head.style.background='#fafafa';
-  head.innerHTML='<div id="ai-diviner-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:var(--txt2);padding:2px 4px;flex-shrink:0;">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="display:flex;align-items:center;gap:6px;flex:1;">'
-    +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="13" r="7"/><path d="M9 2.5h6"/><path d="M12 2.5v3.5"/><path d="M4.5 5.5l-1.5 2.5"/><path d="M19.5 5.5l1.5 2.5"/><path d="M12 13l2.5 2.5"/></svg>'
+  head.style.cssText='display:flex;align-items:center;gap:6px;padding:12px 14px;border-bottom:1px solid rgba(200,160,90,0.12);flex-shrink:0;z-index:10;position:relative;background:rgba(253,252,251,0.9);backdrop-filter:blur(8px);';
+  head.innerHTML='<div id="ai-diviner-back" title="返回聊天" style="display:flex;align-items:center;cursor:pointer;color:#8a6a3a;padding:7px;flex-shrink:0;border-radius:10px;background:rgba(200,160,90,0.10);">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>'+'</div>'+'<div style="display:flex;align-items:center;gap:6px;flex:1;">'
+    +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8a04a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="13" r="7"/><path d="M9 2.5h6"/><path d="M12 2.5v3.5"/><path d="M4.5 5.5l-1.5 2.5"/><path d="M19.5 5.5l1.5 2.5"/><path d="M12 13l2.5 2.5"/></svg>'
     +'<div style="flex:1;"></div>'
     +'</div>'
-    +'<div id="ai-diviner-new" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
-    +'<div id="ai-diviner-sess" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
-    +'<div id="ai-diviner-beauty" title="美化聊天页面" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
-    +'<div id="ai-diviner-set" style="font-size:12px;color:#1a1a1a;cursor:pointer;padding:5px 10px;border:1px solid #e0e0e0;border-radius:8px;background:#ffffff;flex-shrink:0;display:flex;align-items:center;gap:4px;">'+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
-    +'<div style="width:8px;flex-shrink:0;"></div>';
+    +'<div id="ai-diviner-new" title="新对话" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8a6a3a;width:32px;height:32px;border-radius:10px;background:rgba(200,160,90,0.10);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>'+'</div>'
+    +'<div id="ai-diviner-sess" title="历史会话" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8a6a3a;width:32px;height:32px;border-radius:10px;background:rgba(200,160,90,0.10);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'+'</div>'
+    +'<div id="ai-diviner-beauty" title="美化聊天页面" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8a6a3a;width:32px;height:32px;border-radius:10px;background:rgba(200,160,90,0.10);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 22a10 10 0 1 1 10-10c0 2.21-1.79 4-4 4h-2.5a2 2 0 0 0-1.6 3.2c.4.5.6 1.1.6 1.8a2 2 0 0 1-2 2z"/><circle cx="7.5" cy="11.5" r=".5"/><circle cx="10.5" cy="7.5" r=".5"/><circle cx="14.5" cy="7.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/></svg>'+'</div>'
+    +'<div id="ai-diviner-set" title="设定" style="display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8a6a3a;width:32px;height:32px;border-radius:10px;background:rgba(200,160,90,0.10);flex-shrink:0;">'+'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>'+'</div>'
+    +'<div style="width:2px;flex-shrink:0;"></div>';
   ov.appendChild(head);
   var box=document.createElement('div');
   box.id='ai-diviner-box';
-  box.style.cssText='flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#F8F4F0;';
+  box.style.cssText='flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(180deg,#fdfcf9 0%,#f8f1e6 100%);';
   ov.appendChild(box);
   var foot=document.createElement('div');
-  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end;';
+  foot.style.cssText='display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(200,160,90,0.12);flex-shrink:0;align-items:flex-end;background:rgba(253,252,251,0.9);backdrop-filter:blur(8px);';
   var inp=document.createElement('textarea');
   inp.id='ai-diviner-inp';
   inp.rows=1;
   inp.placeholder='发给占卜师：占卜问题 / 抽出的牌面 / 指令...';
-  inp.style.cssText='flex:1;border:1px solid #e0e0e0;border-radius:12px;background:#f7f7f7;color:#1a1a1a;font-size:14px;padding:10px 13px;resize:none;box-sizing:border-box;max-height:120px;';
+  inp.style.cssText='flex:1;border:1.5px solid rgba(200,160,90,0.25);border-radius:16px;background:#ffffff;color:#5a4a3a;font-size:14px;padding:10px 14px;resize:none;box-sizing:border-box;max-height:120px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;';
+  inp.onfocus=function(){inp.style.borderColor='rgba(200,160,90,0.6)';inp.style.boxShadow='0 0 0 3px rgba(200,160,90,0.15)';};
+  inp.onblur=function(){inp.style.borderColor='rgba(200,160,90,0.25)';inp.style.boxShadow='none';};
   var send=document.createElement('button');
-  send.innerHTML='<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5l7 7-7 7\"/></svg>';
-  send.style.cssText='width:40px;height:38px;border:none;border-radius:12px;background:#1a1a1a;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
+  send.title='发送';
+  send.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+  send.style.cssText='width:40px;height:40px;border:none;border-radius:50%;background:linear-gradient(135deg,#e0b96a,#c99b4a);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(200,160,90,0.35);';
   foot.appendChild(inp);foot.appendChild(send);
   ov.appendChild(foot);
   document.body.appendChild(ov);
@@ -3839,26 +3917,31 @@ function renderAiDivinerMsgs(){
   if(!box)return;
   box.innerHTML='';
   if(!aiDivinerMsgs.length){
-    box.innerHTML='<div style="text-align:center;padding:44px 20px;color:#999;font-size:13px;line-height:2.2;"><div style="color:#bbb;margin-bottom:10px;">'+"<svg width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0;color:#B3976A;\"><circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M9 2.5h6\"/><path d=\"M12 2.5v3.5\"/><path d=\"M4.5 5.5l-1.5 2.5\"/><path d=\"M19.5 5.5l1.5 2.5\"/><path d=\"M12 13l2.5 2.5\"/></svg>"+'</div>占卜师已就位<br>直接发占卜问题，或把你抽出的牌发给我解牌<br>点击右上角设定解读指令 / 世界观 / 关联梦角人设</div>';
+    box.innerHTML='<div style="text-align:center;padding:60px 20px;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#e8c47a,#c99b4a);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(200,155,74,0.3);margin-bottom:18px;">'
+      +'<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6.5"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/><path d="M12 9.5l1.4 2.8 3.1.45-2.25 2.2.53 3.1L12 16.75 9.22 18.05l.53-3.1-2.25-2.2 3.1-.45z"/></svg>'
+      +'</div>'
+      +'<div style="font-size:15px;font-weight:600;color:#6b4a1e;letter-spacing:0.5px;">占卜师已就位</div>'
+      +'<div style="font-size:12px;color:#b09a70;margin-top:6px;line-height:1.8;">直接发占卜问题，或把你抽出的牌发给我解牌</div>'
+      +'<div style="font-size:11px;color:#c9b898;margin-top:4px;">点击右上角设定解读指令 / 世界观 / 关联梦角人设</div>'
+      +'</div>';
     return;
   }
-  var _lastTs2=0;
   var _lastTs2=0;
   aiDivinerMsgs.forEach(function(m){
     var isUser=m.role==='user';
     if(m.ts&&_lastTs2&&m.ts-_lastTs2>300000){
       var _tl2=document.createElement('div');
-      _tl2.style.cssText='text-align:center;font-size:11px;color:#958A91;padding:8px 0 2px;';
+      _tl2.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 0 4px;';
+      var _lL=document.createElement('span');
+      _lL.style.cssText='flex:1;height:1px;background:rgba(200,160,90,0.16);';
+      var _lR=document.createElement('span');
+      _lR.style.cssText='flex:1;height:1px;background:rgba(200,160,90,0.16);';
+      var _dt2=document.createElement('span');
+      _dt2.style.cssText='font-size:10px;color:#b09a70;letter-spacing:1px;';
       var _d2=new Date(m.ts);
-      _tl2.textContent=('0'+_d2.getHours()).slice(-2)+':'+('0'+_d2.getMinutes()).slice(-2);
-      box.appendChild(_tl2);
-    }
-    if(m.ts)_lastTs2=m.ts;
-    if(m.ts&&_lastTs2&&m.ts-_lastTs2>300000){
-      var _tl2=document.createElement('div');
-      _tl2.style.cssText='text-align:center;font-size:11px;color:#958A91;padding:8px 0 2px;';
-      var _d2=new Date(m.ts);
-      _tl2.textContent=('0'+_d2.getHours()).slice(-2)+':'+('0'+_d2.getMinutes()).slice(-2);
+      _dt2.textContent=('0'+_d2.getHours()).slice(-2)+':'+('0'+_d2.getMinutes()).slice(-2);
+      _tl2.appendChild(_lL);_tl2.appendChild(_dt2);_tl2.appendChild(_lR);
       box.appendChild(_tl2);
     }
     if(m.ts)_lastTs2=m.ts;
@@ -3866,7 +3949,7 @@ function renderAiDivinerMsgs(){
     var row=document.createElement('div');
     row.style.cssText='display:flex;justify-content:'+(isUser?'flex-end':'flex-start')+';';
     var b=document.createElement('div');
-    b.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(isUser?'14px 14px 4px 14px':'14px 14px 14px 4px')+';background:'+(isCard?'var(--quote-bg,#F4EBDD)':(isUser?'var(--my-bubble-bg,#e3d9f5)':'var(--other-bubble-bg,#ffffff)'))+';color:'+(isUser?'var(--my-bubble-text,#666666)':'var(--other-bubble-text,#666666)')+';font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.05);';
+    b.style.cssText='max-width:82%;padding:10px 14px;border-radius:'+(isUser?'18px 18px 6px 18px':'18px 18px 18px 6px')+';background:'+(isCard?'linear-gradient(135deg,#f7ecd8,#f2e2c4)':(isUser?'linear-gradient(135deg,#f6ecd9,#f0e0c4)':'var(--other-bubble-bg,#ffffff)'))+';color:'+(isUser?'var(--my-bubble-text,#6b4a1e)':'var(--other-bubble-text,#5a4a3a)')+';font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 10px rgba(200,160,90,0.10);border:1px solid '+(isCard?'rgba(200,160,90,0.25)':(isUser?'rgba(200,160,90,0.15)':'rgba(200,160,90,0.08)'))+';'+(isCard?'border-left:3px solid #c8a04a;':'')+'animation:aiChatBubbleIn 0.25s ease both;';
     b.textContent=m.content;
     row.appendChild(b);
     box.appendChild(row);
@@ -5016,10 +5099,10 @@ function renderChatMorePanel(){
 
   var enabledItems=customChatbarEnabled;
   if(!enabledItems||!Array.isArray(enabledItems)||enabledItems.length===0){
-    enabledItems=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','board','period','pomodoro','mood_cards_library','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals'];
+    enabledItems=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','board','period','pomodoro','mood_cards_library','read_cards','read_video_cards','ta_daily_cards','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals'];
   }else{
     // ★ 铁证：无论 customChatbarEnabled 来自哪里（旧存档/未合并），渲染时都强制补全新功能
-    ['ask_ta','ask_invite_records','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals','invite','piggy','star_flip','star_journey'].forEach(function(_i){
+    ['ask_ta','ask_invite_records','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video_cards','ta_daily_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals','invite','piggy','star_flip','star_journey','soul_qa','star_memory','default_common_cards','chat_followup'].forEach(function(_i){
       if(enabledItems.indexOf(_i)===-1)enabledItems.push(_i);
     });
   }
@@ -5028,7 +5111,7 @@ function renderChatMorePanel(){
     var c=contacts.find(function(x){return x.id===cid});
     if(c&&c.chatbarEnabled&&Array.isArray(c.chatbarEnabled)){
       // 合并：确保新功能也出现在联系人定制列表中
-      var defaults=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals'];
+      var defaults=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals'];
       var merged=c.chatbarEnabled.slice();
       defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
       enabledItems=merged;
@@ -5128,7 +5211,7 @@ function renderChatMorePanel(){
     html+='<div class="chat-more-cat-items">';
     items.forEach(function(item){
       var iconHtml=customIcons[item.id]
-        ? '<img src="'+customIcons[item.id]+'" style="width:36px;height:36px;object-fit:contain;border-radius:4px;">'
+        ? '<img src="'+customIcons[item.id]+'" style="width:46px;height:46px;object-fit:contain;border-radius:8px;display:block;">'
         : '<span class="chat-more-icon">'+item.icon+'</span>';
       html+='<div class="chat-more-item" data-action="'+item.id+'">';
       html+='<div class="chat-more-icon-wrap">'+iconHtml+'</div>';
@@ -5189,6 +5272,9 @@ function handleChatMoreAction(action){
       case 'cards':
         openCardSettings();
         break;
+      case 'default_common_cards':
+        if(typeof openDefaultCommonCards==='function')openDefaultCommonCards();
+        break;
       case 'topbar_cards':
         openContactTopbarSettings();
         break;
@@ -5221,6 +5307,9 @@ function handleChatMoreAction(action){
       case 'survey':
         openSurveyModal('half');
         break;
+      case 'soul_qa':
+        if(typeof openSoulQaModal==='function')openSoulQaModal('half');
+        break;
       case 'piggy':
         showPiggyPage();
         break;
@@ -5247,6 +5336,12 @@ function handleChatMoreAction(action){
         break;
       case 'read_cards':
         if(typeof showReadCards==='function')showReadCards();
+        break;
+      case 'read_video_cards':
+        if(typeof showReadVideoCards==='function')showReadVideoCards();
+        break;
+      case 'ta_daily_cards':
+        if(typeof showTADailyManage==='function')showTADailyManage();
         break;
       case 'read_video':
         if(typeof showReadVideo==='function')showReadVideo();
@@ -5324,6 +5419,9 @@ function handleChatMoreAction(action){
       case 'mood_cards_library':
         openMoodCardsSettings();
         break;
+      case 'chat_followup':
+        if(typeof openChatFollowup==='function')openChatFollowup();
+        break;
       case 'settings':
         showPg('pg-my');
         break;
@@ -5344,6 +5442,9 @@ function handleChatMoreAction(action){
         break;
       case 'star_cal':
         showStarCal(cid);
+        break;
+      case 'star_memory':
+        if(typeof openStarMemory==='function')openStarMemory(cid);
         break;
       case 'ta_distance':
         showTADistance();
@@ -5379,11 +5480,11 @@ function handleChatMoreAction(action){
 }
 
 function loadChatbarSettings(){
-  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
+  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
   var saved=ls('ml2_custom_chatbar');
   if(saved&&Array.isArray(saved)&&saved.length>0){
     // 合并：把新增的默认功能添加到已保存的配置中
-    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
+    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
     var merged=saved.slice();
     defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
     customChatbarEnabled=merged;
@@ -5396,7 +5497,7 @@ async function loadChatbarSettingsAsync(){
     try{
       var saved=await window.localforage.getItem('ml2_custom_chatbar');
       if(saved&&Array.isArray(saved)&&saved.length>0){
-        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
+        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
         var merged=saved.slice();
         defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
         customChatbarEnabled=merged;
@@ -5565,8 +5666,8 @@ var STORAGE_CATEGORIES=[
   {id:'chat',icon:'💬',name:'聊天记录',desc:'会话消息、图片、语音、非即时消息'},
   {id:'contacts',icon:'👥',name:'联系人',desc:'联系人列表、群组、头像、个人资料、纪念日、时间轴、拍一拍隐藏昵称'},
   {id:'cards',icon:'📖',name:'字卡库',desc:'全局/会话/心意/情绪/意图字卡、拍一拍字卡、顶部栏字卡、默认通用字卡、字卡使用统计'},
-  {id:'moments',icon:'📸',name:'朋友圈',desc:'动态、评论、点赞、通知'},
-  {id:'letters',icon:'✉️',name:'信件',desc:'信件往来记录'},
+  {id:'moments',icon:'📸',name:'星言动态',desc:'动态、评论、点赞、通知'},
+  {id:'letters',icon:'✉️',name:'星言信箱',desc:'信件往来记录'},
   {id:'giftbox',icon:'🎁',name:'礼物盒',desc:'礼物记录、每日礼物状态'},
   {id:'divine',icon:'🔮',name:'占卜',desc:'占卜历史记录'},
   {id:'starcal',icon:'🗓️',name:'星言日历',desc:'日历留言数据'},
@@ -5574,10 +5675,10 @@ var STORAGE_CATEGORIES=[
   {id:'call',icon:'📞',name:'通话',desc:'通话设置、通话历史、通话背景'},
   {id:'redpacket',icon:'🧧',name:'红包',desc:'红包钱包、红包记录、每日红包'},
   {id:'decision',icon:'🎲',name:'帮我决定',desc:'单人决定历史、多人决定历史与成员、决定设置'},
-  {id:'survey',icon:'📝',name:'调查问卷',desc:'问卷记录、问卷时长、提前提交概率'},
-  {id:'board',icon:'📋',name:'留言板',desc:'我的留言板消息'},
-  {id:'diary',icon:'✍️',name:'记录',desc:'我的日记、经期记录'},
-  {id:'pomodoro',icon:'🍅',name:'番茄钟',desc:'番茄钟状态、记录、设置、消息、背景'},
+  {id:'survey',icon:'📝',name:'心意问卷',desc:'问卷记录、问卷时长、提前提交概率'},
+  {id:'board',icon:'📋',name:'星言留言',desc:'星言留言消息'},
+  {id:'diary',icon:'✍️',name:'记录',desc:'星言日记、星言周期'},
+  {id:'pomodoro',icon:'🍅',name:'星言专注',desc:'星言专注状态、记录、设置、消息、背景'},
   {id:'favorites',icon:'⭐',name:'收藏与高亮',desc:'聊天收藏、我的收藏夹、TA收藏、TA高亮消息'},
   {id:'custom',icon:'🎨',name:'个性化',desc:'自定义图标、表情包、自定义回复、聊天栏布局、底部导航、联系人排序'},
   {id:'settings',icon:'⚙️',name:'设置',desc:'应用设置、导航状态、速度设置、输入栏隐藏、迁移标记、存储统计'},
@@ -6076,7 +6177,7 @@ function triggerMealRemind(slotKey,contactId){
   }catch(e){}
   var html='<div style="padding:18px 16px 2px;text-align:center;"><div style="font-size:11px;color:#D4A574;letter-spacing:3px;">✦ 星 光 提 醒 ✦</div></div>'
     +'<div style="padding:12px 16px 2px;display:flex;align-items:center;justify-content:center;gap:10px;">'
-    +'<div style="width:42px;height:42px;border-radius:50%;background:#E8CDB5;display:flex;align-items:center;justify-content:center;font-size:19px;color:#8B6A58;">'+(c&&c.avatar?c.avatar:'💫')+'</div>'
+    +'<div style="width:42px;height:42px;border-radius:50%;background:#E8CDB5;display:flex;align-items:center;justify-content:center;overflow:hidden;">'+(c&&c.avatar?'<img src="'+c.avatar+'" style="width:100%;height:100%;object-fit:cover;">':'<span style="font-size:19px;color:#8B6A58;">💫</span>')+'</div>'
     +'<div><div style="font-size:15px;font-weight:700;color:#8B6A58;">'+name+'</div><div style="font-size:11px;color:#B9A48F;">'+sl.name+'时间到</div></div></div>'
     +'<div style="padding:10px 16px 4px;font-size:14px;color:#594A40;line-height:1.9;text-align:center;">'+text+'</div>'
     +'<div style="padding:14px 16px 16px;display:flex;gap:8px;">'

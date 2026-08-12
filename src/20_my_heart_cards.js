@@ -2911,10 +2911,10 @@ function showImportProgress(customTitle){
   barBg.appendChild(bar);
   var label=document.createElement('div');
   label.textContent='正在准备...';
-  label.style.cssText='font-size:13px;color:#888;margin-bottom:4px;';
+  label.style.cssText='font-size:13px;color:#6f6a62;margin-bottom:4px;';
   var pct=document.createElement('div');
   pct.textContent='0%';
-  pct.style.cssText='font-size:12px;color:#aaa;';
+  pct.style.cssText='font-size:12px;color:#827d74;';
   box.appendChild(title);
   box.appendChild(barBg);
   box.appendChild(label);
@@ -2925,7 +2925,7 @@ function showImportProgress(customTitle){
   box.style.position='relative';
   var _closeBtn=document.createElement('div');
   _closeBtn.textContent='✕';
-  _closeBtn.style.cssText='position:absolute;top:6px;right:10px;font-size:14px;color:#bbb;cursor:pointer;padding:4px;';
+  _closeBtn.style.cssText='position:absolute;top:6px;right:10px;font-size:14px;color:#948e85;cursor:pointer;padding:4px;';
   box.appendChild(_closeBtn);
   var _hidAuto=false;
   function _autoHide(){

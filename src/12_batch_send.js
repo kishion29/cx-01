@@ -574,6 +574,15 @@ async function genSingleMemberReply(targetId,senderId,group,preComputedSenderNam
           reply=kc.content;
         }
       }
+      // ★ 梦角聊天回应系统：轻量连接词概率附着在主回复旁（只接话/推进，不独立抢回复）
+      try{
+        if(typeof ChatFollowup!=='undefined'&&ChatFollowup.getChatFollowup){
+          var _cf=ChatFollowup.getChatFollowup(senderId,reply);
+          if(_cf&&reply&&reply!=='请在字卡库里上传字卡后开始聊天'){
+            reply=reply+' '+_cf;
+          }
+        }
+      }catch(e){}    
     }
   }
   

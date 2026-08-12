@@ -141,7 +141,17 @@ function showContactProfile(contactId){
 
   // 修复：先绑定所有按钮事件，再执行渲染，防止渲染异常导致按钮失效
   // 每个绑定独立 try-catch，防止一个失败导致后续全部失效
-  try{$('contact-profile-anniversary-add').onclick=function(){showAddAnniversaryModal(contactId)};}catch(e){console.warn('bind anniversary-add failed:',e)}
+  // ★ 主页纪念日"新增"→ 打开星言纪念新建弹窗（共用数据源）
+  try{
+    var _annAdd=$('contact-profile-anniversary-add');
+    if(_annAdd)_annAdd.onclick=function(){
+      if(typeof openStarMemory==='function'){
+        hideOv('ov-contact-profile');
+        openStarMemory(contactId);
+        setTimeout(function(){try{StarMemory.showAdd();}catch(e){}},150);
+      }else{showAddAnniversaryModal(contactId);}
+    };
+  }catch(e){console.warn('bind anniversary-add failed:',e)}
   try{$('contact-profile-song-add').onclick=function(){showAddSongModal(contactId)};}catch(e){console.warn('bind song-add failed:',e)}
   try{$('contact-profile-divine-add').onclick=function(){showAddDivineRecordModal(contactId)};}catch(e){console.warn('bind divine-add failed:',e)}
   try{$('contact-profile-divine-import').onclick=function(){showImportDivineRecordModal(contactId)};}catch(e){console.warn('bind divine-import failed:',e)}
@@ -559,16 +569,28 @@ var contactLetterTargetId=null;
 var _contactLetterIsReply=false; // ★ 标记聊天页写信弹窗是否为"回信"（true=回信，false=写信）
 var contactAnniversaries={};
 
+// ★ 兼容：纪念日数据统一走星言纪念库（ml2_star_memory_<cid>，含旧库迁移）
 function getContactAnniversaries(contactId){
   if(!contactAnniversaries[contactId]){
     var saved=ls('ml2_contact_anniversaries_'+contactId);
     contactAnniversaries[contactId]=saved&&Array.isArray(saved)?saved:[];
+    // 若新库有数据，直接用新库；否则尝试迁移旧数据
+    if(typeof StarMemory!=='undefined'&&StarMemory.getMemories){
+      var nm=StarMemory.getMemories(contactId);
+      if(nm.length)contactAnniversaries[contactId]=nm.map(function(m){return {id:m.id,name:m.name,date:m.date,type:m.type,note:m.note};});
+    }
   }
   return contactAnniversaries[contactId];
 }
 
 function saveContactAnniversaries(contactId){
   ls('ml2_contact_anniversaries_'+contactId,contactAnniversaries[contactId]);
+  // 同步写入星言纪念库，保持同一数据源
+  if(typeof StarMemory!=='undefined'&&StarMemory.saveMemories){
+    StarMemory.saveMemories(contactId,contactAnniversaries[contactId].map(function(m){
+      return {id:m.id,name:m.name,date:m.date,type:m.type||'custom',note:m.note||'',createdAt:m.createdAt||Date.now()};
+    }));
+  }
 }
 
 function renderContactAnniversaryList(contactId){
@@ -606,7 +628,9 @@ function renderContactAnniversaryList(contactId){
     
     var item=document.createElement('div');
     item.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:12px 12px;margin-bottom:8px;border-radius:12px;background:var(--c1);cursor:pointer;transition:background 0.2s;';
-    item.innerHTML='<div><div style="font-size:13px;color:var(--txt);font-weight:500;">'+ann.name+'</div><div style="font-size:11px;color:var(--txt3);margin-top:3px;">'+dateStr+' ('+yearStr+'年)</div></div><div style="font-size:12px;color:'+dayColor+';font-weight:600;">'+dayText+'</div>';
+    var typeIcon='🎂';
+    if(typeof StarMemory!=='undefined'&&StarMemory._typeIcon)typeIcon=StarMemory._typeIcon(ann.type||'custom');
+    item.innerHTML='<div style="display:flex;align-items:center;gap:8px;min-width:0;"><span>'+typeIcon+'</span><div style="min-width:0;"><div style="font-size:13px;color:var(--txt);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+ann.name+'</div><div style="font-size:11px;color:var(--txt3);margin-top:3px;">'+dateStr+' ('+yearStr+'年)</div></div></div><div style="font-size:12px;color:'+dayColor+';font-weight:600;flex-shrink:0;">'+dayText+'</div>';
     
     item.addEventListener('click',function(){
       showEditAnniversaryModal(contactId,ann);

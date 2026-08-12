@@ -1809,6 +1809,26 @@ function withTimeout(promise, ms, fallback){
 // 强制迁移旧版默认设置到新版默认值（仅当用户未手动修改过时）
 var CURRENT_VERSION = '1.7.2';
 function migrateSettings(){
+  // ★ 回复消息条数：旧默认"最多 5 条"→"最多 2 条"（独立一次性迁移，自带标记，
+  //   不受版本门控影响——老用户已标记过版本号时也能修正残留的 reply_max=5）
+  try{
+    if(!localStorage.getItem('star_speed_replymax_migrated')){
+      var _sd=ls('ml2_speed');
+      var _chg=false;
+      if(_sd&&typeof _sd==='object'){
+        if(_sd.reply_max===undefined||_sd.reply_max===5){_sd.reply_max=2;_chg=true;}
+        if(_sd.reply_min===undefined){_sd.reply_min=1;_chg=true;}
+        if(_sd.contacts&&typeof _sd.contacts==='object'){
+          Object.keys(_sd.contacts).forEach(function(_cid3){
+            var _c3=_sd.contacts[_cid3];
+            if(_c3&&(_c3.reply_max===undefined||_c3.reply_max===5)){_c3.reply_max=2;_chg=true;}
+          });
+        }
+        if(_chg){ls('ml2_speed',_sd);if(window.localforage){try{window.localforage.setItem('ml2_speed',_sd);}catch(e){};}}
+      }
+      try{localStorage.setItem('star_speed_replymax_migrated','1');}catch(e){}
+    }
+  }catch(e){}
   var migratedVersion = null;
   try { migratedVersion = localStorage.getItem('star_settings_migrated_version'); } catch(e) {}
   if (migratedVersion === CURRENT_VERSION) return;
@@ -3291,9 +3311,9 @@ var SurveyApp = (function() {
           html+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">';
           q.options.forEach(function(opt){
             var isSelected=answer.trim()===opt.trim();
-            var optBg=isSelected?'#333333':'#f0f0f0';
-            var optBorder=isSelected?'#333333':'#ddd';
-            var optColor=isSelected?'#ffffff':'#333333';
+            var optBg=isSelected?'var(--accent)':'var(--c2)';
+            var optBorder=isSelected?'var(--accent)':'var(--border)';
+            var optColor=isSelected?'#ffffff':'var(--txt)';
             var optWeight=isSelected?'font-weight:600;':'';
             html+='<div style="padding:6px 14px;border-radius:20px;border:1px solid '+optBorder+';background:'+optBg+';color:'+optColor+';font-size:13px;'+optWeight+'">'+
               escapeHTML(opt)+(isSelected?' ✓':'')+'</div>';
@@ -3303,7 +3323,7 @@ var SurveyApp = (function() {
           // 选项题但未作答：显示全部选项（无高亮）
           html+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">';
           q.options.forEach(function(opt){
-            html+='<div style="padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#f0f0f0;color:#333;font-size:13px;">'+escapeHTML(opt)+'</div>';
+            html+='<div style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--c2);color:var(--txt);font-size:13px;">'+escapeHTML(opt)+'</div>';
           });
           html+='</div>';
           html+='<div style="margin-top:6px;color:var(--txt3);font-size:12px;">未作答</div>';
@@ -3610,7 +3630,7 @@ var SurveyApp = (function() {
           if(an&&an.value&&an.value!=='(未回答)'){
             var anText=String(an.value);
             if(anText.length>12)anText=anText.substring(0,12)+'…';
-            answerSummaryHtml+='<span style="padding:2px 8px;background:rgba(110,123,150,0.18);border-radius:10px;color:var(--txt);">Q'+(bi+1)+': '+escapeHTML(anText)+'</span>';
+            answerSummaryHtml+='<span style="padding:2px 8px;background:var(--accent-bg);border-radius:10px;color:var(--txt);">Q'+(bi+1)+': '+escapeHTML(anText)+'</span>';
           }
         }
       }

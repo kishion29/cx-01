@@ -1,6 +1,17 @@
 <script>
 // PWA Service Worker 注册 + 自动更新（部署新版本后自动刷新一次，避免一直跑旧缓存）
 (function(){
+  // ★ 动态注入 PWA manifest：仅 http/https 协议下加载。
+  // 直接用 file:// 打开 index.html 时 origin 为 null，静态 <link rel="manifest"> 会被
+  // CORS 策略拦截并报错，这里改为 JS 注入以消除该报错；部署到 http/https 时 manifest 正常生效。
+  try{
+    if(location.protocol==='http:'||location.protocol==='https:'){
+      var _mLink=document.createElement('link');
+      _mLink.rel='manifest';
+      _mLink.href='manifest.json';
+      document.head.appendChild(_mLink);
+    }
+  }catch(e){}
   if(!('serviceWorker' in navigator))return;
   var APP_VERSION='1.8';
   window.__APP_VERSION=APP_VERSION;
@@ -1763,7 +1774,7 @@ function d2SwitchToFull() {
           <span style="font-weight:600;color:var(--txt);">4%</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--c2);border-radius:8px;">
-          <span style="color:#fa8c16;">不安与恐惧</span>
+          <span style="color:#A07955;">不安与恐惧</span>
           <span style="font-weight:600;color:var(--txt);">3%</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--c2);border-radius:8px;">

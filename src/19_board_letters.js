@@ -531,15 +531,36 @@ function generateLetterContent(cid){
   var shuffled=cards.sort(function(){return Math.random()-0.5});
   var count=Math.max(1,Math.floor(Math.random()*maxCards));
   var selected=shuffled.slice(0,Math.min(count,shuffled.length));
-  return selected.map(function(c){
-    if(c.category==='stickers'){
-      return '[STICKER]'+c.content+'[/STICKER]';
+  // ★ 修复：图片字卡（category:'image'）和贴纸的内容是 base64 / IndexedDB 键，
+  // 直接拼进信件会被 renderLetterContent 当纯文本转义显示成乱码。
+  // 仅内联 data:image 可写入信件正文（渲染为图片），其余（ml2_card_img_ 等异步键）跳过。
+  var parts=[];
+  selected.forEach(function(c){
+    if(c.category==='stickers'||c.category==='image'){
+      if(c.content&&c.content.indexOf('data:image/')===0){
+        parts.push('[STICKER]'+c.content+'[/STICKER]');
+      }
+      return;
     }
-    return c.content;
-  }).join(' ');
+    if(c.content)parts.push(c.content);
+  });
+  var result=parts.join(' ');
+  if(!result){
+    return '最近总是想起我们以前聊的那些。时间过得真快，但有些东西没变。给我回信吧，或者直接来找我聊天。';
+  }
+  return result;
 }
 function renderLetterContent(text){
   if(!text)return '';
+  // ★ 修复历史乱码：旧版本直接把图片字卡/贴纸的 base64 当文本存进信件，
+  // 渲染时把「裸露的 data:image 数据」补包成 [STICKER] 标记（已正确标记的原样保留），
+  // 否则整封信会显示成一长串 base64 乱码
+  if(/data:image\//.test(text)){
+    text=text.replace(/(\[STICKER\]data:image\/[a-zA-Z0-9+/=;:,._-]*\[\/STICKER\])|(data:image\/[a-zA-Z0-9+/=;:,._-]+)/g,function(m,already,raw){
+      if(already)return already;
+      return '[STICKER]'+raw+'[/STICKER]';
+    });
+  }
   var parts=text.split(/\[STICKER\]/);
   var html='';
   parts.forEach(function(part,idx){

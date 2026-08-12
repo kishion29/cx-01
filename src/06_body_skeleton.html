@@ -14,7 +14,7 @@
 <!-- 即时加载动画：在页面解析期间显示，减少手机端白屏/卡顿感 -->
 <div id="early-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;">
   <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:9px;color:#c4b39c;line-height:1.7;letter-spacing:0.5px;padding:0 16px;">星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入 AI。AI 为附带功能，可在设置的 api 接口中按需接入（可选）。不接入 AI 也能正常使用全部核心功能。<br>内容参考：AI 生成的所有内容仅供参考，不代表任何事实，请理性看待。</div>
-  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-11 21:14</div>
+  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-12 17:52</div>
   <div style="font-size:32px;color:#c9a96e;margin-bottom:24px;animation:splashPulse 1.5s ease-in-out infinite">✦</div>
   <div style="display:flex;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></span></div>
   <div style="font-size:13px;color:#b0a08a;letter-spacing:2px;margin-top:20px;" id="splash-status">星言加载中...</div>
@@ -186,7 +186,6 @@ function showUsageNoticeFromSplash() {
       <div id="update-notice-title">✨ 星言字卡</div>
       <div id="update-notice-version"></div>
       <div id="update-notice-date"></div>
-      <div id="update-notice-deploy" style="position:absolute;top:10px;right:12px;font-size:11px;color:var(--txt3);letter-spacing:0.5px;"></div>
     </div>
     <div id="update-notice-body"></div>
     <div id="update-notice-footer">
@@ -839,7 +838,7 @@ function showUsageNoticeFromSplash() {
       </div>
       <div class="my-row" id="more-letters-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
         <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">✉️</div>
-        <div style="flex:1"><div style="font-weight:500;font-size:16px">信箱</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">寄出信件、收到回信</div></div>
+        <div style="flex:1"><div style="font-weight:500;font-size:16px">星言信箱</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">寄出信件、收到回信</div></div>
         
       </div>
       <div class="my-row" id="more-noninstant-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
@@ -1548,7 +1547,7 @@ function showUsageNoticeFromSplash() {
         <div style="font-size:12px;color:var(--txt2);line-height:1.5;">在联系人设置中可开关星音权限。关闭时音乐完全由你控制，开启后TA可以参与音乐播放。</div>
       </div>
       
-      <div style="margin-bottom:10px;padding:12px 14px;background:var(--c2);border-radius:10px;border-left:3px solid #e8a87c;">
+      <div style="margin-bottom:10px;padding:12px 14px;background:var(--c2);border-radius:10px;border-left:3px solid #a07955;">
         <div style="font-size:13px;font-weight:500;color:var(--txt);margin-bottom:4px;">💌 音乐请求</div>
         <div style="font-size:12px;color:var(--txt2);line-height:1.5;">TA不会直接播放音乐，而是提出请求。聊天中随机触发，弹窗询问你是否播放。你始终拥有最终决定权。</div>
       </div>
@@ -2124,19 +2123,37 @@ function showUsageNoticeFromSplash() {
       <input type="text" id="api-base-url" placeholder="https://api.deepseek.com/v1" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;">
       <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">API Key</div>
       <input type="password" id="api-key" placeholder="sk-..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;">
-      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">模型名称</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:12px;color:var(--txt3);">模型名称（可点「拉取模型」自动获取当前服务商可用模型）</div>
+        <button type="button" id="api-fetch-models-btn" onclick="fetchApiModels()" style="font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);color:var(--txt);cursor:pointer;flex-shrink:0;">🔄 拉取模型</button>
+      </div>
       <input type="text" id="api-model" list="api-model-list" placeholder="deepseek-chat" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:12px;">
       <datalist id="api-model-list">
         <option value="deepseek-chat">DeepSeek · deepseek-chat</option>
         <option value="deepseek-reasoner">DeepSeek · deepseek-reasoner</option>
+        <option value="qwen-flash">通义 · qwen-flash</option>
         <option value="qwen-turbo">通义 · qwen-turbo</option>
         <option value="qwen-plus">通义 · qwen-plus</option>
         <option value="qwen-max">通义 · qwen-max</option>
+        <option value="qwen-long">通义 · qwen-long</option>
         <option value="glm-4-flash">GLM · glm-4-flash</option>
+        <option value="glm-4-flashx">GLM · glm-4-flashx</option>
+        <option value="glm-4-air">GLM · glm-4-air</option>
+        <option value="glm-4-airx">GLM · glm-4-airx</option>
+        <option value="glm-4-plus">GLM · glm-4-plus</option>
+        <option value="glm-4-long">GLM · glm-4-long</option>
         <option value="glm-4">GLM · glm-4</option>
+        <option value="glm-z1-flash">GLM · glm-z1-flash（思考）</option>
+        <option value="glm-z1-air">GLM · glm-z1-air（思考）</option>
+        <option value="glm-4v">GLM · glm-4v（视觉）</option>
+        <option value="glm-4v-plus">GLM · glm-4v-plus（视觉）</option>
         <option value="gpt-4o-mini">OpenAI · gpt-4o-mini</option>
         <option value="gpt-4o">OpenAI · gpt-4o</option>
+        <option value="gpt-4.1-mini">OpenAI · gpt-4.1-mini</option>
+        <option value="gpt-4.1">OpenAI · gpt-4.1</option>
         <option value="moonshot-v1-8k">Moonshot · moonshot-v1-8k</option>
+        <option value="moonshot-v1-32k">Moonshot · moonshot-v1-32k</option>
+        <option value="moonshot-v1-128k">Moonshot · moonshot-v1-128k</option>
       </datalist>
       <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">TA 的完整人设（选填，可写性格、背景、称呼、说话习惯、你们的关系细节等）</div>
       <textarea id="api-persona" rows="5" placeholder="例如：温柔但有点傲娇，说话简短偶尔逗你；你们相识于某个雨天，TA习惯叫你"笨蛋"；认定你是最重要的人……" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;box-sizing:border-box;margin-bottom:14px;resize:vertical;"></textarea>
@@ -2213,45 +2230,66 @@ function showUsageNoticeFromSplash() {
       </div>
     </div>
     <div id="read-shelf-list" style="flex:1;overflow-y:auto;padding:10px 14px;"></div>
-    <label style="flex-shrink:0;margin:0 14px 12px;display:block;text-align:center;padding:14px 12px;border:2px dashed rgba(255,180,120,0.5);border-radius:14px;cursor:pointer;background:linear-gradient(160deg,rgba(255,214,165,0.12),rgba(255,255,255,0));">
+    <label style="flex-shrink:0;margin:0 14px 12px;display:block;text-align:center;padding:14px 12px;border:2px dashed rgba(160,121,85,0.45);border-radius:14px;cursor:pointer;background:linear-gradient(160deg,rgba(228,236,248,0.18),rgba(255,255,255,0));">
       <div style="font-size:24px;">📕</div>
-      <div style="font-size:13px;color:var(--accent);margin-top:2px;font-weight:600;">+ 导入电子书（TXT / EPUB）</div>
-      <input type="file" id="read-book-file" accept=".txt,text/plain,.epub" style="display:none;" onchange="readUploadBook(this)">
+      <div style="font-size:13px;color:var(--accent);margin-top:2px;font-weight:600;">+ 导入电子书（TXT / EPUB / PDF）</div>
+      <input type="file" id="read-book-file" accept=".txt,text/plain,.epub,.pdf,application/pdf" style="display:none;" onchange="readUploadBook(this)">
     </label>
   </div>
-  <div id="read-book-page" style="position:absolute;inset:0;display:none;flex-direction:column;background:#F8F4EC;z-index:3;">
+  <div id="read-book-page" style="position:absolute;inset:0;display:none;flex-direction:column;background:#FAFAF8;z-index:3;">
     <div style="display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid rgba(0,0,0,0.07);flex-shrink:0;">
-      <button onclick="readBackShelf()" style="border:none;background:none;color:#514750;font-size:18px;cursor:pointer;padding:2px 6px;">←</button>
-      <div style="flex:1;font-size:15px;font-weight:600;color:#514750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="read-book-title"></div>
+      <button onclick="readBackShelf()" style="border:none;background:none;color:#444444;font-size:18px;cursor:pointer;padding:2px 6px;">←</button>
+      <div style="flex:1;font-size:15px;font-weight:600;color:#444444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="read-book-title"></div>
       <span id="read-company-pick-btn" onclick="readShowCompanyPick()" title="选择一起看的人" style="font-size:14px;cursor:pointer;padding:3px 6px;">👥</span>
       <span id="read-company-btn" onclick="readToggleCompany()" title="梦角陪读" style="font-size:14px;cursor:pointer;padding:3px 6px;">💬</span>
-      <button onclick="readRemoveBook()" style="border:none;background:none;color:#c0785f;font-size:13px;cursor:pointer;padding:2px 6px;">🗑</button>
+      <button onclick="readRemoveBook()" style="border:none;background:none;color:#ff4d4f;font-size:13px;cursor:pointer;padding:2px 6px;">🗑</button>
     </div>
     <div style="position:relative;flex:1;overflow:hidden;">
       <div id="read-book-danmaku-layer" style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;overflow:hidden;z-index:8;"></div>
-      <div id="read-book-content" style="position:absolute;inset:0;overflow-y:auto;padding:16px 18px;font-size:16px;line-height:1.9;color:#4a3f35;"></div>
+      <div id="read-book-content" style="position:absolute;inset:0;overflow-y:auto;padding:16px 18px;font-size:16px;line-height:1.9;color:#444444;touch-action:pan-y;cursor:default;user-select:text;-webkit-user-select:text;"></div>
     </div>
     <div id="read-book-bottom" style="flex-shrink:0;padding:4px 12px 8px;">
       <div id="read-progress-bar" onclick="readJumpProgress(event)" style="position:relative;height:14px;cursor:pointer;touch-action:manipulation;">
         <div style="position:absolute;left:0;right:0;top:6px;height:3px;background:rgba(0,0,0,0.12);border-radius:2px;"></div>
-        <div id="read-progress-fill" style="position:absolute;left:0;top:6px;height:3px;background:#C98F62;border-radius:2px;width:0%;"></div>
-        <div id="read-progress-dot" style="position:absolute;top:3px;width:10px;height:10px;border-radius:50%;background:#C98F62;left:0%;transform:translateX(-50%);"></div>
+        <div id="read-progress-fill" style="position:absolute;left:0;top:6px;height:3px;background:#A07955;border-radius:2px;width:0%;"></div>
+        <div id="read-progress-dot" style="position:absolute;top:3px;width:10px;height:10px;border-radius:50%;background:#A07955;left:0%;transform:translateX(-50%);"></div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-        <button onclick="readPrevPage()" style="flex:1;padding:8px 0;border:1px solid rgba(0,0,0,0.1);border-radius:10px;background:#FFFDF8;color:#514750;font-size:13px;cursor:pointer;">← 上一页</button>
-        <span id="read-book-progress" style="flex:1;text-align:center;font-size:12px;color:#9A8878;"></span>
-        <button onclick="readNextPage()" style="flex:1;padding:8px 0;border:none;border-radius:10px;background:#C98F62;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">下一页 →</button>
+        <button onclick="readPrevPage()" style="flex:1;padding:8px 0;border:1px solid rgba(0,0,0,0.1);border-radius:10px;background:#FFFFFF;color:#444444;font-size:13px;cursor:pointer;">← 上一页</button>
+        <span id="read-book-progress" style="flex:1;text-align:center;font-size:12px;color:#888888;"></span>
+        <button onclick="readNextPage()" style="flex:1;padding:8px 0;border:none;border-radius:10px;background:#A07955;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">下一页 →</button>
       </div>
       <div style="display:flex;justify-content:space-around;margin-top:4px;">
-        <span onclick="readShowToc()" style="font-size:12px;color:#514750;cursor:pointer;padding:4px 6px;">📑 目录</span>
-        <span onclick="readAddBookmark()" style="font-size:12px;color:#514750;cursor:pointer;padding:4px 6px;">🔖 书签</span>
-        <span onclick="readShowBookmarks()" style="font-size:12px;color:#514750;cursor:pointer;padding:4px 6px;">📚 书签列表</span>
-        <span onclick="readOpenSettings()" style="font-size:12px;color:#514750;cursor:pointer;padding:4px 6px;">⚙️ 设置</span>
-        <span onclick="readToggleFullscreen()" style="font-size:12px;color:#514750;cursor:pointer;padding:4px 6px;">⛶ 全屏</span>
+        <span onclick="readShowToc()" style="font-size:12px;color:#444444;cursor:pointer;padding:4px 6px;">📑 目录</span>
+        <span onclick="readAddBookmark()" style="font-size:12px;color:#444444;cursor:pointer;padding:4px 6px;">🔖 书签</span>
+        <span onclick="readShowBookmarks()" style="font-size:12px;color:#444444;cursor:pointer;padding:4px 6px;">📚 书签列表</span>
+        <span onclick="readOpenSettings()" style="font-size:12px;color:#444444;cursor:pointer;padding:4px 6px;">⚙️ 设置</span>
+        <span onclick="showReadSceneCards()" style="font-size:12px;color:#444444;cursor:pointer;padding:4px 6px;">💬 陪读字卡</span>
+        <span onclick="readToggleFullscreen()" style="font-size:12px;color:#444444;cursor:pointer;padding:4px 6px;">⛶ 全屏</span>
       </div>
     </div>
   </div>
 
+
+<!-- 陪读字卡库 -->
+<div class="overlay" id="ov-read-scene-cards">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>💬 陪读字卡库</h3><button class="btn-close" onclick="hideOv('ov-read-scene-cards')">✕</button></div>
+    <div class="sb" id="read-scene-cards-list" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- 阅读总结卡 -->
+<div class="overlay" id="ov-read-summary" style="align-items:center;">
+  <div class="modal" style="width:88%;max-width:340px;border-radius:16px;">
+    <div class="sh"><h3>📖 阅读总结</h3><button class="btn-close" onclick="hideOv('ov-read-summary')">✕</button></div>
+    <div class="sb" id="read-summary-body" style="padding:16px;"></div>
+    <div style="display:flex;gap:8px;padding:12px 16px;">
+      <button onclick="readSummaryAgain()" style="flex:1;padding:11px 0;border:none;border-radius:10px;background:#A07955;color:#fff;font-size:13px;cursor:pointer;">再读一遍</button>
+      <button onclick="readSummaryBack()" style="flex:1;padding:11px 0;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">返回书架</button>
+    </div>
+  </div>
+</div>
 
 <!-- 阅读目录 -->
 <div class="overlay" id="ov-read-toc" style="align-items:center;">
@@ -2265,7 +2303,7 @@ function showUsageNoticeFromSplash() {
     <div class="sb" style="padding:14px;max-height:70vh;overflow-y:auto;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:13px;color:var(--txt);">字体大小 <span id="rs-fontsize-val" style="color:var(--txt3);font-size:11px;"></span></span>
-        <span><button onclick="readFontSize(-1)" style="padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:13px;cursor:pointer;">A-</button> <button onclick="readFontSize(1)" style="padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:13px;cursor:pointer;">A+</button></span>
+        <span><button onclick="readFontPreset(13)" style="padding:4px 9px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">小</button> <button onclick="readFontPreset(16)" style="padding:4px 9px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">中</button> <button onclick="readFontPreset(20)" style="padding:4px 9px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">大</button> <button onclick="readFontSize(-1)" style="padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:13px;cursor:pointer;">A-</button> <button onclick="readFontSize(1)" style="padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:13px;cursor:pointer;">A+</button></span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:13px;color:var(--txt);">行距 <span id="rs-lineheight-val" style="color:var(--txt3);font-size:11px;"></span></span>
@@ -2287,11 +2325,15 @@ function showUsageNoticeFromSplash() {
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:13px;color:var(--txt);">阅读背景 <span id="rs-theme-val" style="color:var(--txt3);font-size:11px;"></span></span>
-        <span><button onclick="readThemeNext()" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">🎨 切换</button></span>
+        <span><button onclick="readThemeNext()" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">🎨 切换（护眼）</button></span>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:13px;color:var(--txt);">梦角陪读</span>
         <button onclick="readToggleCompany()" id="rs-company-btn" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">开</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;">
+        <span style="font-size:13px;color:var(--txt);" id="rs-freq-val">陪读频率：中</span>
+        <span><button onclick="readSetCompanyFreq('低')" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">低</button> <button onclick="readSetCompanyFreq('中')" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">中</button> <button onclick="readSetCompanyFreq('高')" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--c2);font-size:12px;cursor:pointer;">高</button></span>
       </div>
     </div>
   </div>
@@ -2352,7 +2394,7 @@ function showUsageNoticeFromSplash() {
           <span id="read-video-lib-count" style="font-size:12px;color:var(--txt3);"></span>
         </div>
         <div id="read-video-list"></div>
-        <label style="display:block;text-align:center;padding:20px 12px;border:2px dashed rgba(255,180,120,0.5);border-radius:14px;cursor:pointer;background:linear-gradient(160deg,rgba(255,214,165,0.12),rgba(255,255,255,0));margin-top:10px;">
+        <label style="display:block;text-align:center;padding:20px 12px;border:2px dashed rgba(160,121,85,0.45);border-radius:14px;cursor:pointer;background:linear-gradient(160deg,rgba(228,236,248,0.18),rgba(255,255,255,0));margin-top:10px;">
           <div style="font-size:26px;">🎞️</div>
           <div style="font-size:14px;color:var(--accent);margin-top:4px;font-weight:600;">+ 导入本地视频</div>
           <div style="font-size:11px;color:var(--txt3);margin-top:3px;">mp4 / webm / mov 等浏览器可播放格式</div>
@@ -2368,7 +2410,8 @@ function showUsageNoticeFromSplash() {
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
           <button onclick="readVideoBackLib()" style="border:none;background:none;color:var(--txt2);font-size:17px;cursor:pointer;padding:2px 4px;">←</button>
           <div style="flex:1;font-size:14px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="read-video-title"></div>
-          <button onclick="readRemoveVideo()" style="border:none;background:none;color:#ff4d4f;font-size:13px;cursor:pointer;padding:3px 6px;">🗑</button>
+          <button onclick="readVideoFullscreen2()" title="视频全屏（自动横屏）" style="border:none;background:none;color:var(--txt2);font-size:15px;cursor:pointer;padding:3px 6px;">⛶</button>
+          <button onclick="readVideoToggleLandscape()" title="横屏 / 竖屏切换" style="border:none;background:none;color:var(--txt2);font-size:15px;cursor:pointer;padding:3px 6px;">⇆</button>
         </div>
         <div id="read-video-player" style="position:relative;background:#000;border-radius:14px;overflow:hidden;">
           <video id="read-video-el" playsinline webkit-playsinline="true" x5-playsinline="true" style="width:100%;display:block;object-fit:contain;background:#000;max-height:52vh;"></video>
@@ -2377,22 +2420,55 @@ function showUsageNoticeFromSplash() {
           <div id="read-video-controls" style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.75));padding:26px 10px 8px;transition:opacity 0.3s;z-index:20;">
             <div id="read-video-progress-bar" onclick="readVideoSeek(event)" style="position:relative;height:16px;cursor:pointer;touch-action:none;">
               <div style="position:absolute;left:0;right:0;top:7px;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;"></div>
-              <div id="read-video-progress-fill" style="position:absolute;left:0;top:7px;height:3px;background:#ff8a5c;border-radius:2px;width:0%;"></div>
-              <div id="read-video-progress-dot" style="position:absolute;top:3px;width:10px;height:10px;border-radius:50%;background:#ff8a5c;left:0%;transform:translateX(-50%);"></div>
+              <div id="read-video-progress-fill" style="position:absolute;left:0;top:7px;height:3px;background:#A07955;border-radius:2px;width:0%;"></div>
+              <div id="read-video-progress-dot" style="position:absolute;top:3px;width:10px;height:10px;border-radius:50%;background:#A07955;left:0%;transform:translateX(-50%);"></div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
               <span id="read-video-play-btn" onclick="readVideoPlayPause()" style="font-size:16px;color:#fff;cursor:pointer;width:22px;text-align:center;">▶</span>
+              <span onclick="readVideoSkip(-10)" title="后退10秒" style="font-size:12px;color:#fff;cursor:pointer;padding:2px 5px;background:rgba(255,255,255,0.18);border-radius:6px;">↺10</span>
+              <span onclick="readVideoSkip(10)" title="快进10秒" style="font-size:12px;color:#fff;cursor:pointer;padding:2px 5px;background:rgba(255,255,255,0.18);border-radius:6px;">↻10</span>
               <span id="read-video-time" style="font-size:11px;color:rgba(255,255,255,0.85);">00:00 / 00:00</span>
               <span style="flex:1;"></span>
               <span id="read-video-rate-btn" onclick="readVideoRate()" style="font-size:11px;color:#fff;cursor:pointer;padding:2px 6px;background:rgba(255,255,255,0.18);border-radius:6px;">1×</span>
               <span id="read-video-vol-btn" onclick="readVideoMute()" style="font-size:13px;color:#fff;cursor:pointer;padding:2px 5px;">🔊</span>
-              <span id="read-video-company-btn" onclick="readVideoToggleCompany()" title="梦角陪看" style="font-size:13px;color:#fff;cursor:pointer;padding:2px 5px;border-radius:6px;background:rgba(255,255,255,0.18);">💬</span>
-              <span onclick="readVideoFullscreen2()" style="font-size:14px;color:#fff;cursor:pointer;padding:2px 5px;">⛶</span>
+              <span onclick="showReadVideoCards()" title="陪看字卡" style="font-size:12px;color:#fff;cursor:pointer;padding:2px 5px;border-radius:6px;background:rgba(255,255,255,0.18);">💬</span>
+              <span onclick="readVideoShowCompanyPick()" title="选择陪看梦角" style="font-size:12px;color:#fff;cursor:pointer;padding:2px 5px;border-radius:6px;background:rgba(255,255,255,0.18);">👥</span>
+              <span id="read-video-company-btn" onclick="readVideoToggleCompany()" title="梦角陪看" style="font-size:13px;color:#fff;cursor:pointer;padding:2px 5px;border-radius:6px;background:rgba(255,255,255,0.18);">💫</span>
+              <span onclick="readVideoShowSettings()" title="陪看设置" style="font-size:12px;color:#fff;cursor:pointer;padding:2px 5px;border-radius:6px;background:rgba(255,255,255,0.18);">⚙️</span>
+              <span onclick="readVideoFullscreen2()" title="全屏（横屏）" style="font-size:14px;color:#fff;cursor:pointer;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.22);">⛶</span>
             </div>
           </div>
         </div>
         <div style="font-size:11px;color:var(--txt3);margin-top:8px;line-height:1.6;" id="read-video-info"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 陪看字卡库 -->
+<div class="overlay" id="ov-read-video-cards">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>💬 陪看字卡库</h3><button class="btn-close" onclick="hideOv('ov-read-video-cards')">✕</button></div>
+    <div class="sb" id="read-video-cards-list" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- 陪看设置 -->
+<div class="overlay" id="ov-read-video-settings" style="align-items:center;">
+  <div class="modal" style="width:88%;max-width:340px;border-radius:16px;">
+    <div class="sh"><h3>⚙️ 陪看设置</h3><button class="btn-close" onclick="hideOv('ov-read-video-settings')">✕</button></div>
+    <div class="sb" id="read-video-settings-body" style="padding:14px;"></div>
+  </div>
+</div>
+
+<!-- 观看总结卡 -->
+<div class="overlay" id="ov-read-video-summary" style="align-items:center;">
+  <div class="modal" style="width:88%;max-width:340px;border-radius:16px;">
+    <div class="sh"><h3>🎬 观看总结</h3><button class="btn-close" onclick="hideOv('ov-read-video-summary')">✕</button></div>
+    <div class="sb" id="read-video-summary-body" style="padding:16px;"></div>
+    <div style="display:flex;gap:8px;padding:12px 16px;">
+      <button onclick="readVideoSummaryAgain()" style="flex:1;padding:11px 0;border:none;border-radius:10px;background:#A07955;color:#fff;font-size:13px;cursor:pointer;">再看一遍</button>
+      <button onclick="readVideoSummaryBack()" style="flex:1;padding:11px 0;border:1px solid var(--border);border-radius:10px;background:var(--c2);color:var(--txt);font-size:13px;cursor:pointer;">返回视频库</button>
     </div>
   </div>
 </div>
@@ -2442,7 +2518,7 @@ function showUsageNoticeFromSplash() {
     <div class="my-section">
       <div class="my-row" id="reply-speed-btn"><span class="my-ico">⚡</span><span class="my-label">聊天</span></div>
       <div class="my-row" id="reply-moments-btn"><span class="my-ico">📸</span><span class="my-label">朋友圈</span></div>
-      <div class="my-row" id="reply-letter-btn"><span class="my-ico">✉️</span><span class="my-label">信箱</span></div>
+      <div class="my-row" id="reply-letter-btn"><span class="my-ico">✉️</span><span class="my-label">星言信箱</span></div>
       <div class="my-row" id="reply-noninstant-btn"><span class="my-ico">🕐</span><span class="my-label">非即时传讯</span></div>
     </div>
   </div>
@@ -3385,7 +3461,7 @@ function showUsageNoticeFromSplash() {
         <div style="display:flex;gap:12px;margin-bottom:12px;">
           <div style="flex:1;">
             <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">发送按钮外框</div>
-            <input type="color" id="pomodoro-setting-send-btn-bg" value="#e8a87c" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;box-sizing:border-box;">
+            <input type="color" id="pomodoro-setting-send-btn-bg" value="#a07955" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;box-sizing:border-box;">
           </div>
           <div style="flex:1;">
             <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">发送按钮文字</div>
@@ -3395,7 +3471,7 @@ function showUsageNoticeFromSplash() {
         <div style="display:flex;gap:12px;margin-bottom:12px;">
           <div style="flex:1;">
             <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">开始/暂停按钮外框</div>
-            <input type="color" id="pomodoro-setting-start-btn-bg" value="#e8a87c" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;box-sizing:border-box;">
+            <input type="color" id="pomodoro-setting-start-btn-bg" value="#a07955" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;box-sizing:border-box;">
           </div>
           <div style="flex:1;">
             <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">开始/暂停按钮文字</div>
@@ -3506,7 +3582,7 @@ function showUsageNoticeFromSplash() {
 <!-- Survey Modal -->
 <div class="overlay center-overlay" id="ov-survey">
   <div class="sheet" id="survey-sheet">
-    <div class="sh" style="display:flex;align-items:center;justify-content:space-between;"><h3>📋 调查问卷</h3><div style="display:flex;align-items:center;gap:8px;"><button id="survey-fullscreen-btn" onclick="SurveyApp.toggleSurveyFullscreen()" style="background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:16px;">⛶</button><button id="survey-settings-btn" onclick="SurveyApp.showSurveySettings()" style="background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:16px;">⚙</button><button class="btn-close" onclick="hideOv('ov-survey')">✕</button></div></div>
+    <div class="sh" style="display:flex;align-items:center;justify-content:space-between;"><h3>📋 心意问卷</h3><div style="display:flex;align-items:center;gap:8px;"><button id="survey-fullscreen-btn" onclick="SurveyApp.toggleSurveyFullscreen()" style="background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:16px;">⛶</button><button id="survey-settings-btn" onclick="SurveyApp.showSurveySettings()" style="background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:16px;">⚙</button><button class="btn-close" onclick="hideOv('ov-survey')">✕</button></div></div>
     <div class="sb" style="padding:0;max-height:85vh;display:flex;flex-direction:column;">
       <div id="survey-content" style="flex:1;overflow-y:auto;padding:16px;padding-bottom:20px;">
         <div id="survey-create-panel">
@@ -3576,6 +3652,51 @@ function showUsageNoticeFromSplash() {
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 默契问答 Modal -->
+<div class="overlay center-overlay" id="ov-soul-qa">
+  <div class="sheet" id="soulqa-sheet" style="max-width:440px;">
+    <div class="sh" style="display:flex;align-items:center;justify-content:space-between;"><h3>🤝 默契问答</h3><button class="btn-close" onclick="hideOv('ov-soul-qa')">✕</button></div>
+    <div class="sb" style="padding:16px;max-height:82vh;overflow-y:auto;">
+      <!-- 首页 -->
+      <div id="soulqa-home">
+        <div style="text-align:center;padding:10px 0 14px;">
+          <div style="font-size:15px;font-weight:600;color:var(--txt);">默契问答</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:6px;line-height:1.8;">和TA一起回答问题，看看你们有多少默契。</div>
+        </div>
+        <div id="soulqa-quiz-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button onclick="SoulQA.showCreate()" style="flex:1;padding:11px 0;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">✏️ 创建问卷</button>
+          <button onclick="SoulQA.showMine()" style="flex:1;padding:11px 0;border:1px solid var(--border);border-radius:12px;background:var(--c1);color:var(--txt);font-size:13px;cursor:pointer;">📚 我的问卷</button>
+        </div>
+      </div>
+      <!-- 创建问卷 -->
+      <div id="soulqa-create" style="display:none;"></div>
+      <!-- 我的问卷/记录 -->
+      <div id="soulqa-mine" style="display:none;"></div>
+      <!-- 答题 -->
+      <div id="soulqa-taking" style="display:none;"></div>
+      <!-- 揭晓 -->
+      <div id="soulqa-reveal" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 星言纪念 Modal -->
+<div class="overlay center-overlay" id="ov-star-memory">
+  <div class="sheet" id="starmemory-sheet" style="max-width:440px;">
+    <div class="sh" style="display:flex;align-items:center;justify-content:space-between;"><h3>⭐ 星言纪念</h3><button class="btn-close" onclick="hideOv('ov-star-memory')">✕</button></div>
+    <div class="sb" id="star-memory-body" style="padding:16px;max-height:82vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- 梦角聊天回应系统 Modal -->
+<div class="overlay" id="ov-chat-followup">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>🔗 梦角聊天回应系统</h3><button class="btn-close" onclick="hideOv('ov-chat-followup')">✕</button></div>
+    <div class="sb" id="chat-followup-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -4053,7 +4174,7 @@ function showUsageNoticeFromSplash() {
 <div class="page" id="pg-letters">
   <div class="nav">
     <div class="nl"><button class="btn-nav" id="letters-back">←</button></div>
-    <span class="tt">📮 信箱</span>
+    <span class="tt">📮 星言信箱</span>
     <div class="nr">
       <button id="mail-avatar-btn" style="padding:6px 10px;font-size:12px;border-radius:12px;background:transparent;color:var(--txt3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:4px;margin-right:6px;" title="信箱头像设置" onclick="showMailAvatarSettings()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <button id="write-letter-btn" style="padding:6px 14px;font-size:12px;border-radius:12px;background:#fdf8e8;color:#8b7355;border:1px solid #e8e0d0;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(201,169,110,0.15)" title="写信"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> 写信</button>
@@ -4663,6 +4784,13 @@ function showUsageNoticeFromSplash() {
         <div class="set-row"><span>概率</span><div class="stepper" data-k="py-prob"><button>−</button><input type="number" class="sv" id="prob-val" value="50"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
         <div class="set-row"><span>最少字卡</span><div class="stepper" data-k="py-min"><button>−</button><input type="number" class="sv" id="min-val" value="2"><button>+</button></div></div>
         <div class="set-row"><span>最多字卡</span><div class="stepper" data-k="py-max"><button>−</button><input type="number" class="sv" id="max-val" value="5"><button>+</button></div></div>
+      </div>
+
+      <div style="margin-bottom:16px;padding:12px;background:var(--c2);border-radius:10px;">
+        <div style="font-size:13px;color:var(--txt);margin-bottom:10px;font-weight:600">梦角聊天回应系统</div>
+        <div style="font-size:11px;color:var(--txt3);margin-bottom:8px;">轻量连接词，有概率附着在梦角主回复旁（如"哪里？说来听听。"），不独立抢回复</div>
+        <div class="set-row"><span>开启</span><label class="tsw"><input type="checkbox" id="cf-en" checked><span class="sl"></span></label></div>
+        <div class="set-row"><span>概率</span><div class="stepper" data-k="cf-prob"><button>−</button><input type="number" class="sv" id="cf-prob-val" value="20"><button>+</button></div><span style="font-size:12px;color:var(--txt3);margin-left:4px">%</span></div>
       </div>
 
       <div style="margin-bottom:16px;padding:12px;background:var(--c2);border-radius:10px;">

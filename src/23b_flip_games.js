@@ -3,7 +3,22 @@ var FLIP_THEMES={
   star:{name:'⭐ 星言主题',emojis:['⭐','🌙','☁️','💌','🌸','🎁','📖','🎵']},
   accompany:{name:'📖 陪伴主题',emojis:['📖','💡','🖥️','🍿','🎧','🎵','🎬','☕']}
 };
-var FLIP_CARD_GROUPS=[['start','🌟 开始类'],['your_turn','👀 观看你翻牌类'],['ta_turn','🤔 TA行动类'],['success','✨ 你成功类'],['fail','💪 你失败类'],['ta_success','🎉 TA成功类'],['ta_fail','🍀 TA失败类'],['end','🏁 游戏结束类']];
+var FLIP_CARD_GROUPS=[['start','🌟 游戏开始类'],['watch','👀 等待你翻牌类'],['your_turn','🃏 你翻牌类'],['success','✨ 你成功类'],['fail','💪 你失败类'],['ta_turn','🤔 TA回合类'],['ta_success','🎉 TA成功类'],['ta_fail','🍀 TA失败类'],['combo','🔥 连续配对类'],['leadlag','⚖️ 领先落后类'],['end','🏁 游戏结束类'],['again','🔁 再来一局类']];
+// ★ 游戏内互动字卡库（混合性格表达，不绑定角色）：12 类
+var FLIP_INTERACT_DB={
+  start:['开始吧。','准备好了吗？','来玩一局。','看看今天谁更厉害。','我先看看你的实力。','不要紧张，慢慢玩。','这次可不会让你轻松赢。','只是陪你玩一下。','好，那就开始。','终于轮到这个了。','规则我知道了。','希望这局不会太久。','来吧，我等着。','看看谁记性更好。','感觉会很有意思。'],
+  watch:['你想选哪张？','慢慢找。','我看看你的选择。','不要急。','认真想想。','你是不是已经有答案了？','感觉你快找到了。','别被表面骗了。','再观察一下。','我猜你心里已经决定了。','要不要相信自己的直觉？','这一步很关键。','我不提醒你。','自己发现才有意思。','看看你的运气。'],
+  your_turn:['TA正在看你寻找卡片…','TA等待你的选择','TA觉得你快找到了','TA安静地看着你翻牌','TA盯着你的手，像在猜你会选哪张'],
+  success:['找到了。','不错。','厉害。','这次判断很准。','看来你记住了。','运气站在你这边。','做得很好。','漂亮。','居然真的找到了。','我还以为你会选错。','这一下挺快。','看来不能小看你。','继续保持。','这局越来越有意思了。','这一分拿得不错。'],
+  fail:['差一点。','没关系，再来。','记住这个位置。','刚刚差一点就对了。','可惜。','这张不是。','下一次会更好。','你是不是故意试错？','哈哈，猜错了。','看来还需要一点运气。','别放弃。','机会还有很多。','至少知道一个错误答案。','慢慢积累。','下一张可能就是。'],
+  ta_turn:['轮到我了。','让我看看。','该我寻找了。','稍微等一下。','我想想。','不要偷看。','这两张怎么样？','让我试试。','我有一点想法。','确认一下。','感觉应该在这里。','凭感觉来一次。','让我挑战一下。','希望这次没猜错。','开始寻找。'],
+  ta_success:['找到了。','看来运气不错。','刚好。','成功。','这一张是我的。','没想到这么顺利。','记忆还可以。','这一轮不错。','看来我也没有输。','这次猜中了。','小小领先一下。','还挺简单的。','碰巧而已。','继续。','下一轮。'],
+  ta_fail:['看错了。','差一点。','记错位置了。','刚刚应该换一个。','失误。','没猜中。','看来不能太自信。','这次运气不好。','再试一次。','还没结束。','只是一个小错误。','下一次会找到。','被难住了。','这张牌藏得很好。','暂时失败。'],
+  combo:['越来越顺了。','感觉找到规律了。','今天状态不错。','连续成功。','节奏很好。','配合不错。','这局有点顺利。','看来我们运气不错。','继续保持。','不要停下来。','感觉马上结束了。','越来越接近了。','这次发挥很好。','手感来了。','好像变简单了。'],
+  leadlag:['目前优势不错。','领先一点了。','看来今天状态很好。','不要放松。','继续保持。','还没结束。','还有机会。','慢慢追回来。','不要急。','最后结果还不一定。'],
+  end:['结束了。','这一局很开心。','玩得不错。','下次继续。','还想再来吗？','这次结果记住了。','下一局可能不一样。','感觉时间过得很快。','挺有意思的。','以后可以再玩。','今天先到这里。','这局结束。','还不错。','我觉得挺有趣。','下一次挑战更高难度。'],
+  again:['再来一次？','还要继续吗？','下一局开始。','我已经准备好了。','这次我要赢。','再玩一局也可以。','看看下一次结果。','继续挑战。','不服的话再来。','那就重新开始。']
+};
 var FLIP_DEFAULT_CARDS={start:['来玩个小游戏吧～','准备好了吗？','看看我们能不能找到所有配对'],your_turn:['TA正在看你寻找卡片…','TA等待你的选择','TA觉得你快找到了'],ta_turn:['TA思考着下一张…','TA好像有点线索了','TA继续寻找着'],success:['好默契！','我们找到啦！','心有灵犀！'],fail:['没关系，再试试～','不着急，慢慢来','差一点点！'],ta_success:['TA找到啦！','TA很开心','TA继续下一轮'],ta_fail:['差一点～','没关系，继续','TA挠了挠头'],end:['一起完成啦，真棒！','今天玩得不错','下次继续！']};
 var flipState=null;
 function flipLoad(){
@@ -22,16 +37,35 @@ function flipSave(d){
 }
 function flipPickCard(group){
   var d=flipLoad();
-  var arr=d.cards[group]&&d.cards[group].length?d.cards[group]:FLIP_DEFAULT_CARDS[group];
+  var arr=d.cards[group]&&d.cards[group].length?d.cards[group]:null;
+  if(!arr)arr=FLIP_INTERACT_DB[group]&&FLIP_INTERACT_DB[group].length?FLIP_INTERACT_DB[group]:FLIP_DEFAULT_CARDS[group];
   return arr[Math.floor(Math.random()*arr.length)];
 }
-// ★ TA 互动字卡：按概率在状态栏显示 TA 的话
+// ★ TA 互动字卡：按概率在状态栏显示 TA 的话（旧库兼容）
 function flipTaSay(group,prob){
   try{
     if(Math.random()>prob)return;
     var txt=flipPickCard(group);
     var st=$('flip-status');
     if(st)st.innerHTML='<span style="color:#5a6ea8;">TA：</span>'+String(txt).replace(/</g,'&lt;');
+  }catch(e){}
+}
+// ★ 游戏内互动触发（统一入口）：概率 + 最低间隔（6 秒防烦）+ 游戏内小卡片
+function flipInteract(group,prob){
+  try{
+    if(Math.random()>prob)return;
+    var now=Date.now();
+    if(window._lastFlipDk&&now-window._lastFlipDk<6000)return;
+    window._lastFlipDk=now;
+    var txt=flipPickCard(group);
+    var host=$('flip-danmaku-layer');
+    if(!host)return;
+    var contact=contacts.find(function(c){return c.id===cid})||{name:'TA'};
+    var d=document.createElement('div');
+    d.className='flip-dk-card';
+    d.innerHTML='<span class="flip-dk-role">'+String(contact.name).replace(/</g,'&lt;')+'</span><span class="flip-dk-text">'+String(txt).replace(/</g,'&lt;')+'</span>';
+    host.appendChild(d);
+    setTimeout(function(){try{host.removeChild(d);}catch(e){}},4200);
   }catch(e){}
 }
 function flipBack(){
@@ -48,42 +82,42 @@ function renderFlipMenu(){
   var html='';
   html+='<div style="text-align:center;padding:10px 0 6px;">';
   html+='<div style="font-size:24px;">🎴</div>';
-  html+='<div style="font-size:18px;font-weight:700;color:#4a5a7a;letter-spacing:2px;margin-top:4px;">星言翻牌</div>';
-  html+='<div style="font-size:12px;color:#8a95a8;margin-top:6px;line-height:1.7;">翻开隐藏的星光，看看你和TA的默契。</div>';
+  html+='<div style="font-size:18px;font-weight:700;color:#4A443C;letter-spacing:2px;margin-top:4px;">星言翻牌</div>';
+  html+='<div style="font-size:12px;color:#7C7367;margin-top:6px;line-height:1.7;">翻开隐藏的星光，看看你和TA的默契。</div>';
   html+='</div>';
   // 统计
   if(d.stats.plays>0){
     html+='<div style="display:flex;gap:8px;margin:10px 0 16px;">';
-    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.7);"><div style="font-size:16px;font-weight:700;color:#4a5a7a;">'+d.stats.plays+'</div><div style="font-size:11px;color:#8a95a8;">累计游玩</div></div>';
-    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.7);"><div style="font-size:16px;font-weight:700;color:#4a5a7a;">'+d.stats.completes+'</div><div style="font-size:11px;color:#8a95a8;">完成次数</div></div>';
-    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.7);"><div style="font-size:16px;font-weight:700;color:#4a5a7a;">'+(d.stats.bestSec?Math.floor(d.stats.bestSec/60)+':'+('0'+d.stats.bestSec%60).slice(-2):'--')+'</div><div style="font-size:11px;color:#8a95a8;">最佳时间</div></div>';
+    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.7);"><div style="font-size:16px;font-weight:700;color:#4A443C;">'+d.stats.plays+'</div><div style="font-size:11px;color:#7C7367;">累计游玩</div></div>';
+    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.7);"><div style="font-size:16px;font-weight:700;color:#4A443C;">'+d.stats.completes+'</div><div style="font-size:11px;color:#7C7367;">完成次数</div></div>';
+    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.7);"><div style="font-size:16px;font-weight:700;color:#4A443C;">'+(d.stats.bestSec?Math.floor(d.stats.bestSec/60)+':'+('0'+d.stats.bestSec%60).slice(-2):'--')+'</div><div style="font-size:11px;color:#7C7367;">最佳时间</div></div>';
     html+='</div>';
   }
   // 模式
-  html+='<div style="font-size:13px;font-weight:600;color:#4a5a7a;margin-bottom:8px;">选择模式</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#4A443C;margin-bottom:8px;">选择模式</div>';
   html+='<div style="display:flex;gap:10px;margin-bottom:16px;">';
-  html+='<div onclick="flipSetMode(\'coop\')" id="flip-mode-coop" style="flex:1;background:rgba(255,255,255,0.9);border-radius:14px;padding:14px;text-align:center;border:2px solid var(--accent);cursor:pointer;"><div style="font-size:24px;">🌟</div><div style="font-size:14px;font-weight:600;color:#4a5a7a;margin-top:6px;">一起完成</div><div style="font-size:11px;color:#8a95a8;margin-top:2px;">共同找齐所有配对</div></div>';
-  html+='<div onclick="flipSetMode(\'vs\')" id="flip-mode-vs" style="flex:1;background:rgba(255,255,255,0.9);border-radius:14px;padding:14px;text-align:center;border:2px solid transparent;cursor:pointer;"><div style="font-size:24px;">🎮</div><div style="font-size:14px;font-weight:600;color:#4a5a7a;margin-top:6px;">默契挑战</div><div style="font-size:11px;color:#8a95a8;margin-top:2px;">看谁找到更多</div></div>';
+  html+='<div onclick="flipSetMode(\'coop\')" id="flip-mode-coop" style="flex:1;background:rgba(255,255,255,0.9);border-radius:14px;padding:14px;text-align:center;border:2px solid var(--accent);cursor:pointer;"><div style="font-size:24px;">🌟</div><div style="font-size:14px;font-weight:600;color:#4A443C;margin-top:6px;">一起完成</div><div style="font-size:11px;color:#7C7367;margin-top:2px;">共同找齐所有配对</div></div>';
+  html+='<div onclick="flipSetMode(\'vs\')" id="flip-mode-vs" style="flex:1;background:rgba(255,255,255,0.9);border-radius:14px;padding:14px;text-align:center;border:2px solid transparent;cursor:pointer;"><div style="font-size:24px;">🎮</div><div style="font-size:14px;font-weight:600;color:#4A443C;margin-top:6px;">默契挑战</div><div style="font-size:11px;color:#7C7367;margin-top:2px;">看谁找到更多</div></div>';
   html+='</div>';
   // 难度
-  html+='<div style="font-size:13px;font-weight:600;color:#4a5a7a;margin-bottom:8px;">难度</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#4A443C;margin-bottom:8px;">难度</div>';
   html+='<div style="display:flex;gap:10px;margin-bottom:16px;">';
   [['easy','简单','3×4'],['normal','普通','4×4'],['hard','困难','5×6']].forEach(function(o){
-    html+='<div onclick="flipSetLevel(\''+o[0]+'\')" id="flip-level-'+o[0]+'" style="flex:1;background:rgba(255,255,255,0.9);border-radius:14px;padding:12px;text-align:center;border:2px solid '+(o[0]==='easy'?'var(--accent)':'transparent')+';cursor:pointer;"><div style="font-size:15px;font-weight:600;color:#4a5a7a;">'+o[1]+'</div><div style="font-size:11px;color:#8a95a8;margin-top:2px;">'+o[2]+'</div></div>';
+    html+='<div onclick="flipSetLevel(\''+o[0]+'\')" id="flip-level-'+o[0]+'" style="flex:1;background:rgba(255,255,255,0.9);border-radius:14px;padding:12px;text-align:center;border:2px solid '+(o[0]==='easy'?'var(--accent)':'transparent')+';cursor:pointer;"><div style="font-size:15px;font-weight:600;color:#4A443C;">'+o[1]+'</div><div style="font-size:11px;color:#7C7367;margin-top:2px;">'+o[2]+'</div></div>';
   });
   html+='</div>';
   // 主题
-  html+='<div style="font-size:13px;font-weight:600;color:#4a5a7a;margin-bottom:8px;">主题</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#4A443C;margin-bottom:8px;">主题</div>';
   html+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">';
   var themeKeys=['star','accompany'];
   if(d.custom.length)themeKeys.push('custom');
   themeKeys.forEach(function(tk){
     var t=tk==='custom'?{name:'🎨 自定义主题',emojis:d.custom}:FLIP_THEMES[tk];
     if(!t)return;
-    html+='<div onclick="flipSetTheme(\''+tk+'\')" id="flip-theme-'+tk+'" style="flex:1;min-width:100px;background:rgba(255,255,255,0.9);border-radius:14px;padding:12px;text-align:center;border:2px solid '+(tk==='star'?'var(--accent)':'transparent')+';cursor:pointer;"><div style="font-size:15px;font-weight:600;color:#4a5a7a;">'+t.name+'</div><div style="font-size:11px;color:#8a95a8;margin-top:4px;">'+t.emojis.slice(0,5).join(' ')+'</div></div>';
+    html+='<div onclick="flipSetTheme(\''+tk+'\')" id="flip-theme-'+tk+'" style="flex:1;min-width:100px;background:rgba(255,255,255,0.9);border-radius:14px;padding:12px;text-align:center;border:2px solid '+(tk==='star'?'var(--accent)':'transparent')+';cursor:pointer;"><div style="font-size:15px;font-weight:600;color:#4A443C;">'+t.name+'</div><div style="font-size:11px;color:#7C7367;margin-top:4px;">'+t.emojis.slice(0,5).join(' ')+'</div></div>';
   });
   html+='</div>';
-  html+='<button onclick="flipStartGame()" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#A9C4E8,#C3D6F2);color:#3f4d6a;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(175,198,233,0.4);">开始游戏</button>';
+  html+='<button onclick="flipStartGame()" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#C9B49A,#A07955);color:#4A4038;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(175,198,233,0.4);">开始游戏</button>';
   html+='<div onclick="flipOpenCards()" style="text-align:center;font-size:12px;color:var(--accent);margin-top:14px;cursor:pointer;">📚 管理翻牌互动字卡库</div>';
   body.innerHTML=html;
   // 状态
@@ -128,15 +162,15 @@ function flipStartGame(){
     var r=Math.floor(Math.random()*(j+1));
     var t=cards[j];cards[j]=cards[r];cards[r]=t;
   }
-  flipState.game={cards:cards,rows:dims[0],cols:dims[1],startTs:Date.now(),open1:null,open2:null,lock:false,myPairs:0,taPairs:0,turn:'me',flips:0,taMemory:{}};
-  setTimeout(function(){flipTaSay('start',0.3);},600);
+  flipState.game={cards:cards,rows:dims[0],cols:dims[1],startTs:Date.now(),open1:null,open2:null,lock:false,myPairs:0,taPairs:0,turn:'me',flips:0,taMemory:{},myCombo:0,taCombo:0};
+  setTimeout(function(){flipInteract('start',0.4);},500);
   renderFlipBoard();
 }
 function flipRenderCard(card,idx){
   var d=flipLoad();
   var base='width:100%;aspect-ratio:0.78;border-radius:10px;cursor:pointer;position:relative;transition:transform .25s;transform-style:preserve-3d;';
   var inner='width:100%;height:100%;position:relative;transition:transform .3s;transform-style:preserve-3d;'+(card.flipped||card.matched?'transform:rotateY(180deg);':'');
-  var back='position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;background:linear-gradient(135deg,#A9C4E8,#C3D6F2);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08);';
+  var back='position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;background:linear-gradient(135deg,#C9B49A,#A07955);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08);';
   var front='position:absolute;inset:0;backface-visibility:hidden;transform:rotateY(180deg);border-radius:10px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;'+(card.matched?'box-shadow:0 0 14px rgba(169,196,232,0.9);':'');
   var face=(card.emoji&&String(card.emoji).indexOf('data:image')===0)?'<img src="'+card.emoji+'" style="width:100%;height:100%;object-fit:cover;">':card.emoji;
   return '<div style="'+base+'"><div style="'+inner+'"><div style="'+back+'">✨</div><div style="'+front+'">'+face+'</div></div></div>';
@@ -147,16 +181,17 @@ function renderFlipBoard(){
   var contact=contacts.find(function(c){return c.id===cid})||{name:'TA'};
   var html='';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
-  html+='<div style="font-size:12px;color:#8a95a8;">找到 '+g.cards.filter(function(c){return c.matched}).length/2+' / '+g.cards.length/2+' 组</div>';
-  html+='<div style="font-size:12px;color:#8a95a8;">用时 '+flipTimeText(Date.now()-g.startTs)+'</div>';
+  html+='<div style="font-size:12px;color:#7C7367;">找到 '+g.cards.filter(function(c){return c.matched}).length/2+' / '+g.cards.length/2+' 组</div>';
+  html+='<div style="font-size:12px;color:#7C7367;">用时 '+flipTimeText(Date.now()-g.startTs)+'</div>';
   html+='</div>';
   if(flipState.mode==='vs'){
     html+='<div style="display:flex;gap:8px;margin-bottom:10px;">';
-    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:8px;border:1px solid rgba(255,255,255,0.7);'+(g.turn==='me'?'box-shadow:0 0 10px rgba(175,198,233,0.5);':'')+'"><div style="font-size:11px;color:#8a95a8;">你</div><div style="font-size:18px;font-weight:700;color:#4a5a7a;">'+g.myPairs+' 组</div></div>';
-    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:8px;border:1px solid rgba(255,255,255,0.7);'+(g.turn==='ta'?'box-shadow:0 0 10px rgba(200,182,232,0.5);':'')+'"><div style="font-size:11px;color:#8a95a8;">'+contact.name+'</div><div style="font-size:18px;font-weight:700;color:#4a5a7a;">'+g.taPairs+' 组</div></div>';
+    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:8px;border:1px solid rgba(255,255,255,0.7);'+(g.turn==='me'?'box-shadow:0 0 10px rgba(175,198,233,0.5);':'')+'"><div style="font-size:11px;color:#7C7367;">你</div><div style="font-size:18px;font-weight:700;color:#4A443C;">'+g.myPairs+' 组</div></div>';
+    html+='<div style="flex:1;text-align:center;background:rgba(255,255,255,0.85);border-radius:12px;padding:8px;border:1px solid rgba(255,255,255,0.7);'+(g.turn==='ta'?'box-shadow:0 0 10px rgba(200,182,232,0.5);':'')+'"><div style="font-size:11px;color:#7C7367;">'+contact.name+'</div><div style="font-size:18px;font-weight:700;color:#4A443C;">'+g.taPairs+' 组</div></div>';
     html+='</div>';
   }
-  html+='<div id="flip-status" style="text-align:center;font-size:13px;color:#8a95a8;margin-bottom:10px;min-height:20px;">'+(g.turn==='me'?'你的回合':'<span style="color:#5a6ea8;">'+contact.name+'正在寻找...</span>')+'</div>';
+  html+='<div id="flip-status" style="text-align:center;font-size:13px;color:#7C7367;margin-bottom:10px;min-height:20px;">'+(g.turn==='me'?'你的回合':'<span style="color:#5a6ea8;">'+contact.name+'正在寻找...</span>')+'</div>';
+  html+='<div id="flip-danmaku-layer" class="flip-danmaku-layer"></div>';
   html+='<div style="display:grid;grid-template-columns:repeat('+g.cols+',1fr);gap:8px;">';
   g.cards.forEach(function(card,idx){
     html+='<div id="flip-cell-'+idx+'" onclick="flipCardClick('+idx+')">'+flipRenderCard(card,idx)+'</div>';
@@ -176,7 +211,7 @@ function flipCardClick(idx){
   if(g.open1&&g.open2)return;
   card.flipped=true;
   g.taMemory[idx]=card.match;
-  flipTaSay('your_turn',0.2);
+  flipInteract('your_turn',0.2);
   if(!g.open1){g.open1=card;g.open1Idx=idx;}
   else if(!g.open2){g.open2=card;g.open2Idx=idx;g.lock=true;}
   renderFlipBoard();
@@ -190,12 +225,16 @@ function flipJudge(who){
   var matched=c1&&c2&&c1.match===c2.match;
   if(matched){
     c1.matched=true;c2.matched=true;c1.flipped=true;c2.flipped=true;
-    if(who==='me')g.myPairs++;else g.taPairs++;
+    if(who==='me'){g.myPairs++;g.myCombo++;g.taCombo=0;}else{g.taPairs++;g.taCombo++;g.myCombo=0;}
     g.taMemory[g.cards.indexOf(c1)]=c1.match;
     g.taMemory[g.cards.indexOf(c2)]=c2.match;
     var tip=who==='me'?'找到了！':'找到了。';
     flipStatus('✨ '+tip);
-    flipTaSay(who==='me'?'success':'ta_success',0.6);
+    flipInteract(who==='me'?'success':'ta_success',0.6);
+    // ★ 连续配对（任一方连对 ≥2）
+    if((who==='me'&&g.myCombo>=2)||(who==='ta'&&g.taCombo>=2))flipInteract('combo',0.45);
+    // ★ 领先/落后（vs 模式比分差 ≥1）
+    if(flipState.mode==='vs'&&Math.abs(g.myPairs-g.taPairs)>=1)flipInteract('leadlag',0.4);
     g.open1=null;g.open2=null;g.lock=false;
     if(g.cards.every(function(c){return c.matched})){
       flipFinish();
@@ -208,13 +247,15 @@ function flipJudge(who){
     if(c2)c2.flipped=false;
     g.open1=null;g.open2=null;g.lock=false;
     if(who==='me'){
+      g.myCombo=0;
       flipStatus('没关系，再试试。');
-      flipTaSay('fail',0.4);
+      flipInteract('fail',0.4);
       g.turn='ta';
       renderFlipBoard();
     }else{
+      g.taCombo=0;
       flipStatus('差一点。');
-      flipTaSay('ta_fail',0.4);
+      flipInteract('ta_fail',0.4);
       g.turn='me';
       renderFlipBoard();
     }
@@ -225,6 +266,7 @@ function flipTaTurn(){
   var avail=[];
   g.cards.forEach(function(c,i){if(!c.matched&&!c.flipped)avail.push(i);});
   if(avail.length<2)return;
+  flipInteract('ta_turn',0.3);
   // ★ 记忆配对：40% 概率优先用记忆找一对（TA 见过玩家翻的卡和 TA 自己翻的卡）
   var memPair=null;
   if(Math.random()<0.4){
@@ -269,32 +311,38 @@ function flipFinish(){
   d.stats.completes++;
   if(!d.stats.bestSec||sec<d.stats.bestSec)d.stats.bestSec=sec;
   flipSave(d);
+  flipInteract('end',1);
   var contact=contacts.find(function(c){return c.id===cid})||{name:'TA'};
   var body=$('star-flip-body');if(!body)return;
   var html='';
   html+='<div style="text-align:center;padding:20px 0;">';
   html+='<div style="font-size:40px;">🎉</div>';
-  html+='<div style="font-size:20px;font-weight:700;color:#4a5a7a;margin-top:8px;">星言翻牌完成</div>';
-  html+='<div style="font-size:13px;color:#8a95a8;margin-top:6px;">'+flipPickCard('end')+'</div>';
+  html+='<div style="font-size:20px;font-weight:700;color:#4A443C;margin-top:8px;">星言翻牌完成</div>';
+  html+='<div style="font-size:13px;color:#7C7367;margin-top:6px;">'+flipPickCard('end')+'</div>';
   html+='</div>';
   html+='<div style="background:rgba(255,255,255,0.9);border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.7);margin-bottom:14px;">';
-  html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>总用时</span><span style="font-weight:600;">'+flipTimeText(sec*1000)+'</span></div>';
+  html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>总用时</span><span style="font-weight:600;">'+flipTimeText(sec*1000)+'</span></div>';
   if(flipState.mode==='vs'){
     var winner=g.myPairs===g.taPairs?'平局':(g.myPairs>g.taPairs?'你赢':'TA赢');
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>你找到</span><span style="font-weight:600;">'+g.myPairs+' 组</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>'+contact.name+'找到</span><span style="font-weight:600;">'+g.taPairs+' 组</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>结果</span><span style="font-weight:600;color:'+(winner==='你赢'?'#4e7a54':(winner==='TA赢'?'#5a6ea8':'#5a6ea8'))+';">'+winner+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>你找到</span><span style="font-weight:600;">'+g.myPairs+' 组</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>'+contact.name+'找到</span><span style="font-weight:600;">'+g.taPairs+' 组</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>结果</span><span style="font-weight:600;color:'+(winner==='你赢'?'#4e7a54':(winner==='TA赢'?'#5a6ea8':'#5a6ea8'))+';">'+winner+'</span></div>';
   }else{
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>共同完成</span><span style="font-weight:600;">'+g.cards.length/2+' 组</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>你找到</span><span style="font-weight:600;">'+g.myPairs+' 组</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4a5a7a;padding:5px 0;"><span>'+contact.name+'找到</span><span style="font-weight:600;">'+g.taPairs+' 组</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>共同完成</span><span style="font-weight:600;">'+g.cards.length/2+' 组</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>你找到</span><span style="font-weight:600;">'+g.myPairs+' 组</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;color:#4A443C;padding:5px 0;"><span>'+contact.name+'找到</span><span style="font-weight:600;">'+g.taPairs+' 组</span></div>';
   }
   html+='</div>';
-  html+='<button onclick="flipStartGame()" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#A9C4E8,#C3D6F2);color:#3f4d6a;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;">再玩一次</button>';
-  html+='<button onclick="renderFlipMenu()" style="width:100%;padding:13px;border:none;border-radius:12px;background:rgba(255,255,255,0.9);color:#4a5a7a;font-size:15px;cursor:pointer;margin-bottom:10px;">更换主题 / 返回菜单</button>';
-  html+='<button onclick="flipBack()" style="width:100%;padding:13px;border:none;border-radius:12px;background:rgba(255,255,255,0.9);color:#8a95a8;font-size:15px;cursor:pointer;">返回</button>';
+  html+='<button onclick="flipAgain()" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#C9B49A,#A07955);color:#4A4038;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;">再玩一次</button>';
+  html+='<button onclick="renderFlipMenu()" style="width:100%;padding:13px;border:none;border-radius:12px;background:rgba(255,255,255,0.9);color:#4A443C;font-size:15px;cursor:pointer;margin-bottom:10px;">更换主题 / 返回菜单</button>';
+  html+='<button onclick="flipBack()" style="width:100%;padding:13px;border:none;border-radius:12px;background:rgba(255,255,255,0.9);color:#7C7367;font-size:15px;cursor:pointer;">返回</button>';
   body.innerHTML=html;
   flipState.game=null;
+}
+// ★ 再来一局：概率触发"再来一局"字卡后重新开始
+function flipAgain(){
+  flipInteract('again',0.8);
+  flipStartGame();
 }
 // ===== 翻牌互动字卡库管理 =====
 function flipOpenCards(){
@@ -796,6 +844,107 @@ var JOURNEY_DB={
   ]
 };
 
+// ==================== 梦角主动事件（玩家移动后，梦角主动叫住你）====================
+// type:'companion'：不是玩家触发，是梦角发现了什么，想和你分享
+var JOURNEY_COMPANION_EVENTS=[
+  {title:'发现小路',
+    scene:'风忽然安静了一下，走在前面的{name}停下脚步。',
+    companionAction:'{name}回头，指了指旁边一条被树影半掩着的小路。',
+    companionLine:'「等等。这条小路，好像没人走过。」',
+    interactions:[{name:'走进去看看',playerAction:'你和{name}一起拐进那条小路'},{name:'记下位置',playerAction:'你看了看四周，把这条路记在心里'}],
+    outcomes:{
+      '走进去看看':{result:'小路尽头是一片没见过的开阔地，草在风里沙沙响。',companionReply:'{name}站在空地中间，笑了笑：「果然要听我的。」',memory:'{name}主动发现了一条没人走过的小路，你们走了进去。',stars:2,souvenir:''},
+      '记下位置':{result:'你们记住这条路，打算下次专门来探。',companionReply:'{name}点头：「那说好了，下次来这里。」',memory:'{name}叫住了你，你们约定下次一起来探那条小路。',stars:1,souvenir:''}
+    }},
+  {title:'想告诉你的事',
+    scene:'{name}走着走着，忽然停下来，像在斟酌什么。',
+    companionAction:'{name}转身看着你，声音比平时轻。',
+    companionLine:'「等等——有件事，其实一直想跟你说。」',
+    interactions:[{name:'认真听',playerAction:'你停下来，认真看着{name}'},{name:'笑着等TA说',playerAction:'你笑了笑，等{name}开口'}],
+    outcomes:{
+      '认真听':{result:'{name}把话慢慢说完了，说完像是放下了一块石头。',companionReply:'「说出来好多了，谢谢你听。」',memory:'{name}主动叫住你，说了一件一直想告诉你的事。',stars:3,souvenir:''},
+      '笑着等TA说':{result:'你一笑，{name}也跟着笑了，紧张的气氛一下子松下来。',companionReply:'「被你一笑，我都不紧张了。」说着还是把话说完了。',memory:'你笑着等{name}开口，TA终于说出了心里的话。',stars:2,souvenir:''}
+    }},
+  {title:'想带你去的店',
+    scene:'{name}忽然拉了拉你的袖子，眼睛亮亮的。',
+    companionAction:'{name}指向街边一家亮着暖光的小店。',
+    companionLine:'「等等，这家店我听说很久了，去看看？」',
+    interactions:[{name:'一起去',playerAction:'你和{name}一起推门进了那家店'},{name:'改天再来',playerAction:'你们记下这家店，打算改天再来'}],
+    outcomes:{
+      '一起去':{result:'店里比想象中温馨，老板笑呵呵地招呼你们。',companionReply:'{name}小声说：「是不是来对了？」',memory:'{name}主动带你进了一家亮着暖光的小店。',stars:2,souvenir:'🏷️ 小店纪念贴纸'},
+      '改天再来':{result:'你们在门口看了看橱窗，把店记进了手账。',companionReply:'{name}说：「那就留个念想。」',memory:'{name}想带你去的店，你们约好改天再来。',stars:1,souvenir:''}
+    }},
+  {title:'今晚的星星',condition:'夜晚',
+    scene:'夜路很安静，{name}忽然抬头看天，停住了。',
+    companionAction:'{name}仰着头，指着夜空的一角。',
+    companionLine:'「等等，你看那颗星，好像一直在跟着我们。」',
+    interactions:[{name:'一起抬头看',playerAction:'你也抬起头，和{name}一起看那颗星'},{name:'开个玩笑',playerAction:'你说，说不定它认识你们'}],
+    outcomes:{
+      '一起抬头看':{result:'你们并排仰着头走了好一段路，直到脖子发酸。',companionReply:'{name}轻声说：「今晚的星星，都记住了。」',memory:'{name}主动叫住你，一起看了一路跟着你们的星星。',stars:2,souvenir:''},
+      '开个玩笑':{result:'你一句玩笑，{name}笑得停不下来。',companionReply:'「你这个人，怎么连星星都能聊起来。」',memory:'夜路上，你的玩笑让{name}笑了一路。',stars:1,souvenir:''}
+    }}
+];
+
+// ==================== 连续剧情事件（分阶段推进，不是一次结束）====================
+// 进行中的链存在时，后续随机事件优先推进下一阶段；走完全程形成完整记忆。
+var JOURNEY_STORIES={
+  oldletter:{
+    key:'oldletter',name:'旧信的秘密',
+    stages:[
+      {title:'捡到一封旧信',
+        scene:'风把一张泛黄的信纸吹到你们脚边，边缘已经卷起。',
+        companionAction:'{name}蹲下去捡起来，小心地展开。',
+        companionLine:'「是一封信……好像放了很久了。」',
+        interactions:[{name:'一起看信',playerAction:'你和{name}一起读那封信'},{name:'看看收信人',playerAction:'你翻到信的末尾，找收信人的名字'}],
+        outcomes:{
+          '一起看信':{result:'信写得很认真，字迹已经有点模糊，落款停在很多年前。',companionReply:'{name}轻声说：「写这封信的人，一定很认真。」',memory:'你们捡到了一封很多年前没寄出的旧信。',stars:2,souvenir:'📮 泛黄的信纸'},
+          '看看收信人':{result:'收信人地址写得不完整，只有一个模糊的地名。',companionReply:'{name}说：「说不定，还能找到这个人。」',memory:'旧信的收信人只有一个模糊的地名，你们决定找找看。',stars:1,souvenir:''}
+        }},
+      {title:'打听信的主人',
+        scene:'你们拿着那封旧信，沿路打听那个模糊的地名。',
+        companionAction:'{name}拦住一位晒太阳的老人，认真地问了几句。',
+        companionLine:'「爷爷说，这个地名在旧城区，巷子口有棵老槐树。」',
+        interactions:[{name:'一起去旧城区',playerAction:'你和{name}一起走向旧城区'},{name:'先歇一歇',playerAction:'你们在树荫下歇了歇，才继续出发'}],
+        outcomes:{
+          '一起去旧城区':{result:'旧城区的巷子很安静，老槐树比想象中还要高。',companionReply:'{name}看了看四周：「应该就是这里了。」',memory:'你们循着旧信上的地名，找到了旧城区的那棵老槐树。',stars:2,souvenir:''},
+          '先歇一歇':{result:'树荫下很凉快，你们聊着这封信可能的故事。',companionReply:'{name}说：「越想越好奇了。」',memory:'去找信主人的路上，你们在树荫下聊了这封信的故事。',stars:1,souvenir:''}
+        }},
+      {title:'把信送到',
+        scene:'老槐树下的信箱锈迹斑斑，门牌号正好对得上。',
+        companionAction:'{name}把信在手里掂了掂，然后轻轻放进信箱。',
+        companionLine:'「这样，它终于可以寄出去了。」',
+        interactions:[{name:'一起放进去',playerAction:'你和{name}一起把那封信放进信箱'},{name:'在信上补一行字',playerAction:'你在信的背面补了一行小字，才放进去'}],
+        outcomes:{
+          '一起放进去':{result:'信封进信箱的声音很轻，像一段故事终于画上了句号。',companionReply:'{name}笑了笑：「我们替它走完了最后一程。」',memory:'一封旧信，被你们亲手放进了它该去的信箱。',stars:3,souvenir:'🔑 老槐树下的钥匙扣'},
+          '在信上补一行字':{result:'你在背面写下今天的日期，像给这段故事落了个款。',companionReply:'{name}看着那行字：「它不会孤单了。」',memory:'你们在旧信背面补了一行字，替它送完了最后一程。',stars:3,souvenir:''}
+        }}
+    ]
+  },
+  straycat:{
+    key:'straycat',name:'迷路的小猫',
+    stages:[
+      {title:'发现小猫',
+        scene:'墙角的纸箱里传来很轻的叫声，一只小猫探出脑袋。',
+        companionAction:'{name}蹲下来，小猫犹豫了一下，凑过来蹭了蹭TA的手。',
+        companionLine:'「它好像走丢了……脖子上还挂着一个小铃铛。」',
+        interactions:[{name:'蹲下来看',playerAction:'你也蹲下来，小猫看了看你'},{name:'看铃铛上的字',playerAction:'你凑近看小猫脖子上的小铃铛'}],
+        outcomes:{
+          '蹲下来看':{result:'小猫大胆了一点，轻轻舔了舔你的指尖。',companionReply:'{name}小声说：「它好像挺喜欢你的。」',memory:'你们在墙角发现了一只走丢的小猫。',stars:2,souvenir:''},
+          '看铃铛上的字':{result:'铃铛上刻着一个歪歪的名字，像是手写的。',companionReply:'{name}念出来：「原来它叫小年。」',memory:'小猫脖子上刻着名字，你们知道它叫小年。',stars:1,souvenir:''}
+        }},
+      {title:'帮它找家',
+        scene:'你们带着小年沿路问了一圈，最后在便利店门口停下。',
+        companionAction:'{name}蹲下来，把铃铛上的名字给老板看。',
+        companionLine:'「老板说，隔壁楼有人在找一只叫小年的猫。」',
+        interactions:[{name:'一起送它回去',playerAction:'你们抱着小年，走向隔壁楼'},{name:'先喂它一点吃的',playerAction:'你们先给小年买了点吃的，再送它回去'}],
+        outcomes:{
+          '一起送它回去':{result:'开门的阿姨眼睛一下红了，把小年紧紧抱进怀里。',companionReply:'{name}站在门口，弯起眼睛：「它回家了。」',memory:'你们帮走丢的小年找到了家，看它被抱进怀里。',stars:3,souvenir:'🐾 小年的爪印贴纸'},
+          '先喂它一点吃的':{result:'小年吃得很快，吃完还抬头看你们，像在道谢。',companionReply:'{name}说：「吃饱了，才有力气回家呀。」',memory:'你们喂饱了小年，才送它回家。',stars:2,souvenir:''}
+        }}
+    ]
+  }
+};
+
 // ==================== 梦角互动台词库 ====================
 var JOURNEY_COMPANION_LINES={
   move:[
@@ -840,6 +989,36 @@ var JourneyEventManager={
     return String(text==null?'':text).replace(/\{name\}/g,name);
   }
 };
+
+// ==================== 事件类型体系 ====================
+// scene 共同经历 / observe 观察（不是选择，直接经历+回应）/ dialogue 对话 / action 互动动作 / companion 梦角主动 / story 连续剧情
+function journeyEventType(ev){
+  if(!ev)return 'scene';
+  if(ev.type)return ev.type;
+  if(ev._pool==='companion')return 'companion';
+  if(ev._pool==='story')return 'story';
+  if(ev._pool==='interact')return (ev.title&&ev.title.indexOf('聊天')===0)?'dialogue':'action';
+  if(ev._pool==='random'){
+    var obs=['遇到小猫','雨后的彩虹','流星划过','突然下雨','街角的面包香'];
+    return obs.indexOf(ev.title)>=0?'observe':'scene';
+  }
+  return 'scene';
+}
+// 抽取的事件做浅拷贝并标记来源池，避免污染数据库对象
+function journeyCopyEvent(ev,pool){
+  if(!ev)return ev;
+  var c=Object.assign({},ev);
+  c._pool=pool;
+  return c;
+}
+// 构建剧情链阶段事件
+function journeyStoryEvent(chain,step){
+  var s=chain.stages[step];
+  var ev=JSON.parse(JSON.stringify(s));
+  ev._pool='story';
+  ev._story={key:chain.key,name:chain.name,step:step,total:chain.stages.length};
+  return ev;
+}
 
 // ==================== 持久化（新 shape：journals 历史手账）====================
 var journeyState=null;
@@ -948,8 +1127,8 @@ function journeyStart(){
   journeyState={
     phase:'idle',theme:theme,weather:w,map:map,members:members,pos:pos,
     day:1,maxDays:5,roundIdx:0,
-    stars:0,records:[],souvenirs:[],memories:[],visited:[],startedAt:Date.now(),finished:false,
-    weatherChanged:false
+    stars:0,records:[],souvenirs:[],memories:[],photos:[],visited:[],startedAt:Date.now(),finished:false,
+    story:null,weatherChanged:false
   };
   journeyRecord('旅途开始于「'+theme.name+'」，天气 '+w.icon+' '+w.name+'。');
   renderJourneyTravel();
@@ -965,6 +1144,40 @@ function journeyRecord(text){
 }
 function journeyVisit(locName){
   if(journeyState.visited.indexOf(locName)<0)journeyState.visited.push(locName);
+}
+
+// ==================== 事件抽取（梦角主动 / 连续剧情 / 常规事件）====================
+function journeyPickEvent(cell){
+  var st=journeyState;
+  // 1) 进行中的连续剧情：优先推进下一阶段
+  if(st.story){
+    var chain=JOURNEY_STORIES[st.story.key];
+    if(chain&&st.story.step<chain.stages.length){
+      return journeyStoryEvent(chain,st.story.step);
+    }
+  }
+  // 2) 随机触发梦角主动事件（概率 25%，由当前回合的梦角主动叫住你）
+  if(cell.type!=='interact'&&Math.random()<0.25){
+    var ce=JOURNEY_COMPANION_EVENTS[Math.floor(Math.random()*JOURNEY_COMPANION_EVENTS.length)];
+    // condition 匹配当前天气时优先
+    var matched=JOURNEY_COMPANION_EVENTS.filter(function(e){return e.condition===st.weather.name;});
+    if(matched.length)ce=matched[Math.floor(Math.random()*matched.length)];
+    return journeyCopyEvent(ce,'companion');
+  }
+  // 3) 常规事件：随机开启新剧情链（概率 20%）
+  if(st.story===null&&Math.random()<0.2){
+    var keys=Object.keys(JOURNEY_STORIES);
+    var key=keys[Math.floor(Math.random()*keys.length)];
+    var chain=JOURNEY_STORIES[key];
+    st.story={key:chain.key,name:chain.name,step:0,total:chain.stages.length};
+    return journeyStoryEvent(chain,0);
+  }
+  // 4) 地点 / 互动 / 随机事件
+  var ev=null;
+  if(cell.type==='place')ev=JourneyEventManager.forLocation(cell.key,st.weather.name);
+  else if(cell.type==='interact')ev=JourneyEventManager.forInteract();
+  else ev=JourneyEventManager.forRandom(st.weather.name);
+  return journeyCopyEvent(ev,cell.type==='interact'?'interact':'random');
 }
 
 // ==================== 旅程视图（手账风，非棋盘）====================
@@ -1015,10 +1228,10 @@ function renderJourneyTravel(){
     html+='<div id="journey-dice" style="font-size:36px;min-height:48px;margin:8px 0 4px;">🎲</div>';
   }
   html+='</div>';
-  // 记录区
+  // 记录区（显示全部旅途记录，不再截断最近 8 条）
   html+='<div class="jrn-card">';
   html+='<div class="jrn-card-label">旅途记录</div>';
-  html+='<div class="jrn-records">'+st.records.slice(-8).map(function(r){return '<div class="jrn-record">'+journeyEsc(r)+'</div>';}).join('')+'</div>';
+  html+='<div class="jrn-records">'+st.records.map(function(r){return '<div class="jrn-record">'+journeyEsc(r)+'</div>';}).join('')+'</div>';
   html+='</div>';
   body.innerHTML=html;
   // ★ 梦角回合不在渲染时自动触发；由 journeyNextTurn() 在玩家确认结果后显式驱动
@@ -1057,10 +1270,14 @@ function journeyMove(dice){
   window._journeyEvent=ev;
   window._journeyCell=cell;
   window._journeyHero=st.members.length>1?st.members[1].name:'TA';
-  // 阶段一事件卡：场景 → 梦角动作 → 梦角台词 → 玩家互动
+  // 阶段一事件卡：类型标签 → 标题 → 场景 → 梦角动作 → 梦角台词 → 玩家互动
+  var title='';
+  if(ev._story)title=journeyStoryTitle(ev);
+  else if(ev._pool==='companion')title=journeyEventType(ev)==='companion'?'💬 '+window._journeyHero+' 叫住了你':'💬 '+window._journeyHero+' 的发现';
+  else title=ev.title||'旅行事件';
   journeyShowEvent(cell.label+' · 旅行事件',
-    '<div style="font-size:14px;font-weight:600;color:#5a4a3a;margin-bottom:8px;">'+journeyEsc(ev.title)+'</div>'+journeyEventSceneHtml(ev,window._journeyHero),
-    ev.interactions.map(function(it){return '<button class="btn jrn-choice" onclick="journeyPick(\''+String(it.name).replace(/'/g,"\\'")+'\')" style="background:var(--accent);">'+journeyEsc(it.name)+'</button>';}).join(''),
+    journeyEventCardHtml(ev,window._journeyHero,title),
+    journeyInteractionButtons(ev,'me'),
     'me');
 }
 // 玩家互动：应用结果 → 事件记忆 → 展示结果卡（等待确认继续）
@@ -1079,16 +1296,59 @@ function journeyPick(interactionName){
   var result=JourneyEventManager.render(out.result||'',cname);
   var memory=JourneyEventManager.render(out.memory||'',cname);
   if(memory)st.memories.push(memory);
-  journeyRecord('你'+interactionName+'：'+pAction+'，'+result+(out.souvenir?' 🎁 '+out.souvenir:'')+(out.stars?' ⭐ +'+out.stars:''));
+  // 互动动作事件：拍照 → 生成旅行照片（不是奖励，是一段记录）
+  var photo=null;
+  if(interactionName.indexOf('拍')>=0)photo=journeyPhoto(st.map[st.pos[st.members[0].id]]&&st.map[st.pos[st.members[0].id]].label,ev.title+'的一刻');
+  // 连续剧情：推进阶段
+  if(ev._story)journeyStoryAdvance(ev);
+  journeyRecord('你'+interactionName+'：'+pAction+'，'+result+(photo?' 📷 收进旅行照片':(out.souvenir?' 🎁 '+out.souvenir:''))+(out.stars?' ⭐ +'+out.stars:''));
   window._journeyEvent=null;
   window._journeyCell=null;
-  // 阶段二结果卡：玩家动作 → 结果 → 梦角回应 → 事件记忆
-  journeyShowResult(journeyResultHtml(pAction,result,out,cname),
+  // 阶段二结果卡：玩家动作 → 结果 → 梦角回应 → 事件记忆（+ 旅行照片 / 剧情进度）
+  journeyShowResult(journeyResultHtml(pAction,result,out,cname,ev),
     'me');
+}
+// ==================== 事件卡构建（类型标签 / 标题 / 互动区文案）====================
+var JOURNEY_TYPE_META={
+  observe:{label:'观察',icon:'👀'},
+  dialogue:{label:'对话',icon:'💬'},
+  action:{label:'互动',icon:'🤝'},
+  companion:{label:'梦角主动',icon:'💫'},
+  story:{label:'连续剧情',icon:'📖'},
+  scene:{label:'经历',icon:'✨'}
+};
+function journeyTypeMeta(ev){
+  var t=journeyEventType(ev);
+  return JOURNEY_TYPE_META[t]||JOURNEY_TYPE_META.scene;
+}
+function journeyStoryTitle(ev){
+  if(!ev._story)return ev.title||'旅行事件';
+  return ev._story.name+' · 第 '+ev._story.step+'/'+ev._story.total+' 段';
+}
+// 事件卡正文：类型标签 + 标题 + 场景 → 梦角动作 → 梦角台词 → 玩家互动
+function journeyEventCardHtml(ev,cname,title){
+  var meta=journeyTypeMeta(ev);
+  var html='';
+  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+  html+='<span class="jrn-ev-tag">'+meta.icon+' '+meta.label+'</span>';
+  html+='<span style="font-size:14px;font-weight:700;color:#5a4a3a;">'+journeyEsc(title||ev.title||'旅行事件')+'</span>';
+  html+='</div>';
+  html+=journeyEventSceneHtml(ev,cname);
+  // 玩家互动区文案（选择只是互动入口）
+  var itLabel=journeyEventType(ev)==='observe'?'你可以回应：':journeyEventType(ev)==='dialogue'?'想聊些什么？':journeyEventType(ev)==='action'?'你可以：':'你可以：';
+  html+='<div class="jrn-ev-interact">'+itLabel+'</div>';
+  return html;
+}
+// 互动按钮
+function journeyInteractionButtons(ev,who){
+  var fn=who==='companion'?'journeyCompanionReply':'journeyPick';
+  return ev.interactions.map(function(it){
+    return '<button class="btn jrn-choice" onclick="'+fn+'(\''+String(it.name).replace(/'/g,"\\'")+'\')" style="background:var(--accent);">'+journeyEsc(it.name)+'</button>';
+  }).join('');
 }
 // 事件卡正文：场景 + 梦角动作 + 梦角台词
 function journeyEventSceneHtml(ev,cname){
-  var scene=ev.scene||'';
+  var scene=JourneyEventManager.render(ev.scene||'',cname);   // ★ 修复：scene 含 {name} 占位符（梦角主动/剧情链），需替换
   var action=JourneyEventManager.render(ev.companionAction||'',cname);
   var line=JourneyEventManager.render(ev.companionLine||'',cname);
   var html='';
@@ -1097,17 +1357,41 @@ function journeyEventSceneHtml(ev,cname){
   if(line)html+='<div class="jrn-ev-line"><span class="jrn-who">'+journeyEsc(cname)+'</span><span class="jrn-quote">'+journeyEsc(line)+'</span></div>';
   return html;
 }
-// 结果卡正文：玩家动作 → 结果 → 梦角回应 → 事件记忆
-function journeyResultHtml(pAction,result,out,cname){
+// 结果卡正文：玩家动作 → 结果 → 梦角回应 → 事件记忆（+ 可选旅行照片 / 剧情进度）
+function journeyResultHtml(pAction,result,out,cname,ev){
   var reply=JourneyEventManager.render(out.companionReply||'',cname);
   var memory=JourneyEventManager.render(out.memory||'',cname);
   var html='';
   html+='<div class="jrn-ev-scene">'+journeyEsc(pAction)+'，'+journeyEsc(result)+'</div>';
   if(reply)html+='<div class="jrn-ev-line"><span class="jrn-who">'+journeyEsc(cname)+'</span><span class="jrn-quote">'+journeyEsc(reply)+'</span></div>';
-  if(memory)html+='<div class="jrn-ev-memory">📖 事件记忆：<span>'+journeyEsc(memory)+'</span></div>';
-  if(out.souvenir)html+='<div class="jrn-ev-gain">🎁 获得纪念品：'+journeyEsc(out.souvenir)+'</div>';
-  if(out.stars)html+='<div class="jrn-ev-gain">⭐ +'+out.stars+'</div>';
+  if(memory)html+='<div class="jrn-ev-memory">💭 <span>'+journeyEsc(memory)+'</span><div style="font-size:11px;color:#b0a090;margin-top:3px;">这段经历，被记进了手账。</div></div>';
+  if(ev&&ev._story)html+='<div class="jrn-ev-gain">📖 剧情进度：'+(ev._story.step+1)+' / '+ev._story.total+'</div>';
+  // 互动动作事件：拍照 → 生成旅行照片（不是奖励）
+  if(ev&&window._journeyTakePhoto){
+    var ph=window._journeyTakePhoto;
+    html+='<div class="jrn-photo">'+ph.emoji+'<div class="jrn-photo-cap">旅行照片 · '+journeyEsc(ph.caption)+'</div></div>';
+    window._journeyTakePhoto=null;
+  }
   return html;
+}
+// 旅行照片生成
+function journeyPhoto(locLabel,caption){
+  var st=journeyState;
+  var photo={emoji:'📷',caption:caption||'在'+locLabel+'的一刻',loc:locLabel};
+  st.photos.push(photo);
+  window._journeyTakePhoto=photo;
+  return photo;
+}
+// 剧情推进：完成/继续当前链
+function journeyStoryAdvance(ev){
+  var st=journeyState;
+  if(!st.story)return;
+  st.story.step++;
+  if(st.story.step>=st.story.total){
+    var chain=JOURNEY_STORIES[st.story.key];
+    journeyRecord('一段故事落下了句点：「'+st.story.name+'」完整地记进了手账。');
+    st.story=null;
+  }
 }
 // 回合推进（仅在玩家确认结果后调用）：玩家 → 各梦角 → 下一天
 function journeyNextTurn(){
@@ -1138,12 +1422,33 @@ function journeyNextTurn(){
   }
 }
 
-// ==================== 梦角回合：行动 + 共同经历 + 玩家互动 ====================
+// ==================== 梦角回合：骰子动画 → 行动 + 共同经历 + 玩家互动 ====================
 function journeyCompanionTurn(){
   var st=journeyState;if(!st||st.finished)return;
   if(st.phase!=='idle'||st.roundIdx===0)return;   // 状态机守卫：仅空闲且轮到梦角时行动
   var cm=st.members[st.roundIdx];
   var dice=1+Math.floor(Math.random()*6);
+  // ★ 修复：梦角投骰子动画（8 帧滚动，同玩家），动画结束后用同一点数移动
+  var diceEl=$('journey-dice');
+  if(diceEl){
+    var c=0;
+    var iv=setInterval(function(){
+      c++;
+      diceEl.textContent='🎲 '+(1+Math.floor(Math.random()*6));
+      if(c>=8){
+        clearInterval(iv);
+        diceEl.textContent='🎲 '+cm.name+' 掷出 '+dice+' 点';
+        setTimeout(function(){journeyCompanionMove(dice);},400);
+      }
+    },90);
+  }else{
+    journeyCompanionMove(dice);
+  }
+}
+function journeyCompanionMove(dice){
+  var st=journeyState;if(!st||st.finished)return;
+  if(st.phase!=='idle'||st.roundIdx===0)return;
+  var cm=st.members[st.roundIdx];
   st.pos[cm.id]=(st.pos[cm.id]+dice)%st.map.length;
   var cell=st.map[st.pos[cm.id]];
   var ev=journeyPickEvent(cell);
@@ -1152,11 +1457,15 @@ function journeyCompanionTurn(){
   var moveLine=JOURNEY_COMPANION_LINES.move[Math.floor(Math.random()*JOURNEY_COMPANION_LINES.move.length)]
     .replace('{name}',cm.name).replace('{dest}',cell.label);
   window._journeyCompanion={cid:cm.id,name:cm.name,ev:ev,cell:cell,moveLine:moveLine};
-  // 阶段一事件卡：梦角行动 → 场景 → 梦角动作 → 梦角台词 → 玩家互动（一起参与，非答题）
+  // 阶段一事件卡：梦角行动 → 类型标签/标题 → 场景 → 梦角动作 → 梦角台词 → 玩家互动
+  var title='';
+  if(ev._story)title=journeyStoryTitle(ev);
+  else if(ev._pool==='companion')title=cm.name+' 叫住了你';
+  else title=ev.title||'TA 的发现';
   journeyShowEvent('💬 '+cm.name+' 的发现',
     '<div class="jrn-ev-move">'+journeyEsc(moveLine)+'</div>'+
-    journeyEventSceneHtml(ev,cm.name),
-    ev.interactions.map(function(it){return '<button class="btn jrn-choice" onclick="journeyCompanionReply(\''+String(it.name).replace(/'/g,"\\'")+'\')" style="background:var(--accent);">'+journeyEsc(it.name)+'</button>';}).join(''),
+    journeyEventCardHtml(ev,cm.name,title),
+    journeyInteractionButtons(ev,'companion'),
     'companion');
 }
 // 玩家选择参与方式：共同经历结果 → 事件记忆 → 展示结果卡（等待确认继续）
@@ -1176,10 +1485,15 @@ function journeyCompanionReply(interactionName){
   var result=JourneyEventManager.render(out.result||'',cname);
   var memory=JourneyEventManager.render(out.memory||'',cname);
   if(memory)st.memories.push(memory);
-  journeyRecord('你和'+cname+'一起经历：'+pAction+'，'+result+(out.souvenir?' 🎁 '+out.souvenir:'')+(out.stars?' ⭐ +'+out.stars:''));
+  // 互动动作事件：拍照 → 生成旅行照片（不是奖励，是一段记录）
+  var photo=null;
+  if(interactionName.indexOf('拍')>=0)photo=journeyPhoto(cc.cell&&cc.cell.label,ev.title+'的一刻');
+  // 连续剧情：推进阶段
+  if(ev._story)journeyStoryAdvance(ev);
+  journeyRecord('你和'+cname+'一起经历：'+pAction+'，'+result+(photo?' 📷 收进旅行照片':(out.souvenir?' 🎁 '+out.souvenir:''))+(out.stars?' ⭐ +'+out.stars:''));
   window._journeyCompanion=null;
-  // 阶段二结果卡：玩家动作 → 结果 → 梦角回应 → 事件记忆
-  journeyShowResult(journeyResultHtml(pAction,result,out,cname),
+  // 阶段二结果卡：玩家动作 → 结果 → 梦角回应 → 事件记忆（+ 旅行照片 / 剧情进度）
+  journeyShowResult(journeyResultHtml(pAction,result,out,cname,ev),
     'companion');
 }
 
@@ -1250,6 +1564,7 @@ function journeyFinish(){
     stars:st.stars,
     souvenirs:st.souvenirs.slice(),
     memories:st.memories.slice(),
+    photos:st.photos.slice(),
     visited:st.visited.slice(),
     records:st.records.slice(),
     ending:JOURNEY_COMPANION_LINES.ending[Math.floor(Math.random()*JOURNEY_COMPANION_LINES.ending.length)]
@@ -1277,15 +1592,22 @@ function renderJourneyJournal(j){
   html+='<div class="jrn-card-label">经过的地点</div>';
   html+='<div style="font-size:13px;color:#6b5a4a;margin-top:6px;">'+(j.visited&&j.visited.length?j.visited.map(function(v){return journeyEsc(v);}).join(' → '):'—')+'</div>';
   html+='<div class="jrn-divider"></div>';
-  html+='<div class="jrn-card-label">纪念品</div>';
+  html+='<div class="jrn-card-label">沿途的小物件</div>';
   html+='<div style="font-size:13px;color:#6b5a4a;margin-top:6px;">'+(j.souvenirs&&j.souvenirs.length?j.souvenirs.map(function(s){return journeyEsc(s);}).join(' · '):'这一路，没留下什么实物，但都留在了心里。')+'</div>';
   html+='<div class="jrn-divider"></div>';
-  html+='<div style="text-align:center;font-size:14px;color:#8a6a3a;">⭐ 累计获得 '+j.stars+' 颗星</div>';
+  html+='<div style="text-align:center;font-size:13px;color:#8a6a3a;">✨ 这一路的星光：'+j.stars+'</div>';
   html+='</div>';
+  // 旅行照片区
+  if(j.photos&&j.photos.length){
+    html+='<div class="jrn-card">';
+    html+='<div class="jrn-card-label">旅行照片</div>';
+    html+='<div class="jrn-photos">'+j.photos.map(function(p){return '<div class="jrn-photo-item">'+p.emoji+'<div class="jrn-photo-cap">'+journeyEsc(p.caption)+'</div></div>';}).join('')+'</div>';
+    html+='</div>';
+  }
   // 事件记忆区
   if(j.memories&&j.memories.length){
     html+='<div class="jrn-card">';
-    html+='<div class="jrn-card-label">事件记忆</div>';
+    html+='<div class="jrn-card-label">一起经历的事</div>';
     html+='<div class="jrn-records" style="margin-top:8px;">'+j.memories.map(function(m){return '<div class="jrn-record" style="border-left-color:#b58a4a;">💭 '+journeyEsc(m)+'</div>';}).join('')+'</div>';
     html+='</div>';
   }

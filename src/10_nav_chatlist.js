@@ -271,6 +271,7 @@ function _getMsgPreview(last){
   if(last.isSystem||last.isAvatarChange)return last.t||'';
   if(last.isRedpacket)return '[红包] ¥'+(last.redpacketAmount||'?');
   if(last.isCall)return last.callMessage||'[通话]';
+  if(last.isAskCard===true||last.isAskCard==='true')return '❓ '+(last.askQuestion||'TA 向你提了一个问题');
   if(last.isGift===true){
     if(last.isGiftReply===true)return last.t||'';
     return '🎁 '+(last.giftName||'礼物');

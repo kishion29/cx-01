@@ -1339,6 +1339,9 @@ var speedSettings={
   'kaomoji-prob':{key:'kaomoji_prob',default:5,min:0,max:100,step:1,val:'kaomoji-prob-val'},
   'star-en':{key:'star_en',default:1,min:0,max:1,step:1,val:'star-en'},
   'enter-send':{key:'enter_send',default:1,min:0,max:1,step:1,val:'enter-send'},
+  // ★ 梦角聊天回应系统：连接词附着概率
+  'cf-en':{key:'cf_en',default:1,min:0,max:1,step:1,val:'cf-en'},
+  'cf-prob':{key:'cf_prob',default:20,min:1,max:100,step:5,format:function(v){return v+'%'},val:'cf-prob-val'},
   
   'ld-max-cards':{key:'ld_max_cards',default:100,min:1,max:500,step:10,val:'ld-max-cards-val'},
   'ld-write-prob':{key:'ld_write_prob',default:30,min:0,max:100,step:5,val:'ld-write-prob-val'},
@@ -1392,7 +1395,7 @@ function saveSpeedSettings(){
     Object.keys(speedSettings).forEach(function(k){
       var m=speedSettings[k];
       var el;
-      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en'||k==='cf-en';
       if(IS_CHECKBOX){
         el=$(m.val);
         if(el)s[m.key]=el.checked?1:0;
@@ -1408,7 +1411,7 @@ function saveSpeedSettings(){
     Object.keys(speedSettings).forEach(function(k){
       var m=speedSettings[k];
       var el;
-      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en'||k==='cf-en';
       if(IS_CHECKBOX){
         el=$(m.val);
         if(el)s.contacts[contactId][m.key]=el.checked?1:0;
@@ -1422,7 +1425,7 @@ function saveSpeedSettings(){
     Object.keys(speedSettings).forEach(function(k){
       var m=speedSettings[k];
       var el;
-      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+      var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en'||k==='cf-en';
       if(IS_CHECKBOX){
         el=$(m.val);
         if(el)s[m.key]=el.checked?1:0;
@@ -1436,7 +1439,7 @@ function saveSpeedSettings(){
   ls('ml2_speed',s);
   toast('设置已保存');
 }
-function syncSpeedUI(){var contactSelect=$('speed-contact-select')||$('letter-contact-select');var contactId=contactSelect?contactSelect.value:null;Object.keys(speedSettings).forEach(function(k){var m=speedSettings[k];var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';if(IS_CHECKBOX){var el=$(m.val);if(el)el.checked=getSpeed(k,contactId)===1}else{var el=document.getElementById(m.val);if(el)el.value=getSpeed(k,contactId)}})}
+function syncSpeedUI(){var contactSelect=$('speed-contact-select')||$('letter-contact-select');var contactId=contactSelect?contactSelect.value:null;Object.keys(speedSettings).forEach(function(k){var m=speedSettings[k];var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en'||k==='cf-en';if(IS_CHECKBOX){var el=$(m.val);if(el)el.checked=getSpeed(k,contactId)===1}else{var el=document.getElementById(m.val);if(el)el.value=getSpeed(k,contactId)}})}
 function applySpeedToAllContacts(){
   var activeLetterOv=$('ov-letter-settings');
   var activeSpeedOv=$('ov-speed-settings');
@@ -1458,7 +1461,7 @@ function applySpeedToAllContacts(){
   Object.keys(speedSettings).forEach(function(k){
     var m=speedSettings[k];
     var el;
-    var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en';
+    var IS_CHECKBOX=k==='py-en'||k==='star-en'||k==='enter-send'||k==='as-en'||k==='dnd-en'||k==='ld-kaomoji-en'||k==='ld-emoji-en'||k==='ld-sticker-en'||k==='cf-en';
     if(IS_CHECKBOX){
       el=$(m.val);
       if(el)currentSettings[m.key]=el.checked?1:0;
@@ -1806,7 +1809,7 @@ function applyGroupSpeedToAllMembers(){
 var _toastTimer=null;
 function toast(t){if(_toastTimer){clearTimeout(_toastTimer);var old=document.querySelector('.toast');if(old)old.remove()}var el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);_toastTimer=setTimeout(function(){if(el.parentNode)el.remove();_toastTimer=null},1900)}
 function escapeHTML(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function showSurveyDetail(idx){if(!SurveyApp)return;SurveyApp._loadRecords().then(function(records){if(!records||idx<0||idx>=records.length)return;var r=records[idx];var html='<div style="font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">'+escapeHTML(r.title||'无标题')+'</div>';html+='<div style="font-size:12px;color:#888;margin-bottom:16px;">'+r.contactName+' · '+r.time+'</div>';r.questions.forEach(function(q,i){html+='<div style="padding:12px;background:#f8f9fa;border-radius:8px;margin-bottom:8px;">';html+='<div style="font-size:14px;font-weight:600;color:#333;margin-bottom:6px;">Q'+(i+1)+': '+escapeHTML(q.text)+'</div>';var a=r.answers&&r.answers[i];
+function showSurveyDetail(idx){if(!SurveyApp)return;SurveyApp._loadRecords().then(function(records){if(!records||idx<0||idx>=records.length)return;var r=records[idx];var html='<div style="font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">'+escapeHTML(r.title||'无标题')+'</div>';html+='<div style="font-size:12px;color:#6f6a62;margin-bottom:16px;">'+r.contactName+' · '+r.time+'</div>';r.questions.forEach(function(q,i){html+='<div style="padding:12px;background:#f8f9fa;border-radius:8px;margin-bottom:8px;">';html+='<div style="font-size:14px;font-weight:600;color:#333;margin-bottom:6px;">Q'+(i+1)+': '+escapeHTML(q.text)+'</div>';var a=r.answers&&r.answers[i];
 // ★ 兼容多种答案格式：answer / value / 字符串
 var ansVal='';
 if(a){
@@ -1830,7 +1833,7 @@ if(q.options&&q.options.length>0&&isAns&&q.options.some(function(o){return o.tri
     html+='<div style="padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#f0f0f0;color:#333;font-size:13px;">'+escapeHTML(opt)+'</div>';
   });
   html+='</div>';
-  html+='<div style="font-size:12px;color:#aaa;margin-top:4px;">未作答</div>';
+  html+='<div style="font-size:12px;color:#827d74;margin-top:4px;">未作答</div>';
 }else{
   html+='<div style="font-size:13px;color:#666;">A: '+escapeHTML(isAns?ansVal:'未作答')+'</div>';
 }
