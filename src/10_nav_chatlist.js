@@ -271,7 +271,11 @@ function _getMsgPreview(last){
   if(last.isSystem||last.isAvatarChange)return last.t||'';
   if(last.isRedpacket)return '[红包] ¥'+(last.redpacketAmount||'?');
   if(last.isCall)return last.callMessage||'[通话]';
-  if(last.isAskCard===true||last.isAskCard==='true')return '❓ '+(last.askQuestion||'TA 向你提了一个问题');
+  if(last.isAskCard===true||last.isAskCard==='true')return '❓ '+(last.askQuestion||'TA 想问你一个问题');
+  if(last.isChoiceCard===true||last.isChoiceCard==='true')return '💫 '+(last.choiceQuestion||'TA 给你出了一道选择题');
+  if(last.isCuriousCard===true||last.isCuriousCard==='true')return '💭 '+(last.curiousQuestion||'TA 对你有点好奇');
+  if(last.isRoastCard===true||last.isRoastCard==='true')return '😏 '+(last.roastText||'TA 吐槽了你一句');
+  if(last.isInviteCard===true||last.isInviteCard==='true')return '💌 '+(last.inviteText||'TA 邀请了你');
   if(last.isGift===true){
     if(last.isGiftReply===true)return last.t||'';
     return '🎁 '+(last.giftName||'礼物');

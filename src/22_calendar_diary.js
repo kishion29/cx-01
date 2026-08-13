@@ -931,7 +931,10 @@ function showTAFavorites(){
     return;
   }
   
-  favorites.sort(function(a,b){return b.timestamp-a.timestamp});
+  // ★ 修复：按消息时间(msgTime)降序排列，与界面显示/分组的时间一致
+  // msgTime 经 localStorage 序列化后是 ISO 字符串，必须用 new Date().getTime() 比较（字符串相减会得 NaN 导致排序失效）
+  function _tms(v){return new Date(v||0).getTime();}
+  favorites.sort(function(a,b){return _tms(b.msgTime||b.timestamp)-_tms(a.msgTime||a.timestamp)});
   
   // 获取最新收藏时间
   var latestTime='';
@@ -1033,6 +1036,50 @@ function showTAFavoritesSettings(){
   showOv('ov-ta-favorites-settings');
 }
 
+// ★ 时间排序修正：把当前联系人（及各联系人）的收藏按消息时间(msgTime)降序重排并保存，
+// 缺失 msgTime 的旧数据尽量从聊天记录回填，回填不了则用收藏时刻(timestamp)兜底
+function sortTAFavoritesByTime(){
+  loadTAFavorites();
+  var fixedCount=0, contactCount=0;
+  // 当前联系人优先处理
+  if(cid&&taFavorites[cid]){
+    contactCount++;
+    fixedCount+=fixTAFavsSort(taFavorites[cid]);
+  }
+  // 其他联系人一并修正，保证所有联系人的收藏都按时间排好
+  Object.keys(taFavorites).forEach(function(cid2){
+    if(cid2===cid)return;
+    if(!Array.isArray(taFavorites[cid2]))return;
+    contactCount++;
+    fixedCount+=fixTAFavsSort(taFavorites[cid2]);
+  });
+  saveTAFavorites();
+  if(typeof toast==='function')toast('已按时间排序修正（'+contactCount+' 个联系人）');
+  if(cid)showTAFavorites();
+}
+
+// 单联系人收藏排序修正：回填缺失 msgTime 后按 msgTime 降序
+function fixTAFavsSort(arr){
+  var fixed=0;
+  // 尝试从聊天记录回填缺失的 msgTime
+  arr.forEach(function(fav){
+    if(!fav.msgTime&&fav.msgId&&typeof msgs==='function'){
+      try{
+        var mm=msgs(fav.cid||cid)||[];
+        var found=null;
+        for(var i=0;i<mm.length;i++){if(mm[i]&&mm[i].id===fav.msgId){found=mm[i];break;}}
+        if(found&&found.ts){
+          fav.msgTime=found.ts instanceof Date?found.ts.getTime():new Date(found.ts).getTime();
+          fixed++;
+        }
+      }catch(e){}
+    }
+    if(!fav.msgTime&&fav.timestamp)fav.msgTime=fav.timestamp;
+  });
+  arr.sort(function(a,b){return _tms(b.msgTime||b.timestamp)-_tms(a.msgTime||a.timestamp)});
+  return fixed;
+}
+
 function simulateTAFavorite(){
   if(!cid)return;
   loadTAFavorites();
@@ -1043,10 +1090,12 @@ function simulateTAFavorite(){
   var recentMsgs=m.filter(function(msg){return msg.s===SELF});
   if(recentMsgs.length===0)return;
   
-  var minCount=taFavoritesSettings.minCount||1;
-  var maxCount=taFavoritesSettings.maxCount||5;
+  var minCount=Math.max(1,taFavoritesSettings.minCount||1);
+  // ★ 修复：最少/最多设置颠倒（最少>最多）会让 count 为 0 或负数，导致 TA 永远不收藏；这里强制最多≥最少
+  var maxCount=Math.max(minCount,taFavoritesSettings.maxCount||5);
   var count=minCount+Math.floor(Math.random()*(maxCount-minCount+1));
   count=Math.min(count,recentMsgs.length);
+  if(count<=0)return;
   
   for(var i=0;i<count;i++){
     var randomMsg=recentMsgs[Math.floor(Math.random()*recentMsgs.length)];

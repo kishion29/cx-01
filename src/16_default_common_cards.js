@@ -831,6 +831,7 @@ var _cardCategories=[
   {key:'kaomoji',label:'颜文字',icon:'😊'},
   {key:'emojis',label:'Emoji',icon:'📖'},
   {key:'stickers',label:'图片表情',icon:'🖼️'},
+  {key:'image',label:'图片',icon:'📷'},
   {key:'touch',label:'拍一拍',icon:'👋'},
   {key:'voices',label:'语音',icon:'🎵'}
 ];
@@ -1017,36 +1018,63 @@ function openExportCardsDialog(){
 }
 
 var _importFileData=null;
+// ★ 判断是不是星言网站自己导出的 json（含 milk 适配的星言体系文件）。
+// 其他网站的字卡 json 没有专享字卡等星言结构，混入会乱，需走单分类+公用字卡导入。
+function _isStarExportJson(data){
+  if(!data||typeof data!=='object'||Array.isArray(data))return false;
+  if(data._fromMilk===true)return true;
+  if(Array.isArray(data.cardPrivateContacts))return true;
+  if(Array.isArray(data.touchCardsPublic))return true;
+  if(Array.isArray(data.navCardsPublic))return true;
+  if(Array.isArray(data.globalCards)&&Array.isArray(data.cardGroups)&&data.images&&data.voices&&data.version)return true;
+  return false;
+}
+var _importForeignMode=false; // 非星言 json：单分类 + 强制公用字卡
+var _importForeignCats=[{key:'custom',label:'主字卡',icon:'📝'},{key:'kaomoji',label:'颜文字',icon:'😊'},{key:'emojis',label:'Emoji',icon:'📖'},{key:'stickers',label:'图片表情',icon:'🖼️'}];
 function openImportCardsDialog(){
   _importFileData=null;
+  _importForeignMode=false;
   var selectedCats={};
   _cardCategories.forEach(function(c){selectedCats[c.key]=true;});
   var selectedType='all';
 
   var container=$('import-categories');
   container.innerHTML='';
-  _cardCategories.forEach(function(cat){
-    var chip=document.createElement('div');
-    chip.className='import-cat-chip selected';
-    chip.style.cssText='padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.2s;border:1.5px solid var(--accent);background:rgba(var(--accent-rgb),0.1);color:var(--accent);display:flex;align-items:center;gap:4px;';
-    chip.innerHTML=cat.icon+' '+cat.label;
-    chip.dataset.cat=cat.key;
-    chip.onclick=function(){
-      var key=this.dataset.cat;
-      if(selectedCats[key]){
-        selectedCats[key]=false;
-        this.style.borderColor='var(--border)';
-        this.style.background='var(--c2)';
-        this.style.color='var(--txt3)';
-      }else{
-        selectedCats[key]=true;
-        this.style.borderColor='var(--accent)';
-        this.style.background='rgba(var(--accent-rgb),0.1)';
-        this.style.color='var(--accent)';
-      }
-    };
-    container.appendChild(chip);
-  });
+  // 分类 chips：默认全部可选（星言 json 用）；切到非星言模式时会重建为单分类
+  function buildCatChips(){
+    container.innerHTML='';
+    _cardCategories.forEach(function(cat){
+      var chip=document.createElement('div');
+      chip.className='import-cat-chip selected';
+      chip.style.cssText='padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.2s;border:1.5px solid var(--accent);background:rgba(var(--accent-rgb),0.1);color:var(--accent);display:flex;align-items:center;gap:4px;';
+      chip.innerHTML=cat.icon+' '+cat.label;
+      chip.dataset.cat=cat.key;
+      chip.onclick=function(){
+        var key=this.dataset.cat;
+        if(_importForeignMode){
+          // ★ 非星言 json：只能选一个分类（单选）
+          if(selectedCats[key])return; // 已选中，点击不取消，保证始终有一个
+          Object.keys(selectedCats).forEach(function(k){selectedCats[k]=false;});
+          selectedCats[key]=true;
+          buildCatChips();
+          return;
+        }
+        if(selectedCats[key]){
+          selectedCats[key]=false;
+          this.style.borderColor='var(--border)';
+          this.style.background='var(--c2)';
+          this.style.color='var(--txt3)';
+        }else{
+          selectedCats[key]=true;
+          this.style.borderColor='var(--accent)';
+          this.style.background='rgba(var(--accent-rgb),0.1)';
+          this.style.color='var(--accent)';
+        }
+      };
+      container.appendChild(chip);
+    });
+  }
+  buildCatChips();
   
   var typeContainer=$('import-types');
   typeContainer.innerHTML='';
@@ -1056,6 +1084,8 @@ function openImportCardsDialog(){
     label.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;cursor:pointer;transition:all 0.25s ease;border:2px solid '+(isSelected?'var(--accent)':'var(--border)')+';background:'+(isSelected?'linear-gradient(135deg,rgba(var(--accent-rgb),0.12),rgba(var(--accent-rgb),0.05))':'var(--c2)')+';'+(isSelected?'box-shadow:0 2px 10px rgba(var(--accent-rgb),0.2);':'')+'transform:'+(isSelected?'scale(1.01)':'scale(1)')+';';
     label.innerHTML='<div style="width:20px;height:20px;border-radius:50%;border:2px solid '+(isSelected?'var(--accent)':'var(--txt3)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;">'+(isSelected?'<div style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>':'')+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:'+(isSelected?'600':'500')+';color:'+(isSelected?'var(--accent)':'var(--txt)')+';">'+t.label+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+t.desc+'</div></div>';
     label.onclick=function(){
+      // ★ 非星言 json：禁用「全部字卡」和「专享字卡」，强制公用字卡（其他网站 json 没有专享字卡）
+      if(_importForeignMode&&t.key!=='public'){toast('其他网站的字卡只有公用字卡，请选择「公用字卡」');return;}
       selectedType=t.key;
       updateImportTypeUI();
     };
@@ -1067,8 +1097,9 @@ function openImportCardsDialog(){
     typeLabels.forEach(function(label,idx){
       var t=_cardTypes[idx];
       var isSelected=t.key===selectedType;
-      label.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;cursor:pointer;transition:all 0.25s ease;border:2px solid '+(isSelected?'var(--accent)':'var(--border)')+';background:'+(isSelected?'linear-gradient(135deg,rgba(var(--accent-rgb),0.12),rgba(var(--accent-rgb),0.05))':'var(--c2)')+';'+(isSelected?'box-shadow:0 2px 10px rgba(var(--accent-rgb),0.2);':'')+'transform:'+(isSelected?'scale(1.01)':'scale(1)')+';';
-      label.innerHTML='<div style="width:20px;height:20px;border-radius:50%;border:2px solid '+(isSelected?'var(--accent)':'var(--txt3)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;">'+(isSelected?'<div style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>':'')+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:'+(isSelected?'600':'500')+';color:'+(isSelected?'var(--accent)':'var(--txt)')+';">'+t.label+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+t.desc+'</div></div>';
+      var disabled=_importForeignMode&&t.key!=='public';
+      label.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;cursor:pointer;transition:all 0.25s ease;border:2px solid '+(isSelected?'var(--accent)':(disabled?'var(--border)':'var(--border)'))+';background:'+(isSelected?'linear-gradient(135deg,rgba(var(--accent-rgb),0.12),rgba(var(--accent-rgb),0.05))':(disabled?'var(--c2)':'var(--c2)'))+';'+(isSelected?'box-shadow:0 2px 10px rgba(var(--accent-rgb),0.2);':'')+'transform:'+(isSelected?'scale(1.01)':'scale(1)')+';opacity:'+(disabled?'0.45':'1')+';';
+      label.innerHTML='<div style="width:20px;height:20px;border-radius:50%;border:2px solid '+(isSelected?'var(--accent)':'var(--txt3)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;">'+(isSelected?'<div style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>':'')+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:'+(isSelected?'600':'500')+';color:'+(isSelected?'var(--accent)':'var(--txt)')+';">'+t.label+(disabled?'（禁用）':'')+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+t.desc+'</div></div>';
     });
   };
   
@@ -1079,6 +1110,35 @@ function openImportCardsDialog(){
   var fileInput=$('import-cards-file');
   fileInput.value='';
   
+  // ★ 非星言 json：切换到单分类 + 强制公用字卡
+  function switchToForeignMode(){
+    _importForeignMode=true;
+    selectedType='public';
+    // 分类重建为 4 个单选项，默认选「主字卡」
+    selectedCats={};
+    _importForeignCats.forEach(function(c){selectedCats[c.key]=false;});
+    selectedCats['custom']=true;
+    container.innerHTML='';
+    _importForeignCats.forEach(function(cat){
+      var chip=document.createElement('div');
+      var isSel=selectedCats[cat.key];
+      chip.className='import-cat-chip'+(isSel?' selected':'');
+      chip.style.cssText='padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.2s;border:1.5px solid '+(isSel?'var(--accent)':'var(--border)')+';background:'+(isSel?'rgba(var(--accent-rgb),0.1)':'var(--c2)')+';color:'+(isSel?'var(--accent)':'var(--txt3)')+';display:flex;align-items:center;gap:4px;';
+      chip.innerHTML=cat.icon+' '+cat.label;
+      chip.dataset.cat=cat.key;
+      chip.onclick=function(){
+        var key=this.dataset.cat;
+        Object.keys(selectedCats).forEach(function(k){selectedCats[k]=false;});
+        selectedCats[key]=true;
+        switchToForeignMode();
+      };
+      container.appendChild(chip);
+    });
+    updateImportTypeUI();
+    $('import-cards-confirm').textContent='开始导入（非星言文件）';
+    toast('检测到非星言导出的字卡文件：请选择要导入的分类（只能选一个），字卡类型已固定为「公用字卡」');
+  }
+  
   var onFileSelect=async function(e){
     var file=e.target.files[0];
     if(!file)return;
@@ -1088,13 +1148,20 @@ function openImportCardsDialog(){
       reader.onload=async function(evt){
         try{
           var rawData=JSON.parse(evt.target.result);
-          
-          var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k]});
-          var typeVal=selectedType;
-          var overwrite=$('import-mode-replace')&&$('import-mode-replace').checked;
-          
-          hideOv('ov-import-cards');
-          await importCardsJSON(rawData,{categories:catList,cardType:typeVal,overwrite:overwrite});
+          // ★ 星言自己导出的 json：保持现状（多分类可选、可全部类型）
+          if(_isStarExportJson(rawData)){
+            _importFileData=rawData;
+            _importForeignMode=false;
+            var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
+            var typeVal=selectedType;
+            var overwrite=$('import-mode-replace')&&$('import-mode-replace').checked;
+            hideOv('ov-import-cards');
+            await importCardsJSON(rawData,{categories:catList,cardType:typeVal,overwrite:overwrite,foreign:false});
+          }else{
+            // ★ 其他网站 json：先切到「单分类 + 公用字卡」模式，让用户确认分类后再导入
+            _importFileData=rawData;
+            switchToForeignMode();
+          }
         }catch(err){
           toast('导入失败，无效的JSON文件');
           console.error(err);
@@ -1109,6 +1176,16 @@ function openImportCardsDialog(){
   
   fileInput.onchange=onFileSelect;
   $('import-cards-confirm').onclick=function(){
+    // 已读取过非星言 json：直接用所选分类导入，不再选文件
+    if(_importFileData&&_importForeignMode){
+      var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
+      if(catList.length!==1){toast('请选择 1 个分类');return;}
+      var overwrite=$('import-mode-replace')&&$('import-mode-replace').checked;
+      hideOv('ov-import-cards');
+      importCardsJSON(_importFileData,{categories:catList,cardType:'public',overwrite:overwrite,foreign:true});
+      _importFileData=null;
+      return;
+    }
     var catList=Object.keys(selectedCats).filter(function(k){return selectedCats[k];});
     if(catList.length===0){
       toast('请至少选择一个分类');
@@ -1344,6 +1421,16 @@ function normalizeImportData(data){
     var sgid='g_'+sTs+'_'+sRand();
     sGroups.push({id:sgid,name:'默认分组',category:'custom',type:'public',contactId:null,disabled:false,disabledContacts:[]});
     var allStickers=(data.stickerLibrary||[]).concat(data.myStickerLibrary||[]);
+    // ★ 修复：公用表情与我的表情库常包含同一批图，直接拼接会让每张表情入库两份（数量翻倍），按内容去重
+    var seenSticker={};
+    allStickers=allStickers.filter(function(s){
+      if(!s)return false;
+      var k=(typeof s==='string'?s:(s.content||'')).trim();
+      if(!k)return false;
+      if(seenSticker[k])return false;
+      seenSticker[k]=true;
+      return true;
+    });
     for(var si=0;si<allStickers.length;si++){
       sCards.push({id:'c_'+sTs+'_'+sRand(),content:allStickers[si],text:'',type:'public',category:'stickers',groupId:sgid,groupName:'默认分组',contactId:null,voiceText:'',duration:0});
     }
@@ -1370,17 +1457,23 @@ function normalizeImportData(data){
   
   if(data.globalCards&&Array.isArray(data.globalCards)){
     result.globalCards=data.globalCards.map(function(card){
+      // ★ 兜底：未知分类/类型归一（其他网站 json 分类名可能不同，乱值会导致字卡库渲染崩溃/打不开）
+      var rawCat=card.category||card.group||'custom';
+      var knownCats=['custom','kaomoji','emojis','stickers','touch','voices'];
+      if(knownCats.indexOf(rawCat)<0)rawCat='custom';
+      var rawType=card.type||'public';
+      if(['public','private','personal'].indexOf(rawType)<0)rawType='public';
       var normalized={
         id:card.id||'c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-        content:card.content||card.text||'',
-        type:card.type||'public',
-        category:card.category||'custom',
+        content:(typeof card.content==='string')?card.content:((card.text&&typeof card.text==='string')?card.text:''),
+        type:rawType,
+        category:rawCat,
         groupId:card.groupId||card.group||'',
         groupName:card.groupName||'',
         contactId:card.contactId||null,
-        voiceText:card.voiceText||'',
+        voiceText:(typeof card.voiceText==='string')?card.voiceText:'',
         duration:card.duration||0,
-        text:card.text||card.content||''
+        text:(typeof card.text==='string')?card.text:((typeof card.content==='string')?card.content:'')
       };
       return normalized;
     });
@@ -1407,7 +1500,7 @@ async function importCardsJSON(rawData,options){
   var opts=options||{categories:_cardCategories.map(function(c){return c.key}),cardType:'all',overwrite:true};
   
   var importData=normalizeImportData(rawData);
-  
+
   // === milk 导入覆盖分类/类型 ===
   if(importData._fromMilk){
     if(opts.categories&&opts.categories.length===1){
@@ -1422,6 +1515,25 @@ async function importCardsJSON(rawData,options){
       if(importData.cardGroups){
         importData.cardGroups.forEach(function(g){g.type=opts.cardType;});
       }
+    }
+  }
+  // ★ 非星言网站 json（foreign）：强制归一到所选单个分类 + 公用字卡，
+  // 避免其他网站字卡结构（无专享字卡、分类名不同）混入导致导入混乱
+  if(opts.foreign){
+    var fCat=opts.categories&&opts.categories.length===1?opts.categories[0]:'custom';
+    importData.globalCards=importData.globalCards.filter(function(c){
+      if(!c)return false;
+      if(c.content&&typeof c.content==='string'&&c.content.trim())return true;
+      return false;
+    }).map(function(card){
+      var c2=Object.assign({},card);
+      c2.type='public';
+      c2.category=fCat;
+      c2.contactId=null;
+      return c2;
+    });
+    if(importData.cardGroups&&Array.isArray(importData.cardGroups)){
+      importData.cardGroups.forEach(function(g){if(g){g.type='public';g.category=fCat;g.contactId=null;}});
     }
   }
   
@@ -1450,17 +1562,28 @@ async function importCardsJSON(rawData,options){
   // ★ 公用字卡去重：仅在合并导入（overwrite=false）时，与现有库按内容去重；
   // 覆盖导入（overwrite=true）完整保留文件全部字卡，不吞卡
   var dupCount=0;
+  // ★ 修复：图片卡存在 base64 与 ml2_card_img_<id> 引用两种形态，比较前先还原为实际内容，
+  // 否则同一张图因形态不一致导致去重失配、重复入库（数量翻倍）
+  function _resolveCardContent(card,images){
+    var content=card&&card.content?card.content:'';
+    if(content&&content.startsWith('ml2_card_img_')){
+      var imgRef=images?images[content]:null;
+      if(!imgRef&&typeof memoryCache!=='undefined')imgRef=memoryCache['_img_'+content];
+      if(imgRef)return imgRef;
+    }
+    return content;
+  }
   var existingPublicContent=new Set();
   if(!opts.overwrite){
     globalCards.forEach(function(ec){
       if(ec.type==='public'||!ec.type){
-        existingPublicContent.add((ec.content||'').trim());
+        existingPublicContent.add(_resolveCardContent(ec,null).trim());
       }
     });
     var seenContent=new Set();
     filteredCards=filteredCards.filter(function(card){
       if(card.type==='private'||card.type==='personal')return true;
-      var key=(card.content||'').trim();
+      var key=_resolveCardContent(card,importData.images).trim();
       if(existingPublicContent.has(key)||seenContent.has(key)){
         dupCount++;
         return false;

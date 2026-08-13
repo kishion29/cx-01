@@ -1780,7 +1780,7 @@ function _doRenderMsgs(messages){
       var askQ=String(x.askQuestion||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       var askA=String(x.askAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       // ★ 居中卡片，不带聊天气泡
-      var askDir=askMine?'我的提问':'TA的提问';
+      var askDir=askMine?'我的询问':'TA的询问';
       var askAnsLabel=askMine?'TA的回答：':'你的回答：';
       var askClick=askMine?'':' onclick="openTAAskAnswer(\''+x.id+'\')"';
       var askHint=askMine?'':'<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击回答</div>';
@@ -1791,6 +1791,81 @@ function _doRenderMsgs(messages){
         +'<div style="padding:12px 14px;background:linear-gradient(135deg,#e8e2f5,#f4f0fb);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">💬</span><span style="font-size:13px;font-weight:600;color:#6b5ca8;">'+askDir+'</span><span style="margin-left:auto;font-size:11px;color:#a89ac8;">'+askTime+'</span></div>'
         +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+askQ+'</div>'+(askSt==='answered'?'<div style="font-size:12px;color:var(--txt2);margin-top:6px;">'+askAnsLabel+askA+'</div>':askHint)+'</div>'
         +'<div style="padding:6px 14px;background:'+askConf[2]+';font-size:11px;color:'+askConf[1]+';text-align:center;">'+askConf[0]+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
+    }else if(x.isInviteCard===true||x.isInviteCard==='true'){
+      // ★ TA的邀请：居中卡片，pending 可点击回应
+      var invT=String(x.inviteText||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var invA=String(x.inviteAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var invD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var invTime=('0'+invD.getHours()).slice(-2)+':'+('0'+invD.getMinutes()).slice(-2);
+      var invAnswered=x.inviteStatus==='answered';
+      var invConf=invAnswered?['你已回应','#4e7a54','#f0f7ef']:['等待你的回应','#4a7ba8','#eef3f8'];
+      var invClick=invAnswered?'':' onclick="openTAInviteAnswer(\''+x.id+'\')"';
+      var invHint=invAnswered?('<div style="font-size:12px;color:var(--txt2);margin-top:6px;">你的回应：'+invA+'</div>'):'<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击回应</div>';
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+        +'<div class="message-ta-invite"'+invClick+' style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);'+(invAnswered?'':'cursor:pointer;')+'">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#fdeee8,#fdf6f1);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">💌</span><span style="font-size:13px;font-weight:600;color:#c07a55;">TA的邀请</span><span style="margin-left:auto;font-size:11px;color:#d3a48c;">'+invTime+'</span></div>'
+        +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+invT+'</div>'+invHint+'</div>'
+        +'<div style="padding:6px 14px;background:'+invConf[2]+';font-size:11px;color:'+invConf[1]+';text-align:center;">'+invConf[0]+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
+    }else if(x.isChoiceCard===true||x.isChoiceCard==='true'){
+      // ★ TA的小问题：居中卡片，pending 可点击选择
+      var chQ=String(x.choiceQuestion||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var chA=String(x.choiceAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var chMatch=String(x.choiceMatch||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var chD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var chTime=('0'+chD.getHours()).slice(-2)+':'+('0'+chD.getMinutes()).slice(-2);
+      var chAnswered=x.choiceStatus==='answered';
+      var chConf=chAnswered?['你选择了','#4e7a54','#f0f7ef']:['等待你的选择','#4a7ba8','#eef3f8'];
+      var chClick=chAnswered?'':' onclick="openTAChoose(\''+x.id+'\')"';
+      var chHint=chAnswered?('<div style="font-size:12px;color:var(--txt2);margin-top:6px;">你的选择：'+chA+'</div><div style="font-size:11px;color:#4a7ba8;margin-top:4px;">'+chMatch+'</div>'):'<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击选择</div>';
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+        +'<div class="message-ta-choose"'+chClick+' style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);'+(chAnswered?'':'cursor:pointer;')+'">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#e4eef7,#f0f7fb);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">💫</span><span style="font-size:13px;font-weight:600;color:#4a7ba8;">TA的小问题</span><span style="margin-left:auto;font-size:11px;color:#9db8cf;">'+chTime+'</span></div>'
+        +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+chQ+'</div>'+chHint+'</div>'
+        +'<div style="padding:6px 14px;background:'+chConf[2]+';font-size:11px;color:'+chConf[1]+';text-align:center;">'+chConf[0]+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
+    }else if(x.isCuriousCard===true||x.isCuriousCard==='true'){
+      // ★ TA的好奇：开放式问题，居中卡片，pending 可点击回答
+      var cqQ=String(x.curiousQuestion||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var cqA=String(x.curiousAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var cqR=String(x.curiousReply||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var cqD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var cqTime=('0'+cqD.getHours()).slice(-2)+':'+('0'+cqD.getMinutes()).slice(-2);
+      var cqAnswered=x.curiousStatus==='answered';
+      var cqConf=cqAnswered?['已回答','#8a6d3b','#fdf6e9']:['等待你的回答','#4e7a54','#f0f7ef'];
+      var cqClick=cqAnswered?'':' onclick="openTACuriousAnswer(\''+x.id+'\')"';
+      var cqHint=cqAnswered?('<div style="font-size:12px;color:var(--txt2);margin-top:6px;">你说：'+cqA+'</div><div style="font-size:12px;color:#5a4a3a;margin-top:4px;">TA：'+cqR+'</div>'):'<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击回答</div>';
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+        +'<div class="message-ta-curious"'+cqClick+' style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);'+(cqAnswered?'':'cursor:pointer;')+'">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#fdeee2,#fdf6ee);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">💭</span><span style="font-size:13px;font-weight:600;color:#a3704a;">TA的好奇</span><span style="margin-left:auto;font-size:11px;color:#c4a184;">'+cqTime+'</span></div>'
+        +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+cqQ+'</div>'+cqHint+'</div>'
+        +'<div style="padding:6px 14px;background:'+cqConf[2]+';font-size:11px;color:'+cqConf[1]+';text-align:center;">'+cqConf[0]+'</div>'
+        +'</div></div></div>');
+      lt=d.getTime();
+      continue;
+    }else if(x.isRoastCard===true||x.isRoastCard==='true'){
+      // ★ TA的吐槽：TA突然吐槽一句，居中卡片，pending 可点击回应
+      var rrT=String(x.roastText||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var rrA=String(x.roastAnswer||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var rrR=String(x.roastReply||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var rrD=x.ts instanceof Date?x.ts:new Date(x.ts);
+      var rrTime=('0'+rrD.getHours()).slice(-2)+':'+('0'+rrD.getMinutes()).slice(-2);
+      var rrAnswered=x.roastStatus==='answered';
+      var rrConf=rrAnswered?['已回应','#8a6d3b','#fdf6e9']:['等待你的回应','#a3704a','#fdf0e6'];
+      var rrClick=rrAnswered?'':' onclick="openTARoastAnswer(\''+x.id+'\')"';
+      var rrHint=rrAnswered?('<div style="font-size:12px;color:var(--txt2);margin-top:6px;">你说：'+rrA+'</div><div style="font-size:12px;color:#5a4a3a;margin-top:4px;">TA：'+rrR+'</div>'):'<div style="font-size:11px;color:var(--accent);margin-top:6px;">点击回应</div>';
+      html.push('<div class="message-system-row" data-mid="'+x.id+'" style="margin:24px 0;"><div style="max-width:300px;margin:0 auto;text-align:left;">'
+        +'<div class="message-ta-roast"'+rrClick+' style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.05);'+(rrAnswered?'':'cursor:pointer;')+'">'
+        +'<div style="padding:12px 14px;background:linear-gradient(135deg,#fdeee8,#fdf6f0);display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">😏</span><span style="font-size:13px;font-weight:600;color:#a3704a;">TA的吐槽</span><span style="margin-left:auto;font-size:11px;color:#c4a184;">'+rrTime+'</span></div>'
+        +'<div style="padding:12px 14px;"><div style="font-size:13px;color:var(--txt);line-height:1.6;">'+rrT+'</div>'+rrHint+'</div>'
+        +'<div style="padding:6px 14px;background:'+rrConf[2]+';font-size:11px;color:'+rrConf[1]+';text-align:center;">'+rrConf[0]+'</div>'
         +'</div></div></div>');
       lt=d.getTime();
       continue;
@@ -1872,8 +1947,9 @@ function _doRenderMsgs(messages){
           else{origImgUrl='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect fill="%23eee" width="100" height="100" rx="8"/%3E%3Ctext fill="%23999" font-size="12" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E图片加载失败%3C/text%3E%3C/svg%3E'}
         }
         originalHtml='<img src="'+origImgUrl.replace(/"/g,'&quot;')+'" class="message-img" style="max-width:100px;max-height:100px;">';
-      }else if(x.originalContent){
-        originalHtml=x.originalContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      }else if(x.originalContent||x.originalText){
+        var _origTxt=x.originalContent||x.originalText;
+        originalHtml=_origTxt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
       }
       // ★ 整撤时把子卡原文一并展示
       if(x.originalCards){
@@ -2164,7 +2240,7 @@ function _doRenderMsgs(messages){
     }
     
     var ssCheckboxHtml='';
-    if(longScreenshotMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isCall||x.isRedpacket||x.voice||x.isInvite||x.isAskCard||x.isSurveyCard)){
+    if(longScreenshotMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isCall||x.isRedpacket||x.voice||x.isInvite||x.isAskCard||x.isSurveyCard||x.isChoiceCard||x.isCuriousCard||x.isRoastCard)){
       var isChecked=longScreenshotSelectedMsgs.indexOf(x.id)>=0;
       ssCheckboxHtml='<div class="ss-check-wrap"><input type="checkbox" onmousedown="event.preventDefault();" '+(isChecked?'checked':'')+' onclick="event.stopPropagation();toggleLongScreenshotMsg(\''+x.id+'\')" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"></div>';
     }else if(favMsgMode&&!x.retracted&&(x.t||x.img||x.isTouch||x.isRedpacket||x.voice)){
@@ -2939,7 +3015,10 @@ function showMsgActionMenu(x,y,msgId,isLiked,isNonInstant){
     var msg=m.find(function(m){return m.id===msgId});
     if(msg&&msg.s===SELF){
       msg.retracted=true;
-      msg.originalText=msg.t;
+      // ★ 修复：与桌面端 handleRetractMsg 保持一致，保存到 originalContent/originalImg，
+      // 之前写成 originalText 导致渲染端只认 originalContent 时展开块缺失、点击无效
+      msg.originalContent=msg.t;
+      if(msg.img)msg.originalImg=msg.img;
       msg.t='';
       saveMsgs(currentId,m);
       renderMsgsFunc();

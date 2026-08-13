@@ -1544,11 +1544,15 @@ var chatbarItems=[
   {id:'star_memory',name:'星言纪念',icon:'📅',fixed:false,category:'梦角'},
   {id:'ta_distance',name:'TA与你的距离',icon:'📍',fixed:false,category:'梦角'},
   {id:'ta_touch',name:'TA的触碰',icon:'💫',fixed:false,category:'梦角'},
-  {id:'ta_daily',name:'TA的日常字卡库',icon:'🌙',fixed:false,category:'梦角'},
+  {id:'ta_daily',name:'TA的日常',icon:'🌙',fixed:false,category:'梦角'},
   {id:'ai_card_memory',name:'AI解读记忆库',icon:'📔',fixed:false,category:'AI'},
   {id:'ai_chat',name:'AI聊天',icon:'💬',fixed:false,category:'AI'},
   {id:'ai_diviner',name:'AI占卜师',icon:'🔮',fixed:false,category:'AI'},
   {id:'ta_ask',name:'TA的询问',icon:'❓',fixed:false,category:'AI'},
+  {id:'ta_choose',name:'TA的小问题',icon:'💫',fixed:false,category:'AI'},
+  {id:'ta_curious',name:'TA的好奇',icon:'💭',fixed:false,category:'AI'},
+  {id:'ta_invite',name:'TA的邀请',icon:'💌',fixed:false,category:'AI'},
+  {id:'ta_roast',name:'TA的吐槽',icon:'😏',fixed:false,category:'AI'},
   {id:'add',name:'添加好友',icon:'+',fixed:false,category:'其他'},
   {id:'search',name:'搜索',icon:'🔍',fixed:false,category:'其他'},
   {id:'back',name:'返回',icon:'←',fixed:false,category:'其他'},
@@ -1581,7 +1585,7 @@ var chatbarItems=[
   {id:'soul_qa',name:'默契问答',icon:'🤝',fixed:false,category:'聊天互动'},
 ];
 var chatbarCategoryOrder=['消息工具','聊天互动','更多','梦角','字卡库','AI','小游戏','底部导航','其他'];
-var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','soul_qa','moments','letters','board','period','pomodoro','mood_cards_library','chat_followup','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','star_memory','ta_distance','ta_touch','diary','giftbox'];
+var customChatbarEnabled=['image','send_voice','send_link','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','call','survey','soul_qa','moments','letters','board','period','pomodoro','mood_cards_library','chat_followup','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','star_memory','ta_distance','ta_touch','diary','giftbox','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast'];
 
 // ★ TA与你的距离：梦角存在感可视化（随机生成，非地图定位）
 // ★ 卡片配色体系（星言日历同款柔和渐变）
@@ -5099,10 +5103,10 @@ function renderChatMorePanel(){
 
   var enabledItems=customChatbarEnabled;
   if(!enabledItems||!Array.isArray(enabledItems)||enabledItems.length===0){
-    enabledItems=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','board','period','pomodoro','mood_cards_library','read_cards','read_video_cards','ta_daily_cards','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals'];
+    enabledItems=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','board','period','pomodoro','mood_cards_library','read_cards','read_video_cards','ta_daily_cards','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast','ai_card_memory','ai_card_records','ai_chat','meals'];
   }else{
     // ★ 铁证：无论 customChatbarEnabled 来自哪里（旧存档/未合并），渲染时都强制补全新功能
-    ['ask_ta','ask_invite_records','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video_cards','ta_daily_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals','invite','piggy','star_flip','star_journey','soul_qa','star_memory','default_common_cards','chat_followup'].forEach(function(_i){
+    ['ask_ta','ask_invite_records','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video_cards','ta_daily_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast','ai_card_memory','ai_card_records','ai_chat','meals','invite','piggy','star_flip','star_journey','soul_qa','star_memory','default_common_cards','chat_followup'].forEach(function(_i){
       if(enabledItems.indexOf(_i)===-1)enabledItems.push(_i);
     });
   }
@@ -5111,7 +5115,7 @@ function renderChatMorePanel(){
     var c=contacts.find(function(x){return x.id===cid});
     if(c&&c.chatbarEnabled&&Array.isArray(c.chatbarEnabled)){
       // 合并：确保新功能也出现在联系人定制列表中
-      var defaults=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals'];
+      var defaults=['image','ask_ta','ask_invite_records','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','search_chat','date_search','touch','redpacket','decision','group_decision','divine','invite','call','survey','piggy','star_flip','star_journey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','ta_daily','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast','ai_card_memory','ai_card_records','ai_chat','meals'];
       var merged=c.chatbarEnabled.slice();
       defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
       enabledItems=merged;
@@ -5119,10 +5123,17 @@ function renderChatMorePanel(){
     if(c&&c.chatbarOrder&&Array.isArray(c.chatbarOrder)){
       // ★ 补新功能：旧数据 order 没有 ta_distance/ta_touch 等，导入后要补上
       displayOrder=c.chatbarOrder.slice();
-      var _newIds=['ask_ta','ask_invite_records','ta_distance','ta_touch','ta_daily','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ai_card_memory','ai_card_records','ai_chat','meals','invite','piggy','star_flip','star_journey'];
+      var _newIds=['ask_ta','ask_invite_records','ta_distance','ta_touch','ta_daily','ta_highlights','chat_stats','star_music','star_cal','mood_cards_library','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast','ai_card_memory','ai_card_records','ai_chat','meals','invite','piggy','star_flip','star_journey'];
       _newIds.forEach(function(_nid){if(displayOrder.indexOf(_nid)===-1)displayOrder.push(_nid);});
     }
   }
+  // ★ 最终铁证：无论启用配置/排序来自哪里（旧存档/未合并/联系人定制），渲染时强制补全所有内建功能
+  //   直接遍历 chatbarItems，保证「更多功能」面板永远与代码内建列表一致，新增功能无需再维护名单
+  chatbarItems.forEach(function(_it){
+    if(_it.category==='底部导航'||_it.category==='其他')return;
+    if(enabledItems.indexOf(_it.id)===-1)enabledItems.push(_it.id);
+    if(displayOrder.indexOf(_it.id)===-1)displayOrder.push(_it.id);
+  });
 
   var categories={};
   displayOrder.forEach(function(itemId){
@@ -5221,6 +5232,7 @@ function renderChatMorePanel(){
     html+='</div>';
     if(activeCat==='AI'){
       html+='<div style="margin:10px 14px 6px;padding:10px 12px;border-radius:10px;background:var(--c2);font-size:11px;color:var(--txt3);line-height:1.8;">星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入AI。AI为附带功能，可在设置的api接口中按需接入（可选）。不接入AI也能正常使用全部核心功能。<br>内容参考：AI生成的所有内容仅供参考，不代表任何事实，请理性看待。</div>';
+      html+='<div onclick="showTAAiUsage()" style="margin:0 14px 8px;padding:9px 12px;border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-size:12px;text-align:center;cursor:pointer;user-select:none;background:rgba(var(--accent-rgb),0.06);">📖 使用说明：TA系列五个互动功能</div>';
     }
     html+='</div>';
   }
@@ -5357,6 +5369,18 @@ function handleChatMoreAction(action){
       case 'ta_ask':
         showTAAskManager();
         break;
+      case 'ta_choose':
+        showTAChooseManager();
+        break;
+      case 'ta_curious':
+        showTACuriousManager();
+        break;
+      case 'ta_invite':
+        showTAInviteManager();
+        break;
+      case 'ta_roast':
+        showTARoastManager();
+        break;
       case 'ai_chat':
         if(typeof openAiChat==='function')openAiChat();
         break;
@@ -5480,11 +5504,11 @@ function handleChatMoreAction(action){
 }
 
 function loadChatbarSettings(){
-  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
+  if(!customChatbarEnabled)customChatbarEnabled=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast'];
   var saved=ls('ml2_custom_chatbar');
   if(saved&&Array.isArray(saved)&&saved.length>0){
     // 合并：把新增的默认功能添加到已保存的配置中
-    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
+    var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast'];
     var merged=saved.slice();
     defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
     customChatbarEnabled=merged;
@@ -5497,7 +5521,7 @@ async function loadChatbarSettingsAsync(){
     try{
       var saved=await window.localforage.getItem('ml2_custom_chatbar');
       if(saved&&Array.isArray(saved)&&saved.length>0){
-        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals'];
+        var defaults=['image','copy_msg','long_screenshot','fav_msg','my_favs','cards','default_common_cards','topbar_cards','settings','search_chat','date_search','touch','decision','group_decision','divine','call','survey','letters','moments','period','pomodoro','contact-profile','favorites','ta_highlights','chat_stats','star_music','star_cal','diary','ta_distance','ta_touch','read_together','read_cards','read_video','toggle_bottom_nav','ai_diviner','ai_card_memory','ai_card_records','ai_chat','meals','ta_ask','ta_choose','ta_curious','ta_invite','ta_roast'];
         var merged=saved.slice();
         defaults.forEach(function(d){if(merged.indexOf(d)===-1)merged.push(d);});
         customChatbarEnabled=merged;

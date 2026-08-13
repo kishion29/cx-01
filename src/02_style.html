@@ -876,11 +876,13 @@ body.night .tab.on{color:rgba(255,255,255,0.92);}
 .my-row{background:#FFFFFF;margin-bottom:1px;border-bottom:1px solid #E8E8E8}
 .my-row:hover{background:#FAFAFA}
 .my-row:last-child{border-bottom:none}
+/* ★ 修复：底部导航「更多功能」页功能行外框与页面背景几乎同色（c2≈bg），加边框+浅阴影使其成为清晰卡片（背景用 c1 自适应白天/夜间） */
+#pg-more .my-row{border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.05);background:var(--c1)}
 .my-section{background:transparent;border:none;box-shadow:none;margin-bottom:24px}
 .my-section .my-row:first-child{border-radius:10px 10px 0 0}
 .my-section .my-row:last-child{border-radius:0 0 10px 10px}
 .my-section .my-row:only-child{border-radius:10px}
-.my-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--c2);color:var(--txt2)}
+.my-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:var(--txt2)}
 .my-label{flex:1;font-size:15px;color:var(--txt)}
 @media (max-width: 375px){
   #my-scroll{padding:8px}
@@ -1258,6 +1260,13 @@ body.night .tab.on{color:rgba(255,255,255,0.92);}
 .sh h3{font-size:16px;font-weight:600;color:var(--txt);letter-spacing:.3px}
 .sh .btn-close{background:none;border:none;font-size:18px;color:var(--txt2);cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;touch-action:manipulation}
 .sh .btn-close:active{background:var(--c3);transform:scale(.95)}
+/* ★ 半屏弹窗「全屏」按钮（× 左边）与全屏态 */
+.sh .sheet-fs-btn{background:none;border:none;font-size:15px;color:var(--txt2);cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;touch-action:manipulation;margin-left:auto;margin-right:4px;flex-shrink:0}
+.sh .sheet-fs-btn:active{background:var(--c3);transform:scale(.95)}
+.sh .sheet-fs-btn.on{color:var(--accent)}
+.sheet-fullscreen{width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;border-radius:0!important}
+.sheet-fullscreen .sb{max-height:calc(100dvh - 61px)!important}
+.sheet-fullscreen .sh{padding-top:calc(env(safe-area-inset-top) + 12px)}
 .sb{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .form-inp{width:100%;border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px;outline:none;margin-bottom:16px;font-family:inherit;background:var(--c2);transition:border-color .2s,background .2s}
 .import-paste-panel{background:var(--c1);width:100%;max-width:424px;border-radius:24px 24px 0 0;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;animation:su .3s cubic-bezier(.34,1.56,.64,1)}
@@ -3054,7 +3063,17 @@ input:checked+.slider:before{transform:translateX(20px)}
 .jrn-ev-gain{margin-top:8px;font-size:12px;color:#8a6a3a;}
 .jrn-ev-move{font-size:12px;color:#9a8a7a;margin-bottom:8px;letter-spacing:0.2px;}
 .jrn-ev-tag{display:inline-block;font-size:11px;font-weight:600;color:#8a6a3a;background:rgba(232,212,184,0.35);border:1px solid rgba(181,138,74,0.35);border-radius:10px;padding:2px 8px;flex-shrink:0;}
+.jrn-ev-tag.rare{color:#a67c2e;background:rgba(232,196,110,0.22);border-color:rgba(166,124,46,0.55);}
+.jrn-ev-rare{margin-top:8px;font-size:12px;color:#a67c2e;letter-spacing:0.5px;}
 .jrn-ev-interact{margin-top:10px;font-size:12px;color:#b58a4a;font-weight:600;letter-spacing:0.5px;}
+/* ===== 星言旅途 v3：稀有卡 / 氛围 / 多阶段 / 小游戏 ===== */
+.jrn-rare-card{border-color:rgba(166,124,46,0.45);background:linear-gradient(160deg,#fffaf0,#fffdf8);box-shadow:0 2px 12px rgba(166,124,46,0.15);}
+.jrn-record-rare{border-left-color:#a67c2e;background:rgba(232,196,110,0.12);}
+.jrn-phase-bar{margin-bottom:10px;font-size:11px;color:#b58a4a;background:rgba(232,212,184,0.25);border:1px dashed rgba(181,138,74,0.35);border-radius:10px;padding:4px 10px;display:inline-block;}
+.mini-g{font-size:14px;color:#5a4a3a;line-height:1.8;}
+.mini-coin{width:88px;height:88px;margin:6px auto;border-radius:50%;background:linear-gradient(135deg,#f7e8c8,#e8c98a);border:2px solid #d4af6a;display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 3px 10px rgba(166,124,46,0.25);animation:miniCoinSpin 1.3s ease-in-out both;}
+.mini-coin-face{animation:none;font-weight:700;color:#8a6a3a;font-size:16px;}
+@keyframes miniCoinSpin{0%{transform:rotateY(0);}100%{transform:rotateY(1440deg);}}
 .jrn-photo{display:inline-block;margin-top:10px;padding:12px 16px;background:#fffdf8;border:1px solid rgba(139,115,85,0.25);border-radius:12px;text-align:center;font-size:34px;box-shadow:0 2px 8px rgba(90,74,58,0.08);}
 .jrn-photo-cap{font-size:11px;color:#9a8a7a;margin-top:6px;letter-spacing:0.3px;}
 .jrn-photos{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
@@ -3077,5 +3096,6 @@ input:checked+.slider:before{transform:translateX(20px)}
 .flip-dk-card{position:absolute;right:0;bottom:4px;max-width:78%;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(169,196,232,0.45);border-radius:12px;padding:6px 11px;box-shadow:0 2px 10px rgba(90,110,168,0.14);animation:aiChatBubbleIn 0.25s ease both;}
 .flip-dk-card .flip-dk-role{flex-shrink:0;font-size:11px;font-weight:700;color:#5C5246;background:rgba(169,196,232,0.25);border-radius:9px;padding:1px 7px;}
 .flip-dk-card .flip-dk-text{font-size:13px;color:#5C5246;line-height:1.6;}
+.flip-dk-tip{position:absolute;right:0;bottom:4px;max-width:82%;background:rgba(255,255,255,0.92);border:1px dashed rgba(169,196,232,0.55);border-radius:12px;padding:7px 11px;font-size:12px;color:#8a93ad;line-height:1.6;box-shadow:0 2px 10px rgba(90,110,168,0.1);animation:aiChatBubbleIn 0.25s ease both;}
 </style>
 

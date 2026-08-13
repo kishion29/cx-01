@@ -1750,7 +1750,7 @@ function saveGroupSpeedSettings(){
 if($('close-speed'))$('close-speed').addEventListener('click',function(){saveSpeedSettings();hideOv('ov-speed');toast('设置已保存')});
 if($('close-letter-settings'))$('close-letter-settings').addEventListener('click',function(){saveSpeedSettings();hideOv('ov-letter-settings');toast('设置已保存')});
 if($('py-en'))$('py-en').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'拼字卡功能已开启':'拼字卡功能已关闭')});
-if($('as-en'))$('as-en').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'主动发送消息已开启':'主动发送消息已关闭')});
+if($('as-en'))$('as-en').addEventListener('change',function(){saveSpeedSettings();if(typeof initAutoSendSchedule==='function'){try{initAutoSendSchedule();}catch(e){}}toast(this.checked?'主动发送消息已开启':'主动发送消息已关闭')});
 if($('star-en'))$('star-en').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'星星标识已开启':'星星标识已关闭')});
 if($('enter-send'))$('enter-send').addEventListener('change',function(){saveSpeedSettings();toast(this.checked?'回车键发送已开启':'回车键发送已关闭')});
 document.querySelectorAll('.stepper').forEach(function(st){var k=st.dataset.k,m=speedSettings[k];if(!m||!m.val)return;var el=document.getElementById(m.val);if(!el)return;st.children[0].addEventListener('click',function(){var cur=parseInt(el.value)||m.min,nxt=Math.max(m.min,cur-m.step);el.value=nxt;saveSpeedSettings()});st.children[2].addEventListener('click',function(){var cur=parseInt(el.value)||m.min,nxt=Math.min(m.max,cur+m.step);el.value=nxt;saveSpeedSettings()});el.addEventListener('input',function(){var val=parseInt(this.value);if(isNaN(val))val=m.min;val=Math.max(m.min,Math.min(m.max,val));this.value=val;saveSpeedSettings()})});

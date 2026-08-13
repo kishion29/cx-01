@@ -14,7 +14,7 @@
 <!-- 即时加载动画：在页面解析期间显示，减少手机端白屏/卡顿感 -->
 <div id="early-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;background:linear-gradient(180deg,#f8f6f3 0%,#f5f0eb 30%,#faf8f5 60%,#ffffff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;">
   <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:9px;color:#c4b39c;line-height:1.7;letter-spacing:0.5px;padding:0 16px;">星言字卡传讯本身为完整独立功能，添加字卡即可使用，无需接入 AI。AI 为附带功能，可在设置的 api 接口中按需接入（可选）。不接入 AI 也能正常使用全部核心功能。<br>内容参考：AI 生成的所有内容仅供参考，不代表任何事实，请理性看待。</div>
-  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-12 17:52</div>
+  <div id="splash-deploy" style="position:absolute;top:16px;right:18px;font-size:11px;color:#b0a08a;letter-spacing:1px;text-align:right;line-height:1.6;">最新版本部署时间<br>2026-08-13 17:40</div>
   <div style="font-size:32px;color:#c9a96e;margin-bottom:24px;animation:splashPulse 1.5s ease-in-out infinite">✦</div>
   <div style="display:flex;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.2s infinite;"></span><span style="width:8px;height:8px;border-radius:50%;background:#c9a96e;animation:loadingDot 1.4s ease-in-out 0.4s infinite;"></span></div>
   <div style="font-size:13px;color:#b0a08a;letter-spacing:2px;margin-top:20px;" id="splash-status">星言加载中...</div>
@@ -831,64 +831,64 @@ function showUsageNoticeFromSplash() {
   <div class="nav"><span class="tt">更多功能</span></div>
   <div id="more-scroll" style="flex:1;overflow-y:auto;padding:16px">
     <div class="my-section">
-      <div class="my-row" id="more-divine-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">🔮</div>
+      <div class="my-row" id="more-divine-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">🔮</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">占卜</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">塔罗牌、雷诺曼占卜</div></div>
         
       </div>
-      <div class="my-row" id="more-letters-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">✉️</div>
+      <div class="my-row" id="more-letters-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">✉️</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">星言信箱</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">寄出信件、收到回信</div></div>
         
       </div>
-      <div class="my-row" id="more-noninstant-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">🕐</div>
+      <div class="my-row" id="more-noninstant-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">🕐</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">非即时传讯</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">发送消息，对方24小时内随机时间回复</div></div>
         
       </div>
-      <div class="my-row" id="more-survey-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">📝</div>
+      <div class="my-row" id="more-survey-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">📝</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">调查问卷</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">创建问卷，与梦角互动</div></div>
         
       </div>
-      <div class="my-row" id="more-ta-highlights-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">💬</div>
+      <div class="my-row" id="more-ta-highlights-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">💬</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">TA想说点重点</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">梦角标记的重要消息</div></div>
         
       </div>
-      <div class="my-row" id="more-star-music-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">🎵</div>
+      <div class="my-row" id="more-star-music-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">🎵</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">星音相伴</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">让梦角通过声音参与日常陪伴</div></div>
         
       </div>
       
-      <div class="my-row" id="more-chat-stats-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">📊</div>
+      <div class="my-row" id="more-chat-stats-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">📊</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">聊天统计</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">记录你和TA的聊天痕迹</div></div>
         
       </div>
-      <div class="my-row" id="more-board-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">📋</div>
+      <div class="my-row" id="more-board-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">📋</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">我的留言板</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">保存消息给所有联系人看</div></div>
         
       </div>
       
-      <div class="my-row" id="more-dream-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#f7f3ee;display:flex;align-items:center;justify-content:center;font-size:30px">✍️</div>
+      <div class="my-row" id="more-dream-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">✍️</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">我的日记</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">记录自己的想法与回忆</div></div>
       </div>
-      <div class="my-row" id="more-star-cal-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#f0ebe3;display:flex;align-items:center;justify-content:center;font-size:30px">✨</div>
+      <div class="my-row" id="more-star-cal-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">✨</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">星言日历</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">查看TA每天留下的记录</div></div>
       </div>
-      <div class="my-row" id="more-period-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:30px">🌸</div>
+      <div class="my-row" id="more-period-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">🌸</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">生理周期</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">记录经期，预测周期</div></div>
         
       </div>
 
-      <div class="my-row" id="more-giftbox-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--c2);border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
-        <div style="width:52px;height:52px;border-radius:12px;background:#f5ebe0;display:flex;align-items:center;justify-content:center;font-size:30px">🎁</div>
+      <div class="my-row" id="more-giftbox-btn" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius);margin-bottom:12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px">🎁</div>
         <div style="flex:1"><div style="font-weight:500;font-size:16px">礼物盒</div><div style="font-size:13px;color:var(--txt2);margin-top:2px">互相赠送的心意记录</div></div>
       </div>
       </div>
@@ -1683,6 +1683,19 @@ function showUsageNoticeFromSplash() {
   <div class="tabs"></div>
 </div>
 
+<!-- Feature Timeline Page（功能上线时间） -->
+<div class="page" id="pg-feature-timeline">
+  <div class="nav">
+    <div class="nl"><button class="btn-nav" onclick="showPg('pg-my')">←</button></div>
+    <span class="tt">功能上线时间</span>
+    <div class="nr"></div>
+  </div>
+  <div id="feature-timeline-scroll" style="flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;">
+    <div id="feature-timeline-list"></div>
+  </div>
+  <div class="tabs"></div>
+</div>
+
 <!-- Usage Notice Page -->
 <div class="page" id="pg-usage-notice">
   <div class="nav" id="usage-notice-nav">
@@ -1706,10 +1719,11 @@ function showUsageNoticeFromSplash() {
         <div style="font-size:15px;font-weight:600;color:#2c2416;letter-spacing:2px;">关于网站与使用</div>
       </div>
       <div style="font-size:14px;color:#6b5d4f;line-height:2.1;">
-        <p style="margin:0 0 10px;"><strong style="color:#2c2416;">本网站由我个人出资，花了很多时间搭建并维护，目前免费向所有人开放。</strong>用不用随缘，不强求。</p>
+        <p style="margin:0 0 10px;"><strong style="color:#2c2416;">本网站由我个人出资，花了很多时间搭建并维护，目前免费向所有人开放。</strong></p>
         <div style="margin:10px 0;padding:10px 14px;background:#fdfaf5;border-radius:8px;">
           <p style="margin:0 0 6px;color:#8c7b6b;"><strong style="color:#2c2416;">网站版：</strong><a href="https://ling233330-star.github.io/star033/" target="_blank" style="color:#8b7355;text-decoration:underline;word-break:break-all;">https://ling233330-star.github.io/star033/</a></p>
           <p style="margin:0 0 6px;color:#8c7b6b;"><strong style="color:#2c2416;">GitHub 源码仓库：</strong><a href="https://github.com/ling233330-star/star033" target="_blank" style="color:#8b7355;text-decoration:underline;word-break:break-all;">https://github.com/ling233330-star/star033</a></p>
+          <p style="margin:0 0 6px;color:#8c7b6b;">星言字卡在小红书置顶；代码已在全部 GitHub 库公开，与网站同步更新。如果借鉴了星言的功能或代码，希望可以在你的作品中标注「灵感来源：星言」。</p>
           <p style="margin:0 0 6px;color:#8c7b6b;"><strong style="color:#2c2416;">如何识别官方版：</strong>① 网址必须是上面这个 <strong style="color:#2c2416;">https://ling233330-star.github.io/star033/</strong>（别人自部署的网址不同）；② 只有打开这个网址，开屏才会显示金色的「本人部署 · 官方版」标识。其他方式打开没有这个标识。</p>
           <p style="margin:0;color:#8c7b6b;">我修 Bug 时会重新部署网站，修一次发一次，所以测试期间网站偶尔会<strong>打不开或卡一下</strong>，过一会儿就好。</p>
         </div>
@@ -1743,7 +1757,7 @@ function showUsageNoticeFromSplash() {
         <p style="margin:0 0 8px;"><strong style="color:#c0392b;">❌ 禁止</strong>：删除或篡改原作者署名（星言 / 小红书言序 1842523578）。</p>
         <p style="margin:0 0 8px;"><strong style="color:#c0392b;">❌ 禁止</strong>：将本代码用于任何商业用途（包括但不限于企业内外部部署、对外提供服务、盈利性项目等）。</p>
         <p style="margin:0 0 8px;"><strong style="color:#c0392b;">❌ 禁止</strong>：将本代码（含修改版本）二次公开发布至任何平台，包括小红书/抖音/B站/公众号/代码托管平台等。</p>
-        <p style="margin:0;">违反必究，不接受任何"未看到声明"为由的免责。</p>
+        <p style="margin:0 0 8px;">违反必究，不接受任何"未看到声明"为由的免责。</p>
       </div>
     </div>
     
@@ -2015,6 +2029,7 @@ function showUsageNoticeFromSplash() {
     <div class="my-section">
       
       <div class="my-row" id="update-history-btn"><span class="my-ico">📜</span><span class="my-label">更新公告</span></div>
+      <div class="my-row" id="feature-timeline-btn" style="cursor:pointer;-webkit-tap-highlight-color:transparent;"><span class="my-ico">⏱</span><span class="my-label">功能上线时间</span></div>
       <div class="my-row" id="usage-notice-btn" style="cursor:pointer;-webkit-tap-highlight-color:transparent;"><span class="my-ico">📋</span><span class="my-label">使用须知</span></div>
       <div class="my-row" id="usage-guide-btn" style="cursor:pointer;-webkit-tap-highlight-color:transparent;"><span class="my-ico">📖</span><span class="my-label">使用说明</span></div>
       <div class="my-row" id="topbar-settings-btn"><span class="my-ico">📌</span><span class="my-label">联系人顶部栏字卡库</span></div>
@@ -2914,6 +2929,7 @@ function showUsageNoticeFromSplash() {
     </div>
     <div id="ta-favorites-list" style="max-height:60vh;overflow-y:auto;padding:16px;"></div>
     <div class="modal-buttons" style="padding:16px 20px;border-top:1px solid var(--border);">
+      <button class="btn" onclick="sortTAFavoritesByTime()" style="flex:1;background:var(--c2);color:var(--txt);">🕐 时间排序修正</button>
       <button class="btn" onclick="hideOv('ov-ta-favorites')" style="flex:1;">关闭</button>
     </div>
   </div>
@@ -2925,7 +2941,7 @@ function showUsageNoticeFromSplash() {
 <!-- TA's Ask Answer Modal（TA的询问回答） -->
 <div class="overlay" id="ov-ta-ask-answer">
   <div class="sheet" style="max-width:400px;">
-    <div class="sh"><h3>💬 回答TA</h3><button class="btn-close" onclick="hideOv('ov-ta-ask-answer')">✕</button></div>
+    <div class="sh"><h3>💬 回答TA的询问</h3><button class="btn-close" onclick="hideOv('ov-ta-ask-answer')">✕</button></div>
     <div class="sb" style="padding:16px;">
       <div style="font-size:13px;color:var(--txt);line-height:1.6;margin-bottom:12px;background:var(--c2);border-radius:10px;padding:10px 12px;" id="ta-ask-answer-question"></div>
       <input id="ta-ask-answer-input" type="text" placeholder="输入你的回答..." style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
@@ -2939,6 +2955,37 @@ function showUsageNoticeFromSplash() {
   <div class="sheet" style="max-width:420px;">
     <div class="sh"><h3>❓ TA的询问 · 管理</h3><button class="btn-close" onclick="hideOv('ov-ta-ask-manage')">✕</button></div>
     <div class="sb" id="ta-ask-manage-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Invite Answer Modal（TA的邀请回应） -->
+<div class="overlay" id="ov-ta-invite-answer">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>💌 回应TA的邀请</h3><button class="btn-close" onclick="hideOv('ov-ta-invite-answer')">✕</button></div>
+    <div class="sb" style="padding:16px;">
+      <div style="font-size:13px;color:var(--txt);line-height:1.6;margin-bottom:12px;background:var(--c2);border-radius:10px;padding:10px 12px;" id="ta-invite-answer-text"></div>
+      <input id="ta-invite-answer-input" type="text" placeholder="输入你的回应..." style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
+      <button class="btn" onclick="submitTAInviteAnswer()" style="margin-top:14px;background:var(--accent);">发送回应</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Invite Manage Modal（TA的邀请管理） -->
+<div class="overlay" id="ov-ta-invite-manage">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>💌 TA的邀请 · 管理</h3><button class="btn-close" onclick="hideOv('ov-ta-invite-manage')">✕</button></div>
+    <div class="sb" id="ta-invite-manage-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Invite History Modal（TA的邀请历史） -->
+<div class="overlay" id="ov-ta-invite-history">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>📜 TA的邀请 · 历史</h3><button class="btn-close" onclick="hideOv('ov-ta-invite-history')">✕</button></div>
+    <div class="sb" id="ta-invite-history-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-footer" style="padding:12px 16px;">
+      <button class="btn" onclick="clearTAInviteHistory()" style="background:var(--c3);color:var(--txt);">清空历史</button>
+    </div>
   </div>
 </div>
 
@@ -2964,6 +3011,119 @@ function showUsageNoticeFromSplash() {
       <input id="ask-ta-input" type="text" placeholder="例如：你喜欢什么颜色？" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
       <button class="btn" onclick="sendAskTa()" style="margin-top:14px;background:var(--accent);">发送提问</button>
     </div>
+  </div>
+</div>
+
+<!-- TA's Choice Modal（TA的小问题） -->
+<div class="overlay" id="ov-ta-choose">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>💫 TA的小问题</h3><button class="btn-close" onclick="hideOv('ov-ta-choose')">✕</button></div>
+    <div class="sb" id="ta-choose-body" style="padding:18px 16px;max-height:72vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Choice Manage Modal（TA的小问题管理） -->
+<div class="overlay" id="ov-ta-choose-manage">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>💫 TA的小问题 · 管理</h3><button class="btn-close" onclick="hideOv('ov-ta-choose-manage')">✕</button></div>
+    <div class="sb" id="ta-choose-manage-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Choice Favs Modal（TA的小问题收藏） -->
+<div class="overlay" id="ov-ta-choose-favs">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>⭐ TA的小问题 · 收藏</h3><button class="btn-close" onclick="hideOv('ov-ta-choose-favs')">✕</button></div>
+    <div class="sb" id="ta-choose-favs-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Choice History Modal（TA的小问题历史） -->
+<div class="overlay" id="ov-ta-choose-history">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>📜 TA的小问题 · 历史</h3><button class="btn-close" onclick="hideOv('ov-ta-choose-history')">✕</button></div>
+    <div class="sb" id="ta-choose-history-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-footer" style="padding:12px 16px;">
+      <button class="btn" onclick="clearTAChooseHistory()" style="background:var(--c3);color:var(--txt);">清空历史</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Curious Modal（TA的好奇回答） -->
+<div class="overlay" id="ov-ta-curious">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>💭 TA的好奇</h3><button class="btn-close" onclick="hideOv('ov-ta-curious')">✕</button></div>
+    <div class="sb" id="ta-curious-body" style="padding:18px 16px;max-height:72vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Curious Manage Modal（TA的好奇管理） -->
+<div class="overlay" id="ov-ta-curious-manage">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>💭 TA的好奇 · 管理</h3><button class="btn-close" onclick="hideOv('ov-ta-curious-manage')">✕</button></div>
+    <div class="sb" id="ta-curious-manage-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Curious History Modal（TA的好奇历史） -->
+<div class="overlay" id="ov-ta-curious-history">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>📜 TA的好奇 · 历史</h3><button class="btn-close" onclick="hideOv('ov-ta-curious-history')">✕</button></div>
+    <div class="sb" id="ta-curious-history-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-footer" style="padding:12px 16px;">
+      <button class="btn" onclick="clearTACuriousHistory()" style="background:var(--c3);color:var(--txt);">清空历史</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Curious Known Modal（TA已了解） -->
+<div class="overlay" id="ov-ta-curious-known">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>💞 TA已了解</h3><button class="btn-close" onclick="hideOv('ov-ta-curious-known')">✕</button></div>
+    <div class="sb" id="ta-curious-known-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-footer" style="padding:12px 16px;">
+      <button class="btn" onclick="clearTACuriousKnown()" style="background:var(--c3);color:var(--txt);">清空已了解</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Roast Answer Modal（TA的吐槽回应） -->
+<div class="overlay" id="ov-ta-roast-answer">
+  <div class="sheet" style="max-width:400px;">
+    <div class="sh"><h3>😏 回应TA的吐槽</h3><button class="btn-close" onclick="hideOv('ov-ta-roast-answer')">✕</button></div>
+    <div class="sb" style="padding:16px;">
+      <div style="font-size:13px;color:var(--txt);line-height:1.6;margin-bottom:12px;background:var(--c2);border-radius:10px;padding:10px 12px;" id="ta-roast-answer-text"></div>
+      <div id="ta-roast-answer-body" style="margin-bottom:12px;"></div>
+      <input id="ta-roast-answer-input" type="text" placeholder="回TA一句..." style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--c2);color:var(--txt);font-size:15px;outline:none;box-sizing:border-box;">
+      <button class="btn" onclick="submitTARoastAnswer()" style="margin-top:14px;background:var(--accent);">发送回应</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA's Roast Manage Modal（TA的吐槽管理） -->
+<div class="overlay" id="ov-ta-roast-manage">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>😏 TA的吐槽 · 管理</h3><button class="btn-close" onclick="hideOv('ov-ta-roast-manage')">✕</button></div>
+    <div class="sb" id="ta-roast-manage-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- TA's Roast History Modal（TA的吐槽历史） -->
+<div class="overlay" id="ov-ta-roast-history">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>📜 TA的吐槽 · 历史</h3><button class="btn-close" onclick="hideOv('ov-ta-roast-history')">✕</button></div>
+    <div class="sb" id="ta-roast-history-body" style="padding:16px;max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-footer" style="padding:12px 16px;">
+      <button class="btn" onclick="clearTARoastHistory()" style="background:var(--c3);color:var(--txt);">清空历史</button>
+    </div>
+  </div>
+</div>
+
+<!-- TA系列五个互动功能 · 使用说明 -->
+<div class="overlay" id="ov-ta-ai-usage">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sh"><h3>📖 TA系列 · 使用说明</h3><button class="btn-close" onclick="hideOv('ov-ta-ai-usage')">✕</button></div>
+    <div class="sb" id="ta-ai-usage-body" style="padding:16px;max-height:72vh;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -3841,7 +4001,13 @@ function showUsageNoticeFromSplash() {
       <div style="margin-bottom:16px">
         <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;font-weight:600">选择联系人</div>
         <select id="call-contact-select" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--c1);color:var(--txt);font-size:14px;" onchange="syncCallUI()">
+          <option value="__all__">全部联系人（全局默认）</option>
         </select>
+      </div>
+      
+      <div style="margin-bottom:16px">
+        <div class="set-row" style="margin-bottom:8px;"><span style="font-weight:600;">禁用全部联系人主动打电话</span><label class="tsw"><input type="checkbox" id="call-disable-all-incoming"><span class="sl"></span></label></div>
+        <div style="font-size:11px;color:var(--txt3);">开启后，任何联系人都不会主动给你来电（来电概率设置将被忽略）</div>
       </div>
       
       <div style="margin-bottom:16px">
@@ -3860,6 +4026,7 @@ function showUsageNoticeFromSplash() {
     </div>
     <div style="padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;">
       <button class="btn-primary" id="save-call-settings" style="width:100%;padding:12px;font-size:15px;">保存设置</button>
+      <button id="apply-call-settings-all" style="width:100%;padding:12px;border:1px solid var(--accent);border-radius:10px;background:transparent;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;">应用到全部联系人</button>
     </div>
   </div>
 </div>
@@ -4520,11 +4687,10 @@ function showUsageNoticeFromSplash() {
   </div>
   <div id="cards-scroll" style="flex:1;overflow-y:auto;padding:16px 14px">
 
-    <!-- Type Tabs: 公用 / 专享 / 个人 / 默认通用 -->
+    <!-- Type Tabs: 公用 / 专享（默认通用字卡已独立：更多功能 → 字卡库 → 默认通用字卡） -->
     <div class="card-type-tabs">
       <button class="card-type-tab sel" data-type="public">📖 公用字卡</button>
       <button class="card-type-tab" data-type="private">🔒 专享字卡</button>
-      <button class="card-type-tab" data-type="default_common">🌐 默认通用字卡</button>
     </div>
     
     <div id="default-common-settings" style="display:none;margin-bottom:14px;padding:14px;background:var(--c2);border-radius:12px;">

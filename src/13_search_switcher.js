@@ -228,6 +228,16 @@ async function loadCallSettings(){
   if(!saved&&window.localforage){
     saved=await window.localforage.getItem('ml2_call_settings');
   }
+  // ★ 修复：补充 localStorage（ml2_lf_）备份兜底，避免 IndexedDB 未就绪/读取失败时设置被默认值覆盖丢失
+  if(!saved&&typeof safeGetItem==='function'){
+    try{
+      var _lsBackup=safeGetItem('ml2_lf_ml2_call_settings');
+      if(_lsBackup){
+        var _parsed=JSON.parse(_lsBackup);
+        if(_parsed&&typeof _parsed==='object')saved=_parsed;
+      }
+    }catch(e){}
+  }
   if(saved&&typeof saved==='object'){
     callSettings=saved;
     memoryCache['ml2_call_settings']=callSettings;
@@ -253,13 +263,22 @@ function renderCallSettings(){
   var sel=$('call-contact-select');
   if(sel){
     sel.innerHTML='';
+    // ★ 修复：第一个选项固定为「全部联系人（全局默认）」，用于查看/保存全局概率
+    var allOpt=document.createElement('option');
+    allOpt.value='__all__';
+    allOpt.textContent='全部联系人（全局默认）';
+    sel.appendChild(allOpt);
     contacts.forEach(function(c){
       var opt=document.createElement('option');
       opt.value=c.id;
       opt.textContent=c.name;
       sel.appendChild(opt);
     });
-    if(!currentCallContactId&&contacts.length>0)currentCallContactId=contacts[0].id;
+    // ★ 修复：优先恢复上次操作的联系人，刷新后重新打开面板不会跳回第一个联系人（体感"概率丢失"）
+    var lastSel=null;
+    try{lastSel=ls('ml2_call_settings_sel');}catch(e){}
+    var lastValid=lastSel&&contacts.some(function(c){return c.id===lastSel});
+    currentCallContactId=(lastValid?lastSel:(contacts.length>0?contacts[0].id:'__all__'));
     sel.value=currentCallContactId;
   }
   
@@ -290,10 +309,15 @@ function syncCallUI(){
   if($('call-busy-val'))$('call-busy-val').value=settings.busyProbability;
   if($('call-reject-val'))$('call-reject-val').value=settings.rejectProbability;
   if($('call-hangup-val'))$('call-hangup-val').value=settings.hangupProbability;
+  // 「禁用全部联系人主动打电话」是全局开关，与选中哪个联系人无关
+  if($('call-disable-all-incoming'))$('call-disable-all-incoming').checked=callSettings.enabled===false;
 }
 
 function bindCallSteppers(){
   document.querySelectorAll('#ov-call-settings .stepper').forEach(function(s){
+    // ★ 修复：每次打开面板都会调用本函数，加标记避免重复绑定导致一次点击多次步进
+    if(s.dataset.callBound==='1')return;
+    s.dataset.callBound='1';
     var input=s.querySelector('input');
     var stp=parseFloat(input.getAttribute('step'))||1;
     function stepDown(e){if(e)e.preventDefault();var v=parseFloat(input.value)||0;var nv=Math.max(0,v-stp);input.value=(stp<1?nv.toFixed(2):nv);input.dispatchEvent(new Event('change'));}
@@ -304,6 +328,8 @@ function bindCallSteppers(){
 }
 
 async function saveCallSettings(){
+  // 全局开关：禁用全部联系人主动打电话
+  if($('call-disable-all-incoming'))callSettings.enabled=!$('call-disable-all-incoming').checked;
   var incomingVal=parseFloat($('call-incoming-val').value)||8;
   var pickupVal=parseFloat($('call-pickup-val').value)||70;
   var busyVal=parseFloat($('call-busy-val').value)||15;
@@ -311,15 +337,61 @@ async function saveCallSettings(){
   var hangupVal=parseFloat($('call-hangup-val').value)||0.01;
   
   if(!callSettings.contactSettings)callSettings.contactSettings={};
-  callSettings.contactSettings[currentCallContactId]={
-    incomingProbability:incomingVal,
-    pickupProbability:pickupVal,
-    busyProbability:busyVal,
-    rejectProbability:rejectVal,
-    hangupProbability:hangupVal
-  };
+  // ★ 修复：选中「全部联系人」时保存到全局默认字段（所有无独立覆盖的联系人生效），
+  // 之前只写当前联系人的覆盖值、从不更新全局默认，导致刷新后看起来"概率回默认"
+  if(currentCallContactId==='__all__'){
+    callSettings.incomingProbability=incomingVal;
+    callSettings.pickupProbability=pickupVal;
+    callSettings.busyProbability=busyVal;
+    callSettings.rejectProbability=rejectVal;
+    callSettings.hangupProbability=hangupVal;
+  }else{
+    callSettings.contactSettings[currentCallContactId]={
+      incomingProbability:incomingVal,
+      pickupProbability:pickupVal,
+      busyProbability:busyVal,
+      rejectProbability:rejectVal,
+      hangupProbability:hangupVal
+    };
+  }
+  // 记住上次操作的联系人，刷新后面板恢复显示，避免体感"设置回默认"
+  if(typeof ls==='function'){
+    try{ls('ml2_call_settings_sel',currentCallContactId);}catch(e){}
+  }
   
   ls('ml2_call_settings',callSettings);
+}
+
+function applyCallSettingsToAllContacts(){
+  if(!confirm('确定将当前设置应用到所有联系人吗？'))return;
+  if($('call-disable-all-incoming'))callSettings.enabled=!$('call-disable-all-incoming').checked;
+  var incomingVal=parseFloat($('call-incoming-val').value)||8;
+  var pickupVal=parseFloat($('call-pickup-val').value)||70;
+  var busyVal=parseFloat($('call-busy-val').value)||15;
+  var rejectVal=parseFloat($('call-reject-val').value)||15;
+  var hangupVal=parseFloat($('call-hangup-val').value)||0.01;
+  if(!callSettings.contactSettings)callSettings.contactSettings={};
+  contacts.forEach(function(c){
+    callSettings.contactSettings[c.id]={
+      enabled:callSettings.enabled,
+      incomingProbability:incomingVal,
+      pickupProbability:pickupVal,
+      busyProbability:busyVal,
+      rejectProbability:rejectVal,
+      hangupProbability:hangupVal
+    };
+  });
+  // 同步更新全局默认，保证新增联系人/无覆盖联系人一致
+  callSettings.incomingProbability=incomingVal;
+  callSettings.pickupProbability=pickupVal;
+  callSettings.busyProbability=busyVal;
+  callSettings.rejectProbability=rejectVal;
+  callSettings.hangupProbability=hangupVal;
+  ls('ml2_call_settings',callSettings);
+  if(typeof ls==='function'){
+    try{ls('ml2_call_settings_sel',currentCallContactId);}catch(e){}
+  }
+  toast('已应用到所有联系人');
 }
 
 async function loadCallHistory(){
@@ -791,6 +863,7 @@ document.addEventListener('visibilitychange',function(){
 
 function checkIncomingCall(){
   if(!hasEnteredApp)return;
+  if(callSettings.enabled===false)return; // 通话设置：禁用全部联系人主动打电话
   if(!cid)return;
   if(currentCall&&currentCall.contactId===cid)return;
   if(currentCall)return;
@@ -889,6 +962,7 @@ function checkIncomingCall(){
 }
 function checkIncomingCallForContact(contactId){
   if(!hasEnteredApp)return;
+  if(callSettings.enabled===false)return; // 通话设置：禁用全部联系人主动打电话
   if(!contactId)return;
   if(currentCall&&currentCall.contactId===contactId)return;
   if(currentCall)return;

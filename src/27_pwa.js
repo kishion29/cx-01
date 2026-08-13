@@ -13,7 +13,7 @@
     }
   }catch(e){}
   if(!('serviceWorker' in navigator))return;
-  var APP_VERSION='1.8';
+  var APP_VERSION='1.7.5';
   window.__APP_VERSION=APP_VERSION;
 
   function doRegister(){

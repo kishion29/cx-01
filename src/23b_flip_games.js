@@ -68,6 +68,237 @@ function flipInteract(group,prob){
     setTimeout(function(){try{host.removeChild(d);}catch(e){}},4200);
   }catch(e){}
 }
+// ★ 触发概率（已降低，避免"翻一张牌必说一句"）：普通翻牌 20% / 特殊牌 35% / 配对成功 45%（不再必说）
+var FLIP_RARITY_PROB={normal:0.2,special:0.35,rare:0.6};
+// ★ 牌面 → 互动标签 + 稀有度（翻牌只负责产生触发条件，联系人台词一律从字卡库筛选，禁止在此写死）
+var FLIP_FACE_TAGS={
+  '⭐':{tags:['星星','夜晚','希望','闪耀'],rarity:'normal'},
+  '🌙':{tags:['夜晚','陪伴','想念','安静'],rarity:'special'},
+  '☁️':{tags:['天气','安静','日常'],rarity:'normal'},
+  '💌':{tags:['心意','表达','想你'],rarity:'special'},
+  '🌸':{tags:['春天','美好','日常'],rarity:'normal'},
+  '🎁':{tags:['礼物','惊喜','心意'],rarity:'special'},
+  '📖':{tags:['阅读','安静','陪伴'],rarity:'normal'},
+  '🎵':{tags:['音乐','分享','心情'],rarity:'special'},
+  '💡':{tags:['灵感','想法','分享'],rarity:'normal'},
+  '🖥️':{tags:['工作','日常','陪伴'],rarity:'normal'},
+  '🍿':{tags:['电影','娱乐','一起'],rarity:'normal'},
+  '🎧':{tags:['音乐','心情','陪伴'],rarity:'special'},
+  '🎬':{tags:['电影','娱乐','一起'],rarity:'special'},
+  '☕':{tags:['咖啡','日常','陪伴'],rarity:'normal'}
+};
+function flipFaceInfo(face){
+  var info=FLIP_FACE_TAGS[face];
+  if(!info)info={tags:['日常','陪伴'],rarity:'normal'}; // 自定义牌面兜底
+  if(!Array.isArray(info.tags))info.tags=[];
+  return info;
+}
+// 标签 → 关键词（用于匹配字卡内容 / 分组名）
+function flipTagKeywords(tags){
+  var kwMap={
+    '星星':['星','亮'],'夜晚':['夜','晚','睡','梦','晚安','月亮','星星','暗'],
+    '希望':['希望','想','愿','加油','期待'],'闪耀':['亮','光','闪'],
+    '陪伴':['陪','一起','在','身边','伴','待'],'想念':['想','念','思','挂','梦'],
+    '安静':['安静','静','悄悄','听','休息','歇'],'天气':['天气','雨','晴','风','云','雪'],
+    '日常':['今天','吃饭','吃','喝','睡','上班','下班','日常','忙'],
+    '心意':['心意','喜欢','爱你','想你','在乎','珍惜','心'],'表达':['告诉','说','表达','想让你','分享','聊聊'],
+    '想你':['想','念','思念'],'春天':['春','花','开','暖'],
+    '美好':['好','美','开心','幸福'],'礼物':['礼物','送','给','惊喜','包'],
+    '惊喜':['惊喜','意外','突然','等'],'阅读':['书','读','看','页','写'],
+    '音乐':['歌','音乐','听','旋律','唱'],'分享':['分享','告诉','给你','一起','聊'],
+    '心情':['心情','开心','难过','累','好'],'灵感':['想法','灵感','点子','忽然'],
+    '想法':['想','觉得','认为','想法'],'工作':['工作','忙','班','任务','做'],
+    '电影':['电影','片','影','看'],'娱乐':['玩','游戏','乐','笑'],
+    '一起':['一起','我们','共同','同'],'咖啡':['咖啡','喝','杯'],
+    '靠近':['靠近','过来','身边','近','贴']
+  };
+  var out=[];
+  (tags||[]).forEach(function(t){
+    var kws=kwMap[t]||[];
+    kws.forEach(function(k){if(out.indexOf(k)<0)out.push(k);});
+    if(out.indexOf(t)<0)out.push(t);
+  });
+  if(!out.length)out=['陪','想','喜欢'];
+  return out;
+}
+// 查分组名（globalCards 的分组 / 默认通用字卡分组）
+function flipGroupName(gid){
+  if(!gid)return '';
+  try{
+    if(typeof cardGroups!=='undefined'&&Array.isArray(cardGroups)){
+      var g=cardGroups.find(function(x){return x&&x.id===gid;});
+      if(g&&g.name)return g.name;
+    }
+  }catch(e){}
+  try{
+    if(typeof DEFAULT_COMMON_GROUPS!=='undefined'&&Array.isArray(DEFAULT_COMMON_GROUPS)){
+      var g2=DEFAULT_COMMON_GROUPS.find(function(x){return x&&x.id===gid;});
+      if(g2&&g2.name)return g2.name;
+    }
+  }catch(e){}
+  return '';
+}
+// 当前联系人的可用字卡池：用户自己的（公用 + 专享绑定）+ 默认通用字卡
+function flipContactCardPool(){
+  var pool=[];
+  var targetId=cid;
+  try{
+    if(typeof globalCards!=='undefined'&&Array.isArray(globalCards)){
+      globalCards.forEach(function(card){
+        if(!card||!card.content)return;
+        if(card.category==='touch')return;
+        var text=String(card.content);
+        if(card.category!=='stickers'&&card.category!=='voices'&&!text.trim())return;
+        if(card.type==='private'){
+          var ok=card.contactId===targetId;
+          if(!ok&&typeof cardPrivateContacts!=='undefined'&&Array.isArray(cardPrivateContacts)){
+            var pc=cardPrivateContacts.find(function(p){return p.id===card.contactId&&p.bindContactId===targetId;});
+            if(pc)ok=true;
+          }
+          if(!ok)return;
+        }
+        pool.push({text:text,cat:card.category||'custom',gid:card.groupId||null});
+      });
+    }
+  }catch(e){}
+  try{
+    if(typeof getDefaultCommonCardsForContact==='function'){
+      var dc=getDefaultCommonCardsForContact(targetId);
+      if(dc&&dc.length)dc.forEach(function(t){pool.push({text:String(t),cat:'custom',gid:null});});
+    }
+  }catch(e){}
+  return pool;
+}
+function flipCardMatchesTags(card,tags){
+  if(!tags||!tags.length)return true;
+  var kws=flipTagKeywords(tags);
+  var text=String(card&&card.text||'');
+  var gname=flipGroupName(card&&card.gid);
+  for(var i=0;i<kws.length;i++){
+    var k=kws[i];
+    if(k&&text.indexOf(k)>=0)return true;
+    if(k&&gname&&gname.indexOf(k)>=0)return true;
+  }
+  return false;
+}
+// ★ 从联系人字卡库筛选随机抽一张（优先符合标签的；无匹配则从全部字卡随机，保证"TA突然回应你"；避免最近抽过的立即重复）
+function flipPickContactCard(tags){
+  try{
+    var pool=flipContactCardPool();
+    if(!pool.length)return null;
+    var matched=pool.filter(function(c){return flipCardMatchesTags(c,tags);});
+    var source=matched.length?matched:pool;
+    var recent=window._flipRecentCards||[];
+    var candidates=source.filter(function(c){return recent.indexOf(c.text)<0;});
+    if(!candidates.length)candidates=source;
+    var pick=candidates[Math.floor(Math.random()*candidates.length)];
+    if(!pick)return null;
+    if(!window._flipRecentCards)window._flipRecentCards=[];
+    window._flipRecentCards.push(pick.text);
+    if(window._flipRecentCards.length>8)window._flipRecentCards.shift();
+    return pick.text;
+  }catch(e){return null;}
+}
+// 两次翻牌标签交集（同一互动主题）
+function flipSharedTag(a,b){
+  for(var i=0;i<(a||[]).length;i++){
+    for(var j=0;j<(b||[]).length;j++){
+      if(a[i]===b[j])return a[i];
+    }
+  }
+  return null;
+}
+// 记录本次翻牌（连续互动判断 + 历史）
+function flipRecordFlip(face,tags){
+  window._flipLastFace=face;
+  window._flipLastTags=tags||[];
+  try{
+    var d=flipLoad();
+    if(!Array.isArray(d.records))d.records=[];
+    d.records.push({face:face,tags:(tags||[]).slice(),cid:cid,ts:Date.now()});
+    if(d.records.length>30)d.records=d.records.slice(-30);
+    flipSave(d);
+  }catch(e){}
+}
+// ★ 把字卡内容作为 TA 的【正常聊天消息】发送到聊天记录（模拟 TA 突然找你说句话）
+function flipSendChatCard(txt,contact){
+  try{
+    var targetId=cid;
+    if(!targetId)return;
+    if(typeof msgs!=='function'||typeof savemsgs!=='function')return;
+    var m=msgs(targetId);
+    if(!Array.isArray(m))m=[];
+    var msg={id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),s:OTHER,t:txt,img:'',voice:'',voiceText:'',ts:new Date(),pc:false,isAuto:true,isInitiative:false,quote:null,isSticker:false,isVoice:false,senderName:contact.name,senderId:targetId,isGroup:false,read:(targetId===cid)};
+    m.push(msg);
+    savemsgs(targetId,m);
+    if(targetId===window.currentCid&&typeof renderMsgs==='function')renderMsgs(m);
+    if(typeof renderChatList==='function')renderChatList();
+    if(typeof playSound==='function')playSound('recv',targetId);
+  }catch(e){}
+}
+// ★★ 牌面触发层（统一入口）：翻牌 → 牌面 → 标签 → 概率 → 随机触发【固定字卡】或【发送正常聊天字卡】→ 记录
+// opts: {match:配对成功(概率45%), ta:TA翻牌(概率再降), group:固定字卡组(success/fail/ta_turn等), force:忽略防烦}
+// 固定字卡 = 游戏内预置互动词（如「找到了」「差一点」）；正常聊天字卡 = 从联系人字卡库筛选随机抽，作为 TA 的聊天消息发送
+function flipFaceTrigger(face,opts){
+  try{
+    opts=opts||{};
+    var info=flipFaceInfo(face);
+    var tags=info.tags;
+    var prob=FLIP_RARITY_PROB[info.rarity]!=null?FLIP_RARITY_PROB[info.rarity]:0.2;
+    if(opts.match)prob=0.45;       // 配对成功：45%（不再必说，避免频率过高）
+    if(opts.ta)prob=prob*0.4;      // TA 翻牌：概率再降
+    // 连续翻牌互动：与上一次翻牌属于同一互动主题 → 概率 +20%（上限 100%）
+    var cont=false,contTag='';
+    if(window._flipLastFace&&window._flipLastFace!==face){
+      contTag=flipSharedTag(tags,window._flipLastTags);
+      if(contTag)cont=true;
+    }
+    if(cont)prob=Math.min(1,prob+0.2);
+    if(Math.random()>prob)return;
+    // 防烦：10 秒内只响应一次
+    if(!opts.force){
+      var now=Date.now();
+      if(window._flipFaceDkTs&&now-window._flipFaceDkTs<10000)return;
+      window._flipFaceDkTs=now;
+    }
+    var contact=contacts.find(function(c){return c.id===cid})||{name:'TA'};
+    // ★ 来源随机：有固定字卡组时，50% 触发固定字卡；否则/剩余 50% 走联系人聊天字卡（发送到聊天记录）
+    var useFixed=opts.group&&Math.random()<0.5;
+    var txt=null,fixed=false;
+    if(useFixed){
+      txt=flipPickCard(opts.group); // 固定互动词（游戏氛围，非写死联系人台词）
+      fixed=true;
+    }else{
+      txt=flipPickContactCard(tags); // 联系人字卡库按标签随机抽
+    }
+    // ★ 修复：等 renderFlipBoard 重建完棋盘 DOM 后再挂弹幕（否则会被 body.innerHTML 重建立即清掉）
+    setTimeout(function(){
+      var host=$('flip-danmaku-layer');
+      if(!host)return;
+      var d=document.createElement('div');
+      if(txt==null){
+        // 联系人没有字卡：显示系统提示（非联系人台词），避免"翻了没反应"
+        d.className='flip-dk-tip';
+        d.innerHTML='💭 给 TA 添加几句字卡，TA 翻牌时会在这里回应你';
+      }else{
+        d.className='flip-dk-card';
+        var head='';
+        if(cont&&window._flipLastFace&&contTag){
+          // 连续互动引导语（系统提示，非联系人台词）：
+          head='<div style="font-size:10px;color:#9aa3c0;margin-bottom:3px;white-space:nowrap;">'+String(window._flipLastFace).replace(/</g,'&lt;')+' → '+String(face).replace(/</g,'&lt;')+' · 同一片'+contTag+'</div>';
+        }
+        d.innerHTML=head
+          +'<span class="flip-dk-role">'+String(contact.name).replace(/</g,'&lt;')+'</span>'
+          +'<span class="flip-dk-text">'+String(txt).replace(/</g,'&lt;')+'</span>';
+      }
+      host.appendChild(d);
+      setTimeout(function(){try{host.removeChild(d);}catch(e){}},4200);
+    },0);
+    // 正常聊天字卡：作为 TA 的聊天消息发送到聊天记录（像 TA 突然回应你）
+    if(!fixed&&txt!=null)flipSendChatCard(txt,contact);
+    flipRecordFlip(face,tags);
+  }catch(e){}
+}
 function flipBack(){
   showPg(window._flipReturnPage||'pg-more');
 }
@@ -127,16 +358,29 @@ function flipSetMode(m){flipState.mode=m;var a=$('flip-mode-coop'),b=$('flip-mod
 function flipSetLevel(l){flipState.level=l;['easy','normal','hard'].forEach(function(k){var el=$('flip-level-'+k);if(el)el.style.borderColor=k===l?'var(--accent)':'transparent';});}
 function flipSetTheme(t){flipState.theme=t;var keys=['star','accompany','custom'];keys.forEach(function(k){var el=$('flip-theme-'+k);if(el)el.style.borderColor=k===t?'var(--accent)':'transparent';});}
 function flipEmojiPool(){
+  // ★ 修复：跨主题合并 + 去重，保证每个图案只出现一次。
+  // 之前只取当前主题的 emoji，图案不足时循环复用同一 emoji，导致"两张一样的牌却不配对"（match 编号不同）。
+  var d=flipLoad();
+  var pool=[];
+  if(d.custom&&d.custom.length)pool=pool.concat(d.custom);
+  if(d.images&&d.images.length)pool=pool.concat(d.images);
   if(flipState.theme==='custom'){
-    var d=flipLoad();
-    var pool=[];
-    if(d.custom&&d.custom.length)pool=pool.concat(d.custom);
-    if(d.images&&d.images.length)pool=pool.concat(d.images);
-    if(pool.length)return pool;
+    // 自定义主题：自定义图案优先，星言/陪伴主题补足
+    pool=pool.concat(FLIP_THEMES.star.emojis).concat(FLIP_THEMES.accompany.emojis);
   }else if(flipState.theme&&FLIP_THEMES[flipState.theme]){
-    return FLIP_THEMES[flipState.theme].emojis.slice();
+    // 所选主题优先，另一主题 + 自定义补足（保证困难模式 15 对也有足够唯一图案）
+    var other=flipState.theme==='star'?FLIP_THEMES.accompany:FLIP_THEMES.star;
+    pool=pool.concat(FLIP_THEMES[flipState.theme].emojis).concat(other.emojis);
+  }else{
+    pool=pool.concat(FLIP_THEMES.star.emojis).concat(FLIP_THEMES.accompany.emojis);
   }
-  return FLIP_THEMES.star.emojis.slice();
+  // 去重（保留首次出现顺序）
+  var seen={},uniq=[];
+  pool.forEach(function(e){
+    if(e==null)return;
+    if(!seen[e]){seen[e]=1;uniq.push(e);}
+  });
+  return uniq;
 }
 function flipStartGame(){
   var dims={easy:[3,4],normal:[4,4],hard:[5,6]}[flipState.level]||[4,4];
@@ -145,12 +389,12 @@ function flipStartGame(){
   var pool=flipEmojiPool();
   // ★ 兜底：任何主题无卡片时自动用星言主题，保证一定能玩
   if(!pool||!pool.length)pool=FLIP_THEMES.star.emojis.slice();
-  // ★ 选 pairCount 个图案：图案不足时循环复用（配对按编号，不按图案，不影响玩法）
+  // ★ 选 pairCount 个图案：图案不重复（跨主题池已保证 star+accompany+custom ≥ 16，困难 15 对足够）
   var picked=[];
   var tmp=pool.slice();
   for(var i=0;i<pairCount;i++){
     if(tmp.length){var idx=Math.floor(Math.random()*tmp.length);picked.push(tmp.splice(idx,1)[0]);}
-    else{picked.push(pool[i%pool.length]);}
+    else{picked.push('🎴'+(i+1));} // 极端兜底：仍保证图案唯一，绝不循环复用
   }
   var cards=[];
   picked.forEach(function(em,ei){
@@ -211,7 +455,8 @@ function flipCardClick(idx){
   if(g.open1&&g.open2)return;
   card.flipped=true;
   g.taMemory[idx]=card.match;
-  flipInteract('your_turn',0.2);
+  // ★ 翻牌 → 牌面 → 标签 → 联系人字卡库对话（仅第一张触发；第二张由 flipJudge 统一判定处理，避免刷屏）
+  if(!g.open1)flipFaceTrigger(card.emoji,{});
   if(!g.open1){g.open1=card;g.open1Idx=idx;}
   else if(!g.open2){g.open2=card;g.open2Idx=idx;g.lock=true;}
   renderFlipBoard();
@@ -230,7 +475,8 @@ function flipJudge(who){
     g.taMemory[g.cards.indexOf(c2)]=c2.match;
     var tip=who==='me'?'找到了！':'找到了。';
     flipStatus('✨ '+tip);
-    flipInteract(who==='me'?'success':'ta_success',0.6);
+    // ★ 配对成功 → 随机触发【固定字卡】或【发送正常聊天字卡】（按牌面标签筛选，TA 从自己的字卡库回应你）
+    flipFaceTrigger((c1&&c1.emoji)||'',{match:true,group:who==='me'?'success':'ta_success'});
     // ★ 连续配对（任一方连对 ≥2）
     if((who==='me'&&g.myCombo>=2)||(who==='ta'&&g.taCombo>=2))flipInteract('combo',0.45);
     // ★ 领先/落后（vs 模式比分差 ≥1）
@@ -249,13 +495,13 @@ function flipJudge(who){
     if(who==='me'){
       g.myCombo=0;
       flipStatus('没关系，再试试。');
-      flipInteract('fail',0.4);
+      flipFaceTrigger(((c2&&c2.emoji)||(c1&&c1.emoji)||''),{group:'fail'});
       g.turn='ta';
       renderFlipBoard();
     }else{
       g.taCombo=0;
       flipStatus('差一点。');
-      flipInteract('ta_fail',0.4);
+      flipFaceTrigger(((c2&&c2.emoji)||(c1&&c1.emoji)||''),{ta:true,group:'ta_fail'});
       g.turn='me';
       renderFlipBoard();
     }
@@ -296,6 +542,8 @@ function flipTaTurn(){
   g.taMemory[a]=g.cards[a].match;
   g.taMemory[b]=g.cards[b].match;
   g.open1=g.cards[a];g.open2=g.cards[b];
+  // ★ TA 翻牌 → 也走牌面触发层（随机触发固定字卡 或 从 TA 自己的字卡库回应，概率再降）
+  flipFaceTrigger(g.cards[a].emoji,{ta:true,group:'ta_turn'});
   renderFlipBoard();
   setTimeout(function(){flipJudge('ta');},800);
 }
@@ -353,7 +601,7 @@ function renderFlipCards(){
   var box=$('flip-cards-body');if(!box)return;
   var d=flipLoad();
   var html='';
-  html+='<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;">游戏过程中 TA 会随机说这些字卡的话（未添加则用默认）</div>';
+  html+='<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;line-height:1.7;">翻牌时 TA 的对话来自【当前联系人的字卡库】按牌面标签筛选随机调用（公用 + 专享 + 默认通用字卡），不在翻牌里写死。下方字卡是游戏流程旁白（开始 / 找到 / 失败等），只在 TA 没有可用字卡时兜底。</div>';
   FLIP_CARD_GROUPS.forEach(function(g){
     html+='<div style="font-size:13px;font-weight:600;color:var(--txt);margin:14px 0 8px;">'+g[1]+'</div>';
     var arr=d.cards[g[0]];
@@ -992,11 +1240,17 @@ var JourneyEventManager={
 
 // ==================== 事件类型体系 ====================
 // scene 共同经历 / observe 观察（不是选择，直接经历+回应）/ dialogue 对话 / action 互动动作 / companion 梦角主动 / story 连续剧情
+// ambient 环境 / multi 多人互动 / banter 梦角插曲 / minigame 小游戏 / hidden 稀有
 function journeyEventType(ev){
   if(!ev)return 'scene';
   if(ev.type)return ev.type;
   if(ev._pool==='companion')return 'companion';
   if(ev._pool==='story')return 'story';
+  if(ev._pool==='hidden')return 'hidden';
+  if(ev._pool==='minigame'||ev.game)return 'minigame';
+  if(ev._pool==='ambient')return 'ambient';
+  if(ev._pool==='multi')return 'multi';
+  if(ev._pool==='banter')return 'banter';
   if(ev._pool==='interact')return (ev.title&&ev.title.indexOf('聊天')===0)?'dialogue':'action';
   if(ev._pool==='random'){
     var obs=['遇到小猫','雨后的彩虹','流星划过','突然下雨','街角的面包香'];
@@ -1127,7 +1381,7 @@ function journeyStart(){
   journeyState={
     phase:'idle',theme:theme,weather:w,map:map,members:members,pos:pos,
     day:1,maxDays:5,roundIdx:0,
-    stars:0,records:[],souvenirs:[],memories:[],photos:[],visited:[],startedAt:Date.now(),finished:false,
+    stars:0,records:[],souvenirs:[],memories:[],rareMemories:[],miniRecords:[],photos:[],visited:[],startedAt:Date.now(),finished:false,
     story:null,weatherChanged:false
   };
   journeyRecord('旅途开始于「'+theme.name+'」，天气 '+w.icon+' '+w.name+'。');
@@ -1146,7 +1400,7 @@ function journeyVisit(locName){
   if(journeyState.visited.indexOf(locName)<0)journeyState.visited.push(locName);
 }
 
-// ==================== 事件抽取（梦角主动 / 连续剧情 / 常规事件）====================
+// ==================== 事件抽取（稀有/环境/多人/小游戏/梦角主动/连锁/常规）====================
 function journeyPickEvent(cell){
   var st=journeyState;
   // 1) 进行中的连续剧情：优先推进下一阶段
@@ -1156,23 +1410,55 @@ function journeyPickEvent(cell){
       return journeyStoryEvent(chain,st.story.step);
     }
   }
-  // 2) 随机触发梦角主动事件（概率 25%，由当前回合的梦角主动叫住你）
-  if(cell.type!=='interact'&&Math.random()<0.25){
+  var nCompanion=st.members.length-1;   // 梦角人数（不含玩家）
+  // 2) 稀有隐藏事件（低概率 8%，条件匹配优先）
+  if(Math.random()<0.08){
+    var hpool=JOURNEY_HIDDEN;
+    var hmatched=hpool.filter(function(e){return e.condition===st.weather.name;});
+    var he=(hmatched.length&&Math.random()<0.6)?hmatched[Math.floor(Math.random()*hmatched.length)]:hpool[Math.floor(Math.random()*hpool.length)];
+    return journeyCopyEvent(he,'hidden');
+  }
+  // 3) 环境事件（无选择，直接经历 15%）
+  if(Math.random()<0.15){
+    var apool=JOURNEY_AMBIENT;
+    var amatched=apool.filter(function(e){return e.condition===st.weather.name;});
+    var ae=(amatched.length&&Math.random()<0.6)?amatched[Math.floor(Math.random()*amatched.length)]:apool[Math.floor(Math.random()*apool.length)];
+    return journeyCopyEvent(ae,'ambient');
+  }
+  // 4) 多人互动（≥2 名梦角同行时 15%）
+  if(nCompanion>=2&&Math.random()<0.15){
+    var mp=JOURNEY_MULTI[Math.floor(Math.random()*JOURNEY_MULTI.length)];
+    return journeyCopyEvent(mp,'multi');
+  }
+  // 5) 小游戏（12%，条件匹配优先）
+  if(Math.random()<0.12){
+    var gpool=JOURNEY_MINIGAME;
+    var gmatched=gpool.filter(function(e){return e.condition===st.weather.name;});
+    var ge=(gmatched.length&&Math.random()<0.6)?gmatched[Math.floor(Math.random()*gmatched.length)]:gpool[Math.floor(Math.random()*gpool.length)];
+    return journeyCopyEvent(ge,'minigame');
+  }
+  // 6) 梦角主动事件（20%，由当前回合的梦角主动叫住你）
+  if(cell.type!=='interact'&&Math.random()<0.2){
     var ce=JOURNEY_COMPANION_EVENTS[Math.floor(Math.random()*JOURNEY_COMPANION_EVENTS.length)];
     // condition 匹配当前天气时优先
     var matched=JOURNEY_COMPANION_EVENTS.filter(function(e){return e.condition===st.weather.name;});
     if(matched.length)ce=matched[Math.floor(Math.random()*matched.length)];
     return journeyCopyEvent(ce,'companion');
   }
-  // 3) 常规事件：随机开启新剧情链（概率 20%）
-  if(st.story===null&&Math.random()<0.2){
+  // 7) 梦角间小插曲（≥2 名梦角时 6%）
+  if(nCompanion>=2&&Math.random()<0.06){
+    var bp=JOURNEY_BANTER[Math.floor(Math.random()*JOURNEY_BANTER.length)];
+    return journeyCopyEvent(bp,'banter');
+  }
+  // 8) 常规事件：随机开启新剧情链（概率 15%）
+  if(st.story===null&&Math.random()<0.15){
     var keys=Object.keys(JOURNEY_STORIES);
     var key=keys[Math.floor(Math.random()*keys.length)];
     var chain=JOURNEY_STORIES[key];
     st.story={key:chain.key,name:chain.name,step:0,total:chain.stages.length};
     return journeyStoryEvent(chain,0);
   }
-  // 4) 地点 / 互动 / 随机事件
+  // 9) 地点 / 互动 / 随机事件
   var ev=null;
   if(cell.type==='place')ev=JourneyEventManager.forLocation(cell.key,st.weather.name);
   else if(cell.type==='interact')ev=JourneyEventManager.forInteract();
@@ -1274,7 +1560,18 @@ function journeyMove(dice){
   var title='';
   if(ev._story)title=journeyStoryTitle(ev);
   else if(ev._pool==='companion')title=journeyEventType(ev)==='companion'?'💬 '+window._journeyHero+' 叫住了你':'💬 '+window._journeyHero+' 的发现';
+  else if(ev._pool==='multi')title='👥 '+ev.title;
+  else if(ev._pool==='banter')title='💬 '+ev.title;
   else title=ev.title||'旅行事件';
+  if(journeyIsRare(ev)&&title.indexOf('✨')<0)title='✨ '+title;
+  // 环境事件：无选择，CTA 直接"继续"
+  if(journeyEventType(ev)==='ambient'){
+    journeyShowEvent(cell.label+' · 旅行事件',
+      journeyEventCardHtml(ev,window._journeyHero,title),
+      '<button class="btn jrn-choice" onclick="journeyAmbientConfirm()" style="background:var(--accent);">继续</button>',
+      'me');
+    return;
+  }
   journeyShowEvent(cell.label+' · 旅行事件',
     journeyEventCardHtml(ev,window._journeyHero,title),
     journeyInteractionButtons(ev,'me'),
@@ -1286,6 +1583,23 @@ function journeyPick(interactionName){
   if(st.phase!=='event')return;                    // 仅事件卡等待互动时有效
   var ev=window._journeyEvent;
   if(!ev)return;
+  // 小游戏事件：走真实小游戏分派（有动画/判定），完成后展示结果卡
+  if(journeyEventType(ev)==='minigame'){
+    journeyMiniPlay(ev,interactionName,st,function(out,extra){
+      if(out.stars)st.stars+=out.stars;
+      if(out.souvenir)st.souvenirs.push(out.souvenir);
+      if(out.memory){
+        if(extra&&extra.rare)st.rareMemories.push(out.memory);
+        else st.memories.push(out.memory);
+      }
+      if(extra&&extra.record)journeyRecord(extra.record);
+      if(extra&&extra.photo)journeyPhoto(extra.photo.loc,extra.photo.caption);
+      window._journeyEvent=null;
+      window._journeyCell=null;
+      journeyShowResult(journeyMiniResultHtml(ev,out,extra),'me');
+    });
+    return;
+  }
   var out=JourneyEventManager.resolve(ev,interactionName);
   var cname=window._journeyHero||'TA';
   if(out.stars)st.stars+=out.stars;
@@ -1295,18 +1609,50 @@ function journeyPick(interactionName){
   var pAction=it&&it.playerAction?JourneyEventManager.render(it.playerAction,cname):'你'+interactionName;
   var result=JourneyEventManager.render(out.result||'',cname);
   var memory=JourneyEventManager.render(out.memory||'',cname);
-  if(memory)st.memories.push(memory);
+  if(memory){
+    if(journeyIsRare(ev))st.rareMemories.push(memory);
+    else st.memories.push(memory);
+  }
   // 互动动作事件：拍照 → 生成旅行照片（不是奖励，是一段记录）
   var photo=null;
   if(interactionName.indexOf('拍')>=0)photo=journeyPhoto(st.map[st.pos[st.members[0].id]]&&st.map[st.pos[st.members[0].id]].label,ev.title+'的一刻');
   // 连续剧情：推进阶段
   if(ev._story)journeyStoryAdvance(ev);
   journeyRecord('你'+interactionName+'：'+pAction+'，'+result+(photo?' 📷 收进旅行照片':(out.souvenir?' 🎁 '+out.souvenir:''))+(out.stars?' ⭐ +'+out.stars:''));
+  // 多阶段事件：第一阶段结束后进入第二阶段事件卡（事件不一次结束）
+  var ph2=journeyStageNext(ev);
+  if(ph2&&ph2.interactions){
+    var p2=journeyCopyEvent(ph2,'phases');
+    p2.title=ev.title+' · '+journeyStageInfo(ph2,2,2);
+    window._journeyEvent=p2;
+    journeyShowEvent(ev.title+' · '+journeyStageInfo(ph2,2,2),
+      journeyEventCardHtml(p2,cname,p2.title),
+      journeyInteractionButtons(p2,'me'),
+      'me',journeyStageInfo(ph2,2,2));
+    return;
+  }
   window._journeyEvent=null;
   window._journeyCell=null;
   // 阶段二结果卡：玩家动作 → 结果 → 梦角回应 → 事件记忆（+ 旅行照片 / 剧情进度）
   journeyShowResult(journeyResultHtml(pAction,result,out,cname,ev),
     'me');
+}
+// 环境事件：无选择，直接记录氛围 + 今日回忆后继续
+function journeyAmbientConfirm(){
+  var st=journeyState;if(!st||st.finished)return;
+  if(st.phase!=='event')return;
+  var ev=window._journeyEvent;
+  var cname=window._journeyHero||'TA';
+  if(ev){
+    journeyAmbientLog(ev);
+    if(ev.memory)st.memories.push(JourneyEventManager.render(ev.memory,cname));
+    if(ev.stars)st.stars+=ev.stars;
+    if(ev.souvenir)st.souvenirs.push(ev.souvenir);
+    journeyRecord('你们经历了一段环境小事：'+ev.title+(ev.stars?' ⭐ +'+ev.stars:''));
+  }
+  window._journeyEvent=null;
+  window._journeyCell=null;
+  journeyShowResult(journeyResultHtml('你们安静地走过了这一段',ev&&ev.memory?JourneyEventManager.render(ev.memory,cname):'这段路被记进了手账',{},cname,ev),'me');
 }
 // ==================== 事件卡构建（类型标签 / 标题 / 互动区文案）====================
 var JOURNEY_TYPE_META={
@@ -1315,28 +1661,88 @@ var JOURNEY_TYPE_META={
   action:{label:'互动',icon:'🤝'},
   companion:{label:'梦角主动',icon:'💫'},
   story:{label:'连续剧情',icon:'📖'},
-  scene:{label:'经历',icon:'✨'}
+  scene:{label:'经历',icon:'✨'},
+  ambient:{label:'环境',icon:'🌿'},
+  multi:{label:'多人同行',icon:'👥'},
+  banter:{label:'梦角之间',icon:'💬'},
+  minigame:{label:'小游戏',icon:'🎮'},
+  hidden:{label:'稀有事件',icon:'🌟'}
 };
 function journeyTypeMeta(ev){
   var t=journeyEventType(ev);
   return JOURNEY_TYPE_META[t]||JOURNEY_TYPE_META.scene;
 }
+// 稀有事件标记（金色展示）
+function journeyIsRare(ev){
+  return !!ev&&(ev._pool==='hidden'||ev.rare);
+}
 function journeyStoryTitle(ev){
   if(!ev._story)return ev.title||'旅行事件';
   return ev._story.name+' · 第 '+ev._story.step+'/'+ev._story.total+' 段';
 }
+// 氛围记录：环境事件写入手账"旅途氛围"区
+function journeyAmbientLog(ev){
+  if(!ev||!ev.title)return;
+  journeyState.ambientRecords=journeyState.ambientRecords||[];
+  var line=ev.title+(ev.memory?' · '+ev.memory:'');
+  if(journeyState.ambientRecords.indexOf(line)<0)journeyState.ambientRecords.push(line);
+}
+// 多阶段事件：第一阶段结束 → 返回第二阶段事件对象（phases[1]），否则 null
+function journeyStageNext(ev){
+  if(ev&&ev.phases&&ev.phases.length>1)return ev.phases[1];
+  return null;
+}
+function journeyStageInfo(ev,cur,total){
+  return '第 '+cur+' / '+total+' 段';
+}
+// 多人互动 / 梦角插曲：按同行梦角顺序替换 {m0}/{m1} 并渲染对话气泡
+function journeyMultiNames(ev){
+  var st=journeyState;
+  var names=(st.members||[]).filter(function(m){return m.id!=='me';}).map(function(m){return m.name;});
+  return {m0:names[0]||'TA',m1:names[1]||names[0]||'TA'};
+}
+function journeyRenderMulti(text,ev){
+  var ns=journeyMultiNames(ev);
+  return String(text==null?'':text)
+    .replace(/\{m0\}/g,ns.m0).replace(/\{m1\}/g,ns.m1)
+    .replace(/\{name\}/g,ns.m0);
+}
 // 事件卡正文：类型标签 + 标题 + 场景 → 梦角动作 → 梦角台词 → 玩家互动
+// 多人/插曲：先渲染成员对话气泡（m0 → m1 → 共景）
 function journeyEventCardHtml(ev,cname,title){
   var meta=journeyTypeMeta(ev);
   var html='';
   html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-  html+='<span class="jrn-ev-tag">'+meta.icon+' '+meta.label+'</span>';
+  html+='<span class="jrn-ev-tag'+(journeyIsRare(ev)?' rare':'')+'">'+meta.icon+' '+meta.label+'</span>';
   html+='<span style="font-size:14px;font-weight:700;color:#5a4a3a;">'+journeyEsc(title||ev.title||'旅行事件')+'</span>';
   html+='</div>';
-  html+=journeyEventSceneHtml(ev,cname);
-  // 玩家互动区文案（选择只是互动入口）
-  var itLabel=journeyEventType(ev)==='observe'?'你可以回应：':journeyEventType(ev)==='dialogue'?'想聊些什么？':journeyEventType(ev)==='action'?'你可以：':'你可以：';
-  html+='<div class="jrn-ev-interact">'+itLabel+'</div>';
+  if(journeyIsRare(ev))html+='<div class="jrn-ev-rare">✨ 很少遇到的一刻</div>';
+  if(ev._pool==='multi'||ev._pool==='banter'){
+    html+=journeyMultiBubblesHtml(ev);
+    // 多人事件的共同动作/台词走共景渲染
+    var act=journeyRenderMulti(ev.companionAction||'',ev);
+    var line=journeyRenderMulti(ev.companionLine||'',ev);
+    html+='<div class="jrn-ev-action">'+journeyEsc(act)+'</div>';
+    if(line)html+='<div class="jrn-ev-line"><span class="jrn-who">🤝</span><span class="jrn-quote">'+journeyEsc(line)+'</span></div>';
+  }else{
+    html+=journeyEventSceneHtml(ev,cname);
+  }
+  // 玩家互动区文案（选择只是互动入口；环境事件无选择）
+  var t=journeyEventType(ev);
+  var itLabel=t==='observe'?'你可以回应：':t==='dialogue'?'想聊些什么？':t==='action'?'你可以：':t==='multi'?'你会怎么做？':t==='banter'?'你会怎么做？':t==='ambient'?'':'你可以：';
+  if(itLabel)html+='<div class="jrn-ev-interact">'+itLabel+'</div>';
+  return html;
+}
+// 多人对话气泡（m0 → m1）
+function journeyMultiBubblesHtml(ev){
+  var html='';
+  (ev.members||[]).forEach(function(mm,idx){
+    var name=(idx===0)?journeyMultiNames(ev).m0:journeyMultiNames(ev).m1;
+    var act=journeyRenderMulti(mm.action,ev);
+    var line=journeyRenderMulti(mm.line,ev);
+    html+='<div class="jrn-ev-action" style="margin-top:8px;">'+journeyEsc(act)+'</div>';
+    html+='<div class="jrn-ev-line"><span class="jrn-who">'+journeyEsc(name)+'</span><span class="jrn-quote">'+journeyEsc(line)+'</span></div>';
+  });
   return html;
 }
 // 互动按钮
@@ -1347,7 +1753,20 @@ function journeyInteractionButtons(ev,who){
   }).join('');
 }
 // 事件卡正文：场景 + 梦角动作 + 梦角台词
+// 环境事件：scene → 梦角反应 → 梦角台词 → 今日回忆（无选择）
 function journeyEventSceneHtml(ev,cname){
+  if(journeyEventType(ev)==='ambient'){
+    var esc=JourneyEventManager.render(ev.scene||'',cname);
+    var a=JourneyEventManager.render(ev.companionAction||'',cname);
+    var l=JourneyEventManager.render(ev.companionLine||'',cname);
+    var m=JourneyEventManager.render(ev.memory||'',cname);
+    var html='';
+    if(esc)html+='<div class="jrn-ev-scene">'+journeyEsc(esc)+'</div>';
+    if(a)html+='<div class="jrn-ev-action">'+journeyEsc(a)+'</div>';
+    if(l)html+='<div class="jrn-ev-line"><span class="jrn-who">'+journeyEsc(cname)+'</span><span class="jrn-quote">'+journeyEsc(l)+'</span></div>';
+    if(m)html+='<div class="jrn-ev-memory">🌿 <span>'+journeyEsc(m)+'</span></div>';
+    return html;
+  }
   var scene=JourneyEventManager.render(ev.scene||'',cname);   // ★ 修复：scene 含 {name} 占位符（梦角主动/剧情链），需替换
   var action=JourneyEventManager.render(ev.companionAction||'',cname);
   var line=JourneyEventManager.render(ev.companionLine||'',cname);
@@ -1361,10 +1780,16 @@ function journeyEventSceneHtml(ev,cname){
 function journeyResultHtml(pAction,result,out,cname,ev){
   var reply=JourneyEventManager.render(out.companionReply||'',cname);
   var memory=JourneyEventManager.render(out.memory||'',cname);
+  if(ev&&(ev._pool==='multi'||ev._pool==='banter')){
+    pAction=journeyRenderMulti(pAction,ev);
+    result=journeyRenderMulti(result,ev);
+    reply=journeyRenderMulti(reply,ev);
+    memory=journeyRenderMulti(memory,ev);
+  }
   var html='';
   html+='<div class="jrn-ev-scene">'+journeyEsc(pAction)+'，'+journeyEsc(result)+'</div>';
   if(reply)html+='<div class="jrn-ev-line"><span class="jrn-who">'+journeyEsc(cname)+'</span><span class="jrn-quote">'+journeyEsc(reply)+'</span></div>';
-  if(memory)html+='<div class="jrn-ev-memory">💭 <span>'+journeyEsc(memory)+'</span><div style="font-size:11px;color:#b0a090;margin-top:3px;">这段经历，被记进了手账。</div></div>';
+  if(memory)html+='<div class="jrn-ev-memory">'+(journeyIsRare(ev)?'🌟':'💭')+' <span>'+journeyEsc(memory)+'</span><div style="font-size:11px;color:#b0a090;margin-top:3px;">这段经历，被记进了手账。</div></div>';
   if(ev&&ev._story)html+='<div class="jrn-ev-gain">📖 剧情进度：'+(ev._story.step+1)+' / '+ev._story.total+'</div>';
   // 互动动作事件：拍照 → 生成旅行照片（不是奖励）
   if(ev&&window._journeyTakePhoto){
@@ -1381,6 +1806,202 @@ function journeyPhoto(locLabel,caption){
   st.photos.push(photo);
   window._journeyTakePhoto=photo;
   return photo;
+}
+// ==================== 小游戏引擎（真实可玩，纯 CSS/JS）====================
+// 第一层选项点击后：guess/coin 播放动画后判定；match/find 进入第二层操作界面；photo/price/rps/star 即时判定
+var _journeyMiniGame=null;   // 第二层交互状态 {ev,cb,kind,cards,flips,open,tries,hidden}
+// 小游戏选项按钮（替代互动按钮，全部走 journeyPick）
+function journeyMiniButtons(ev,who){
+  var fn=who==='companion'?'journeyCompanionReply':'journeyPick';
+  return (ev.choiceText||[]).map(function(t){
+    return '<button class="btn jrn-choice" onclick="'+fn+'(\''+String(t).replace(/'/g,"\\'")+'\')" style="background:var(--accent);">'+journeyEsc(t)+'</button>';
+  }).join('');
+}
+// 小游戏主入口：选项 → 动画/第二层 → 判定 → 回调结果
+function journeyMiniPlay(ev,choice,st,cb){
+  var cname=window._journeyHero||'TA';
+  var pAction=ev.actions&&ev.actions[choice]?ev.actions[choice]:('你选了'+choice);
+  var done=function(win,extra){
+    var out={
+      result:(extra&&extra.resultText)||(win?'成功了':'没成功'),
+      companionReply:ev[win?'winReply':'loseReply']||'',
+      memory:ev[win?'winMemory':'loseMemory']||'',
+      stars:(ev[win?'winStars':'loseStars'])||0,
+      souvenir:(ev[win?'winSouvenir':'loseSouvenir'])||''
+    };
+    var rec='🎮 小游戏「'+ev.title+'」：'+pAction+(win?'，成功啦':'，这次差一点');
+    if(extra&&extra.photo)rec+=' 📷 收进旅行照片';
+    cb(out,{pAction:pAction,record:rec,rare:false,photo:(extra&&extra.photo)||null});
+  };
+  if(ev.game==='match'||ev.game==='find'){journeyMiniBuildScene(ev,cname,done);return;}
+  if(ev.game==='guess'){
+    journeyMiniGuess(ev,cname,done);
+    return;
+  }
+  if(ev.game==='coin'){
+    journeyMiniCoin(ev,cname,choice,done);
+    return;
+  }
+  if(ev.game==='photo'){
+    var cap='在旅途中的一刻';
+    if(choice==='拍风景')cap='金色的风景';
+    else if(choice==='拍'+cname)cap=cname+'的侧脸';
+    else if(choice==='一起合照')cap='和'+cname+'的合照';
+    done(true,{photo:{emoji:'📷',caption:cap,loc:'旅途中'}});
+    return;
+  }
+  if(ev.game==='price'){
+    var real=[20,35,50][Math.floor(Math.random()*3)];
+    done(choice==String(real),{resultText:'摊主报价：'+real+' 元'});
+    return;
+  }
+  if(ev.game==='rps'){
+    var ta=['石头','剪刀','布'][Math.floor(Math.random()*3)];
+    var w=choice===ta?'平':( (choice==='石头'&&ta==='剪刀')||(choice==='剪刀'&&ta==='布')||(choice==='布'&&ta==='石头') );
+    if(w==='平')done(Math.random()<0.5,{resultText:cname+'也出了'+ta+'，平手再来一次'});
+    else done(w==='真',{resultText:cname+'出了'+ta});
+    return;
+  }
+  if(ev.game==='star'){
+    var ok=(choice==='数到十'?0.7:(choice==='数到二十'?0.5:0.5));
+    done(Math.random()<ok,{});
+    return;
+  }
+  done(Math.random()<0.5,{});
+}
+// 猜左右手：两只手按钮，点击后判定
+function journeyMiniGuess(ev,cname,done){
+  var hand=Math.random()<0.5?'左手':'右手';
+  var html='<div class="mini-g">';
+  html+='<div style="font-size:40px;text-align:center;margin:6px 0;">✊ ✊</div>';
+  html+='<div style="font-size:12px;color:#8a6a3a;text-align:center;margin-bottom:10px;">'+cname+'把两只手藏在背后，又伸了出来——猜猜哪只手里有东西？</div>';
+  ['左手','右手'].forEach(function(h){
+    html+='<button class="btn jrn-choice" onclick="journeyMiniGuessPick(\''+h+'\',\''+hand+'\')" style="background:var(--accent);margin:4px;">'+h+'</button>';
+  });
+  fillJourneyOverlay('🎮 '+ev.title,html,'');
+  window._miniGuessDone=done;window._miniGuessEv=ev;
+}
+function journeyMiniGuessPick(chosen,hand){
+  var win=chosen===hand;
+  var ev=window._miniGuessEv;
+  var done=window._miniGuessDone;
+  var cname=window._journeyHero||'TA';
+  var pAction=ev.actions&&ev.actions[chosen]?ev.actions[chosen]:('你指了指'+chosen);
+  // 摊手动画
+  fillJourneyOverlay('🎮 '+ev.title,
+    '<div class="mini-g" style="text-align:center;">'+
+    '<div style="font-size:46px;margin:8px 0;">'+(win?'👏 ✋':'🤷 🤚')+'</div>'+
+    '<div style="font-size:14px;color:#5a4a3a;">'+cname+'摊开'+hand+'——'+(win?'里面有东西！':'是空的。')+'</div>'+
+    '</div>','');
+  setTimeout(function(){done(win,{resultText:(win?'你猜中了'+hand:'猜的是'+chosen+'，实际在'+hand)});},1100);
+}
+// 抛硬币：翻转动画后判定
+function journeyMiniCoin(ev,cname,choice,done){
+  var face=Math.random()<0.5?'正面':'反面';
+  var win=choice===face;
+  fillJourneyOverlay('🎮 '+ev.title,
+    '<div class="mini-g" style="text-align:center;">'+
+    '<div class="mini-coin">🪙</div>'+
+    '<div style="font-size:13px;color:#8a6a3a;margin-top:12px;">硬币在空中转了几圈……</div>'+
+    '</div>','');
+  setTimeout(function(){
+    fillJourneyOverlay('🎮 '+ev.title,
+      '<div class="mini-g" style="text-align:center;">'+
+      '<div class="mini-coin mini-coin-face">'+face+'</div>'+
+      '<div style="font-size:14px;color:#5a4a3a;margin-top:10px;">落下来了：'+face+'</div>'+
+      '</div>','');
+    setTimeout(function(){done(win,{resultText:'硬币落地：'+face});},900);
+  },1300);
+}
+// 翻牌配对（第二层）：6 张卡，3 对图案
+function journeyMiniBuildScene(ev,cname,done){
+  _journeyMiniGame={ev:ev,cb:done,kind:ev.game,flips:0,open:[],tries:0};
+  if(ev.game==='match'){
+    var pats=['🌸','🌙','⭐'];
+    var deck=pats.concat(pats);
+    for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=deck[i];deck[i]=deck[j];deck[j]=t;}
+    _journeyMiniGame.cards=deck.map(function(p){return {p:p,flip:false};});
+    journeyMiniMatchRender(false);
+  }else{
+    _journeyMiniGame.hidden=Math.floor(Math.random()*6);
+    journeyMiniFindRender(false);
+  }
+}
+// 翻牌界面
+function journeyMiniMatchRender(doneMsg){
+  var g=_journeyMiniGame;if(!g)return;
+  var ev=g.ev;var cname=window._journeyHero||'TA';
+  var html='<div style="font-size:13px;color:#8a6a3a;margin-bottom:8px;">'+cname+'说：翻两张，翻到一样的就算你们赢。你已经翻了 '+g.flips+' 张。</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
+  g.cards.forEach(function(cd,idx){
+    var inner=cd.flip?('<div style="width:100%;height:64px;border-radius:10px;background:#fffdf8;border:1px solid rgba(181,138,74,0.4);display:flex;align-items:center;justify-content:center;font-size:26px;transform:rotateY(0deg);transition:transform .3s;">'+cd.p+'</div>')
+      :'<div style="width:100%;height:64px;border-radius:10px;background:linear-gradient(135deg,#e8d4b8,#d8c4e8);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;" onclick="journeyMiniMatchFlip('+idx+')">✨</div>';
+    html+='<div style="perspective:400px;">'+inner+'</div>';
+  });
+  html+='</div>';
+  if(doneMsg)html+='<div style="font-size:13px;color:#5a4a3a;margin-top:8px;text-align:center;">'+doneMsg+'</div>';
+  fillJourneyOverlay('🎮 '+ev.title,html,'<button class="btn jrn-choice" onclick="journeyMiniMatchCheck()" style="background:var(--accent);">确认配对</button>');
+}
+function journeyMiniMatchFlip(idx){
+  var g=_journeyMiniGame;if(!g||g.kind!=='match')return;
+  if(g.cards[idx].flip||g.open.length>=2)return;
+  g.cards[idx].flip=true;g.open.push(idx);g.flips++;
+  journeyMiniMatchRender(false);
+}
+function journeyMiniMatchCheck(){
+  var g=_journeyMiniGame;if(!g||g.kind!=='match'||g.open.length<2)return;
+  var a=g.cards[g.open[0]],b=g.cards[g.open[1]];
+  var win=a.p===b.p;
+  var ev=g.ev;var cb=g.cb;
+  var msg=win?'配对了！两张都是 '+a.p:'没配上……'+cname+'安慰你：「没事，再来一次。」';
+  journeyMiniMatchRender(msg);
+  g.cards.forEach(function(cd){cd.flip=true;});
+  setTimeout(function(){
+    var winFinal=win;
+    g.cb(winFinal,{resultText:msg});
+    _journeyMiniGame=null;
+  },1200);
+}
+// 找东西界面（6 格藏 1 物，2 次机会）
+function journeyMiniFindRender(doneMsg){
+  var g=_journeyMiniGame;if(!g||g.kind!=='find')return;
+  var ev=g.ev;var cname=window._journeyHero||'TA';
+  var html='<div style="font-size:13px;color:#8a6a3a;margin-bottom:8px;">'+cname+'说：这个场景里藏着一枚蓝色贝壳，你有 2 次机会（已用 '+g.tries+' 次）。</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
+  for(var i=0;i<6;i++){
+    var is=g.reveal===i;
+    var found=g.found===i;
+    var content=found?'🐚':(is?'✨':'');
+    html+='<div onclick="journeyMiniFindPick('+i+')" style="height:56px;border-radius:10px;background:'+(found||is?'#fffdf8':'#f5efe4')+';border:1px solid rgba(181,138,74,0.35);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;">'+content+'</div>';
+  }
+  html+='</div>';
+  if(doneMsg)html+='<div style="font-size:13px;color:#5a4a3a;margin-top:8px;text-align:center;">'+doneMsg+'</div>';
+  fillJourneyOverlay('🎮 '+ev.title,html,'');
+}
+function journeyMiniFindPick(idx){
+  var g=_journeyMiniGame;if(!g||g.kind!=='find'||g.found!=null)return;
+  var ev=g.ev;var cname=window._journeyHero||'TA';
+  if(idx===g.hidden){g.found=idx;g.reveal=null;journeyMiniFindRender('你找到了！'+cname+'：「居然真的被你找到了。」');setTimeout(function(){g.cb(true,{resultText:'找到了隐藏的贝壳'});_journeyMiniGame=null;},1100);return;}
+  g.tries++;g.reveal=idx;
+  if(g.tries>=2){
+    g.reveal=g.hidden;
+    journeyMiniFindRender('没找到……'+cname+'指了指：「在那儿呢。」');
+    setTimeout(function(){g.cb(false,{resultText:'两次机会用完，贝壳藏在另一格'});_journeyMiniGame=null;},1200);
+    return;
+  }
+  journeyMiniFindRender('这里没有，还剩 1 次机会');
+}
+// 小游戏结果卡
+function journeyMiniResultHtml(ev,out,extra){
+  var cname=window._journeyHero||'TA';
+  var html='';
+  html+='<div class="jrn-ev-scene">'+journeyEsc(extra.pAction||'你完成了小游戏')+'，'+journeyEsc(out.result)+'</div>';
+  if(out.companionReply)html+='<div class="jrn-ev-line"><span class="jrn-who">'+journeyEsc(cname)+'</span><span class="jrn-quote">'+journeyEsc(out.companionReply)+'</span></div>';
+  if(out.memory)html+='<div class="jrn-ev-memory">🎮 <span>'+journeyEsc(out.memory)+'</span><div style="font-size:11px;color:#b0a090;margin-top:3px;">这段经历，被记进了手账。</div></div>';
+  if(extra&&extra.photo){
+    html+='<div class="jrn-photo">'+extra.photo.emoji+'<div class="jrn-photo-cap">旅行照片 · '+journeyEsc(extra.photo.caption)+'</div></div>';
+  }
+  return html;
 }
 // 剧情推进：完成/继续当前链
 function journeyStoryAdvance(ev){
@@ -1461,12 +2082,26 @@ function journeyCompanionMove(dice){
   var title='';
   if(ev._story)title=journeyStoryTitle(ev);
   else if(ev._pool==='companion')title=cm.name+' 叫住了你';
+  else if(ev._pool==='multi')title='👥 '+ev.title;
+  else if(ev._pool==='banter')title='💬 '+ev.title;
   else title=ev.title||'TA 的发现';
+  if(journeyIsRare(ev)&&title.indexOf('✨')<0)title='✨ '+title;
+  // 小游戏/环境事件：无论谁移动，实际互动方都是玩家 → who='me'
+  var gameWho=(journeyEventType(ev)==='minigame'||journeyEventType(ev)==='ambient')?'me':'companion';
+  // 环境事件：无选择，CTA 直接"继续"
+  if(journeyEventType(ev)==='ambient'){
+    journeyShowEvent('💬 '+cm.name+' 的发现',
+      '<div class="jrn-ev-move">'+journeyEsc(moveLine)+'</div>'+
+      journeyEventCardHtml(ev,cm.name,title),
+      '<button class="btn jrn-choice" onclick="journeyAmbientConfirm()" style="background:var(--accent);">继续</button>',
+      'me');
+    return;
+  }
   journeyShowEvent('💬 '+cm.name+' 的发现',
     '<div class="jrn-ev-move">'+journeyEsc(moveLine)+'</div>'+
     journeyEventCardHtml(ev,cm.name,title),
-    journeyInteractionButtons(ev,'companion'),
-    'companion');
+    journeyInteractionButtons(ev,gameWho),
+    gameWho);
 }
 // 玩家选择参与方式：共同经历结果 → 事件记忆 → 展示结果卡（等待确认继续）
 function journeyCompanionReply(interactionName){
@@ -1476,7 +2111,8 @@ function journeyCompanionReply(interactionName){
   if(!cc)return;
   var ev=cc.ev;
   var out=JourneyEventManager.resolve(ev,interactionName);
-  var cname=cc.name;
+  // 多人/插曲：回应的主角用第一位同行梦角
+  var cname=(ev._pool==='multi'||ev._pool==='banter')?journeyMultiNames(ev).m0:cc.name;
   if(out.stars)st.stars+=out.stars;
   if(out.souvenir)st.souvenirs.push(out.souvenir);
   var it=null;
@@ -1484,7 +2120,10 @@ function journeyCompanionReply(interactionName){
   var pAction=it&&it.playerAction?JourneyEventManager.render(it.playerAction,cname):'你'+interactionName;
   var result=JourneyEventManager.render(out.result||'',cname);
   var memory=JourneyEventManager.render(out.memory||'',cname);
-  if(memory)st.memories.push(memory);
+  if(memory){
+    if(journeyIsRare(ev))st.rareMemories.push(memory);
+    else st.memories.push(memory);
+  }
   // 互动动作事件：拍照 → 生成旅行照片（不是奖励，是一段记录）
   var photo=null;
   if(interactionName.indexOf('拍')>=0)photo=journeyPhoto(cc.cell&&cc.cell.label,ev.title+'的一刻');
@@ -1492,6 +2131,18 @@ function journeyCompanionReply(interactionName){
   if(ev._story)journeyStoryAdvance(ev);
   journeyRecord('你和'+cname+'一起经历：'+pAction+'，'+result+(photo?' 📷 收进旅行照片':(out.souvenir?' 🎁 '+out.souvenir:''))+(out.stars?' ⭐ +'+out.stars:''));
   window._journeyCompanion=null;
+  // 多阶段事件：第一阶段结束后进入第二阶段事件卡（who='me'，第二阶段由玩家主导）
+  var ph2=journeyStageNext(ev);
+  if(ph2&&ph2.interactions){
+    var p2=journeyCopyEvent(ph2,'phases');
+    p2.title=ev.title+' · '+journeyStageInfo(ph2,2,2);
+    window._journeyEvent=p2;
+    journeyShowEvent(ev.title+' · '+journeyStageInfo(ph2,2,2),
+      journeyEventCardHtml(p2,cname,p2.title),
+      journeyInteractionButtons(p2,'me'),
+      'me',journeyStageInfo(ph2,2,2));
+    return;
+  }
   // 阶段二结果卡：玩家动作 → 结果 → 梦角回应 → 事件记忆（+ 旅行照片 / 剧情进度）
   journeyShowResult(journeyResultHtml(pAction,result,out,cname,ev),
     'companion');
@@ -1499,11 +2150,13 @@ function journeyCompanionReply(interactionName){
 
 // ==================== 事件卡（统一生命周期：出现→选择→结果→确认→下一回合）====================
 // 阶段一：事件卡出现（phase: idle→event，等待玩家选择）
-function journeyShowEvent(title,bodyHtml,ctaHtml,who){
+// 多阶段事件：第一阶段选择后不直接结束，进入 phases 第二阶段事件卡（事件标题后加进度）
+function journeyShowEvent(title,bodyHtml,ctaHtml,who,phaseBar){
   var st=journeyState;if(!st)return;
   if(st.phase!=='idle')return;                     // 非空闲禁止弹新事件卡
   st.phase='event';                                // 锁定：事件显示期间禁止一切自动逻辑
   window._journeyPendingWho=who||'me';
+  if(phaseBar)bodyHtml='<div class="jrn-phase-bar">'+phaseBar+'</div>'+bodyHtml;
   fillJourneyOverlay(title,bodyHtml,ctaHtml);
   showOv('ov-journey-event');
 }
@@ -1538,11 +2191,29 @@ function journeyConfirm(){
 function journeySkipEvent(){
   var st=journeyState;if(!st||st.finished)return;
   if(st.phase==='event'){
+    // 小游戏第二层（翻牌/找东西）：代玩家完成判定
+    if(_journeyMiniGame){
+      var gm=_journeyMiniGame;
+      if(gm.kind==='match'){
+        var idxs=[];
+        gm.cards.forEach(function(cd,i){if(!cd.flip&&idxs.length<2)idxs.push(i);});
+        idxs.forEach(function(i){journeyMiniMatchFlip(i);});
+        setTimeout(function(){journeyMiniMatchCheck();},400);
+      }else if(gm.kind==='find'){
+        journeyMiniFindPick(gm.hidden);
+      }
+      return;
+    }
     var ev=window._journeyEvent||(window._journeyCompanion&&window._journeyCompanion.ev);
+    if(ev&&journeyEventType(ev)==='ambient'){journeyAmbientConfirm();return;}
     if(ev&&ev.interactions&&ev.interactions.length){
       var it=ev.interactions[Math.floor(Math.random()*ev.interactions.length)];
       if(window._journeyEvent)journeyPick(it.name);
       else journeyCompanionReply(it.name);
+    }else if(ev&&ev.choiceText&&ev.choiceText.length){
+      var ct=ev.choiceText[Math.floor(Math.random()*ev.choiceText.length)];
+      if(window._journeyEvent)journeyPick(ct);
+      else journeyCompanionReply(ct);
     }
   }else if(st.phase==='result'){
     journeyConfirm();
@@ -1564,6 +2235,9 @@ function journeyFinish(){
     stars:st.stars,
     souvenirs:st.souvenirs.slice(),
     memories:st.memories.slice(),
+    rareMemories:st.rareMemories.slice(),
+    ambientRecords:st.ambientRecords.slice(),
+    miniRecords:st.miniRecords.slice(),
     photos:st.photos.slice(),
     visited:st.visited.slice(),
     records:st.records.slice(),
@@ -1602,6 +2276,27 @@ function renderJourneyJournal(j){
     html+='<div class="jrn-card">';
     html+='<div class="jrn-card-label">旅行照片</div>';
     html+='<div class="jrn-photos">'+j.photos.map(function(p){return '<div class="jrn-photo-item">'+p.emoji+'<div class="jrn-photo-cap">'+journeyEsc(p.caption)+'</div></div>';}).join('')+'</div>';
+    html+='</div>';
+  }
+  // 稀有经历区（金色）
+  if(j.rareMemories&&j.rareMemories.length){
+    html+='<div class="jrn-card jrn-rare-card">';
+    html+='<div class="jrn-card-label" style="color:#a67c2e;">✨ 很少遇到的一刻</div>';
+    html+='<div class="jrn-records" style="margin-top:8px;">'+j.rareMemories.map(function(m){return '<div class="jrn-record jrn-record-rare">🌟 '+journeyEsc(m)+'</div>';}).join('')+'</div>';
+    html+='</div>';
+  }
+  // 小游戏区
+  if(j.miniRecords&&j.miniRecords.length){
+    html+='<div class="jrn-card">';
+    html+='<div class="jrn-card-label">🎮 一起玩过的小游戏</div>';
+    html+='<div class="jrn-records" style="margin-top:8px;">'+j.miniRecords.map(function(m){return '<div class="jrn-record">🎮 '+journeyEsc(m)+'</div>';}).join('')+'</div>';
+    html+='</div>';
+  }
+  // 旅途氛围区（环境小事）
+  if(j.ambientRecords&&j.ambientRecords.length){
+    html+='<div class="jrn-card">';
+    html+='<div class="jrn-card-label">🌿 路过的风景</div>';
+    html+='<div class="jrn-records" style="margin-top:8px;">'+j.ambientRecords.map(function(m){return '<div class="jrn-record" style="border-left-color:#7fb069;">🌿 '+journeyEsc(m)+'</div>';}).join('')+'</div>';
     html+='</div>';
   }
   // 事件记忆区

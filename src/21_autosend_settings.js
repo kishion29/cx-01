@@ -417,7 +417,14 @@ function scheduleAutoSendFor(targetId){
   try{
     if(_autoSendTimers[targetId]){clearTimeout(_autoSendTimers[targetId]);_autoSendTimers[targetId]=null;}
     var asEn=getSpeed('as-en');
-    if(asEn!==1){return;}
+    if(asEn!==1){
+      // ★ 修复：开关关闭时仍保持短间隔探测，保证之后打开开关无需刷新即可恢复主动发送调度
+      _autoSendTimers[targetId]=setTimeout(function(){
+        _autoSendTimers[targetId]=null;
+        scheduleAutoSendFor(targetId);
+      },30000);
+      return;
+    }
     var dndEn=getSpeed('dnd-en');
     var asMin=getSpeed('as-min'),asMax=getSpeed('as-max')*60;
     if(dndEn===1){asMin=1;asMax=10800;}
@@ -437,8 +444,18 @@ function scheduleAutoSendFor(targetId){
     },delay);
   }catch(e){console.warn('scheduleAutoSendFor error:',e);}
 }
+var _autoSendScheduleRetry=0;
 function initAutoSendSchedule(){
   var cs=contacts.filter(function(x){return x.id!=='fh'});
+  if(!cs.length){
+    // ★ 修复：联系人未就绪时延迟重试，避免慢设备/大库场景下链式调度永久丢失
+    _autoSendScheduleRetry++;
+    if(_autoSendScheduleRetry<=10){
+      setTimeout(initAutoSendSchedule,5000);
+    }
+    return;
+  }
+  _autoSendScheduleRetry=0;
   cs.forEach(function(c){scheduleAutoSendFor(c.id);});
 }
 function maybeAutoSendOne(targetId){

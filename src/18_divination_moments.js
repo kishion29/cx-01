@@ -958,12 +958,12 @@ function _doScheduleFriendMoments(){
       saveMomentsData();
       addMomentsNotification('post',postId,c.id,content);
       
-      // 在联系人聊天中显示朋友圈通知
+      // 在联系人聊天中显示星言动态通知
       var contactMsgs=msgs(c.id);
       contactMsgs.push({
         id:'m_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),
         s:OTHER,
-        t:(c.name||c.nickname||'联系人')+'发布了一条朋友圈',
+        t:(c.name||c.nickname||'联系人')+'发布了一条星言动态',
         ts:new Date(),
         read:(c.id===window.currentCid),
         isSystem:true

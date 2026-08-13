@@ -480,6 +480,7 @@ if($('call-hangup-prob-slider'))$('call-hangup-prob-slider').addEventListener('i
   $('call-hangup-prob-input').value=this.value;
 });
 if($('save-call-settings')){$('save-call-settings').addEventListener('click',function(){saveCallSettings();hideOv('ov-call-settings');toast('设置已保存')});$('save-call-settings').addEventListener('touchend',function(e){e.preventDefault();saveCallSettings();hideOv('ov-call-settings');toast('设置已保存')});}
+if($('apply-call-settings-all')){$('apply-call-settings-all').addEventListener('click',function(){applyCallSettingsToAllContacts()});$('apply-call-settings-all').addEventListener('touchend',function(e){e.preventDefault();applyCallSettingsToAllContacts()});}
 $('initiate-call-btn')&&($('initiate-call-btn').addEventListener('click',initiateCall),$('initiate-call-btn').addEventListener('touchend',function(e){e.preventDefault();initiateCall()}));
 $('call-end-btn')&&($('call-end-btn').addEventListener('click',function(){userEndCall()}),$('call-end-btn').addEventListener('touchend',function(e){e.preventDefault();userEndCall()}));
 $('call-answer-btn')&&($('call-answer-btn').addEventListener('click',function(){
@@ -661,11 +662,36 @@ async function loadTouchCardsFromIndexedDB(){
 }
 
 // ---------- Overlays ----------
-function showOv(id){var el=$(id);if(!el)return;el.classList.add('show');if(el.querySelector('.sheet')&&!el.classList.contains('center-overlay'))el.classList.add('sheet-overlay')}function hideOv(id){
+function showOv(id){var el=$(id);if(!el)return;el.classList.add('show');if(el.querySelector('.sheet')&&!el.classList.contains('center-overlay'))el.classList.add('sheet-overlay');attachSheetFullscreen(id)}function hideOv(id){
   if(id==='ov-contact-profile'){removeProfileSwipeBack();}
   var el=$(id);if(!el)return;requestAnimationFrame(function(){el.classList.remove('show');el.classList.remove('sheet-overlay')})
 }
-['ov-add','ov-edit','ov-speed','ov-letter-settings','ov-chat-more','ov-emoji','ov-decision','ov-group-decision','ov-divine','ov-divine-history','ov-moments-publish','ov-contact-touch','ov-search-chat','ov-beautify','ov-call','ov-call-settings','ov-contact-letter','ov-contact-letter-detail','ov-group-settings','ov-add-group-member','ov-survey','ov-survey-batch','ov-survey-detail','ov-contact-chatbar','ov-ta-favorites-settings','ov-copy-msg','ov-group-contact-filter','ov-pomodoro','ov-pomodoro-settings','ov-redpacket-balance','ov-redpacket-opened','ov-redpacket','ov-gift-send','ov-gift-detail','ov-gift-view','ov-giftbox','ov-journey-records','ov-read-scene-cards','ov-read-video-cards','ov-read-video-settings','ov-read-video-summary'].forEach(function(id){
+// ★ 半屏 sheet 弹窗自动附加「全屏」按钮（右上角 × 左边）：更多功能面板里的小功能弹窗全部生效
+function attachSheetFullscreen(id){
+  try{
+    var ov=$(id);if(!ov)return;
+    var sheet=ov.querySelector('.sheet');if(!sheet)return;
+    if(ov.classList.contains('center-overlay'))return; // 居中弹窗（红包等）不加
+    if(sheet.__fsAttached)return;
+    var sh=sheet.querySelector('.sh');if(!sh)return;
+    var close=sh.querySelector('.btn-close');if(!close)return;
+    // 本身已是全屏的弹窗（如 TA日常字卡库管理）跳过
+    if(sheet.style.maxWidth==='100vw'||sheet.style.width==='100vw')return;
+    sheet.__fsAttached=true;
+    var btn=document.createElement('button');
+    btn.type='button';
+    btn.className='sheet-fs-btn';
+    btn.title='全屏 / 还原';
+    btn.innerHTML='⛶';
+    btn.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      sheet.classList.toggle('sheet-fullscreen');
+      btn.classList.toggle('on');
+    });
+    sh.insertBefore(btn,close);
+  }catch(e){console.warn('attachSheetFullscreen:',e);}
+}
+['ov-add','ov-edit','ov-speed','ov-letter-settings','ov-chat-more','ov-emoji','ov-decision','ov-group-decision','ov-divine','ov-divine-history','ov-moments-publish','ov-contact-touch','ov-search-chat','ov-beautify','ov-call','ov-call-settings','ov-contact-letter','ov-contact-letter-detail','ov-group-settings','ov-add-group-member','ov-survey','ov-survey-batch','ov-survey-detail','ov-contact-chatbar','ov-ta-favorites-settings','ov-copy-msg','ov-group-contact-filter','ov-pomodoro','ov-pomodoro-settings','ov-redpacket-balance','ov-redpacket-opened','ov-redpacket','ov-gift-send','ov-gift-detail','ov-gift-view','ov-giftbox','ov-journey-records','ov-read-scene-cards','ov-read-video-cards','ov-read-video-settings','ov-read-video-summary','ov-ta-choose-manage','ov-ta-choose-favs','ov-ta-choose-history','ov-ta-curious-manage','ov-ta-curious-history','ov-ta-curious-known','ov-ta-roast-manage','ov-ta-roast-history','ov-ta-ai-usage'].forEach(function(id){
   var el=$(id);
   if(el){
     el.addEventListener('click',function(e){if(e.target===this)hideOv(id)});

@@ -30,6 +30,17 @@ function renderEmojiPanel(tab){
       return c.type === 'private' && c.category === 'stickers' && c.contactId === cid;
     });
   }
+  // ★ 修复：按内容去重，防止存量重复数据（如 milk 导入翻倍）导致显示数量与实际不符
+  // 注意：引用形态（ml2_card_img_<id>）与 base64 视为同一内容，只渲染一份
+  var _seenSticker={};
+  stickers=stickers.filter(function(s){
+    if(!s||!s.content)return true;
+    var _k=s.content;
+    if(_k.startsWith('ml2_card_img_')&&typeof memoryCache!=='undefined'&&memoryCache['_img_'+_k])_k=memoryCache['_img_'+_k];
+    if(_seenSticker[_k])return false;
+    _seenSticker[_k]=true;
+    return true;
+  });
 
   // 底部按钮 - 仅在批量模式下显示
   var bottomBtns=$('emoji-bottom-btns');
