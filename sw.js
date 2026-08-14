@@ -1,7 +1,7 @@
 // 星言 Service Worker - 离线缓存支持
 // ★ 版本号随应用更新：每次部署改这里（与 27_pwa.js 的 APP_VERSION 对应），
 // 强制浏览器重新安装 SW 并清理旧缓存，避免一直用旧缓存导致 PWA 异常
-var CACHE_NAME = 'xingyan-v1.8';
+var CACHE_NAME = 'xingyan-v1.7.6';
 var CORE_ASSETS = [
   './',
   './index.html',
@@ -44,47 +44,58 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-// 请求拦截: 缓存优先,网络回退
+// 请求拦截: 导航请求网络优先(在线必用最新版), 其余同源资源缓存优先
 self.addEventListener('fetch', function(event) {
   var request = event.request;
   // 仅处理 GET 请求
   if (request.method !== 'GET') return;
 
   var url = new URL(request.url);
-  // 同源请求: 缓存优先
-  if (url.origin === self.location.origin) {
+  // 跨域请求: 直接走网络
+  if (url.origin !== self.location.origin) return;
+
+  // ★ 导航请求(打开/刷新页面): 网络优先
+  // 在线时总是返回服务器最新 HTML，避免一直用旧缓存导致"不同设备版本不一致"；
+  // 只有离线时才回退本地缓存
+  if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match(request).then(function(cached) {
-        if (cached) {
-          // 后台更新缓存
-          fetch(request).then(function(resp) {
-            if (resp && resp.status === 200) {
-              caches.open(CACHE_NAME).then(function(cache) {
-                cache.put(request, resp.clone());
-              });
-            }
-          }).catch(function() {});
-          return cached;
-        }
-        // 无缓存: 从网络获取
-        return fetch(request).then(function(resp) {
-          if (resp && resp.status === 200 && resp.type === 'basic') {
-            var clone = resp.clone();
-            caches.open(CACHE_NAME).then(function(cache) {
-              cache.put(request, clone);
-            });
-          }
-          return resp;
-        }).catch(function() {
-          // 离线且无缓存: 返回主页
-          if (request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
+      fetch(request).catch(function() {
+        return caches.match(request, { ignoreSearch: true }).then(function(r) {
+          return r || caches.match('./index.html');
         });
       })
     );
+    return;
   }
-  // 跨域请求: 直接走网络
+
+  // 其余同源请求: 缓存优先, 后台更新
+  event.respondWith(
+    caches.match(request).then(function(cached) {
+      if (cached) {
+        // 后台更新缓存
+        fetch(request).then(function(resp) {
+          if (resp && resp.status === 200) {
+            caches.open(CACHE_NAME).then(function(cache) {
+              cache.put(request, resp.clone());
+            });
+          }
+        }).catch(function() {});
+        return cached;
+      }
+      // 无缓存: 从网络获取
+      return fetch(request).then(function(resp) {
+        if (resp && resp.status === 200 && resp.type === 'basic') {
+          var clone = resp.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(request, clone);
+          });
+        }
+        return resp;
+      }).catch(function() {
+        // 非导航请求离线且无缓存: 直接失败(导航已由上面分支兜底)
+      });
+    })
+  );
 });
 
 // 消息: 接收前端刷新指令 + 通知显示
